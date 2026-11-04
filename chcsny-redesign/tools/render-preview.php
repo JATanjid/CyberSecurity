@@ -70,12 +70,15 @@ function get_footer() { include $GLOBALS['theme'] . '/footer.php'; }
 function get_search_form() { include $GLOBALS['theme'] . '/searchform.php'; }
 function get_template_part( $slug, $name = null, $args = array() ) { include $GLOBALS['theme'] . '/' . $slug . '.php'; }
 function wp_head() {
-	echo '<title>' . esc_html( $GLOBALS['__title'] ) . ' – Complete Home Care Services</title>' . "\n";
+	echo '<title>' . esc_html( $GLOBALS['__title'] ) . ' – Complete Home Care Services (Design Preview)</title>' . "\n";
+	echo '<meta name="robots" content="noindex, nofollow">' . "\n";
 	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap">' . "\n";
 	echo '<link rel="stylesheet" href="assets-root/assets/css/main.css">' . "\n";
 }
 function wp_footer() { echo '<script src="assets-root/assets/js/main.js"></script>'; }
-function wp_body_open() {}
+function wp_body_open() {
+	echo '<div style="background:#fff4d6;color:#5c4400;text-align:center;font:600 14px/1.4 system-ui,sans-serif;padding:8px 16px;border-bottom:1px solid #f0d58a">Design preview of a proposed redesign — not the official CHCS website. Forms are disabled. Official site: <a href="https://chcsny.com/" style="color:#5c4400">chcsny.com</a></div>';
+}
 function body_class() { echo 'class="preview"'; }
 function post_class( $c = '' ) { echo 'class="' . esc_attr( $c ) . '"'; }
 function wp_nav_menu( $a ) { if ( ! empty( $a['fallback_cb'] ) ) call_user_func( $a['fallback_cb'] ); }
