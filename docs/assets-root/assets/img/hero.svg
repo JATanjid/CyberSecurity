@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Illustration of a caregiver supporting a patient at home">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dff1ef"/><stop offset=".55" stop-color="#a9d8d4"/><stop offset="1" stop-color="#2f8a90"/></linearGradient>
+    <linearGradient id="win" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff8e8"/><stop offset="1" stop-color="#ffe3b8"/></linearGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#bg)"/>
+  <circle cx="640" cy="170" r="110" fill="#fff" opacity=".35"/>
+  <!-- window -->
+  <rect x="90" y="150" width="270" height="330" rx="18" fill="url(#win)" opacity=".9"/>
+  <path d="M225 150v330M90 315h270" stroke="#e9c78f" stroke-width="10"/>
+  <!-- plant -->
+  <rect x="560" y="640" width="90" height="110" rx="14" fill="#e8664c"/>
+  <path d="M605 640c-40-60-60-120-20-170 20 50 40 100 20 170zM605 640c30-70 80-110 120-110-20 50-60 90-120 110zM605 640c-40-40-100-50-130-30 40 30 80 40 130 30z" fill="#0f7c80"/>
+  <!-- sofa -->
+  <rect x="70" y="700" width="520" height="150" rx="40" fill="#0f2a44"/>
+  <rect x="100" y="640" width="460" height="110" rx="34" fill="#173b5e"/>
+  <rect x="80" y="850" width="24" height="60" rx="8" fill="#0f2a44"/>
+  <rect x="556" y="850" width="24" height="60" rx="8" fill="#0f2a44"/>
+  <!-- patient (seated) -->
+  <circle cx="230" cy="510" r="58" fill="#8a5a44"/>
+  <path d="M176 495c6-48 46-74 92-64 30 8 46 32 44 58-30-26-80-26-136 6z" fill="#e9e4dc"/>
+  <path d="M150 720c0-90 36-150 80-150s84 60 84 150z" fill="#f2b8a2"/>
+  <rect x="150" y="700" width="210" height="70" rx="30" fill="#c8705c"/>
+  <!-- nurse (standing) -->
+  <circle cx="440" cy="400" r="62" fill="#5b3a2b"/>
+  <path d="M378 392c0-50 30-82 70-82 44 0 68 34 64 78-20-30-60-42-134 4z" fill="#1d2733"/>
+  <path d="M360 760V560c0-56 36-96 80-96s80 40 80 96v200z" fill="#ffffff"/>
+  <path d="M400 470l40 50 40-50" fill="none" stroke="#0f7c80" stroke-width="14" stroke-linejoin="round"/>
+  <rect x="360" y="740" width="160" height="150" rx="20" fill="#0f7c80"/>
+  <!-- arm reaching to patient -->
+  <path d="M372 590c-40 30-70 60-100 70" stroke="#5b3a2b" stroke-width="34" stroke-linecap="round" fill="none"/>
+  <circle cx="470" cy="600" r="20" fill="none" stroke="#0f2a44" stroke-width="6"/>
+  <path d="M470 580v-40" stroke="#0f2a44" stroke-width="6"/>
+  <!-- heart -->
+  <path d="M650 470c-14-26-56-20-56 10 0 26 56 58 56 58s56-32 56-58c0-30-42-36-56-10z" fill="#e8664c"/>
+</svg>

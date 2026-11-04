@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#0f2a44">
+	<title>Home – Complete Home Care Services</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap">
+<style>/* ==========================================================================
+   CHCS Care theme — main stylesheet
+   ========================================================================== */
+:root {
+  --navy: #0f2a44;
+  --navy-2: #173b5e;
+  --teal: #0f7c80;
+  --teal-2: #12a0a4;
+  --teal-soft: #e6f4f3;
+  --coral: #e8664c;
+  --coral-2: #d4523a;
+  --cream: #faf7f2;
+  --ink: #1d2733;
+  --muted: #5b6878;
+  --line: #e3e7ec;
+  --white: #ffffff;
+  --radius: 14px;
+  --radius-lg: 22px;
+  --shadow: 0 10px 30px rgba(15, 42, 68, .08);
+  --shadow-lg: 0 24px 60px rgba(15, 42, 68, .14);
+  --max: 1200px;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-head: "Fraunces", Georgia, "Times New Roman", serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--ink);
+  background: var(--white);
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--teal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--navy); }
+h1, h2, h3, h4 { font-family: var(--font-head); color: var(--navy); line-height: 1.15; margin: 0 0 .5em; font-weight: 600; letter-spacing: -.01em; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); }
+h2 { font-size: clamp(1.75rem, 3.4vw, 2.6rem); }
+h3 { font-size: 1.3rem; }
+p { margin: 0 0 1em; }
+:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; border-radius: 4px; }
+
+.container { width: 100%; max-width: var(--max); margin: 0 auto; padding: 0 20px; }
+.section { padding: 88px 0; }
+.section--tight { padding: 56px 0; }
+.section--cream { background: var(--cream); }
+.section--navy { background: var(--navy); color: #d8e3ee; }
+.section--navy h2, .section--navy h3 { color: var(--white); }
+.eyebrow {
+  display: inline-block; font-size: .8rem; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--teal); margin-bottom: 12px;
+}
+.section--navy .eyebrow { color: var(--teal-2); }
+.lead { font-size: 1.15rem; color: var(--muted); max-width: 640px; }
+.section-head { max-width: 720px; margin-bottom: 48px; }
+.section-head--center { text-align: center; margin-left: auto; margin-right: auto; }
+.section-head--center .lead { margin-left: auto; margin-right: auto; }
+.screen-reader-text, .sr-only {
+  position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(1px,1px,1px,1px); white-space: nowrap;
+}
+.skip-link { position: absolute; left: -9999px; top: 0; z-index: 999; background: var(--navy); color: #fff; padding: 10px 16px; }
+.skip-link:focus { left: 10px; top: 10px; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 26px; border-radius: 999px; font-weight: 600; font-size: 1rem;
+  text-decoration: none; border: 2px solid transparent; cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s, transform .2s;
+  font-family: var(--font-body); line-height: 1.2; white-space: nowrap;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn--primary { background: var(--coral); color: #fff; }
+.btn--primary:hover { background: var(--coral-2); color: #fff; }
+.btn--teal { background: var(--teal); color: #fff; }
+.btn--teal:hover { background: var(--navy); color: #fff; }
+.btn--ghost { border-color: currentColor; color: var(--navy); background: transparent; }
+.btn--ghost:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+.btn--light { background: #fff; color: var(--navy); }
+.btn--light:hover { background: var(--teal-soft); color: var(--navy); }
+.btn svg { width: 18px; height: 18px; }
+
+/* Top bar */
+.topbar { background: var(--navy); color: #c9d6e3; font-size: .875rem; }
+.topbar .container { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 8px; padding-bottom: 8px; flex-wrap: wrap; }
+.topbar a { color: #fff; text-decoration: none; }
+.topbar a:hover { text-decoration: underline; color: #fff; }
+.topbar__items { display: flex; gap: 22px; flex-wrap: wrap; align-items: center; }
+.topbar__items span { display: inline-flex; align-items: center; gap: 6px; }
+.topbar svg { width: 15px; height: 15px; opacity: .8; }
+
+/* Header */
+.site-header { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.site-header .container { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 78px; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--navy); }
+.brand__mark {
+  width: 46px; height: 46px; border-radius: 12px; background: linear-gradient(135deg, var(--teal), var(--navy));
+  display: grid; place-items: center; color: #fff; flex-shrink: 0;
+}
+.brand__mark svg { width: 26px; height: 26px; }
+.brand__text { display: flex; flex-direction: column; line-height: 1.1; }
+.brand__name { font-family: var(--font-head); font-weight: 700; font-size: 1.2rem; }
+.brand__tag { font-size: .72rem; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.custom-logo { max-height: 56px; width: auto; }
+
+.main-nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; align-items: center; }
+.main-nav li { position: relative; }
+.main-nav a { display: block; padding: 10px 14px; color: var(--ink); text-decoration: none; font-weight: 500; font-size: .97rem; border-radius: 8px; white-space: nowrap; }
+.main-nav a:hover, .main-nav .current-menu-item > a, .main-nav .current_page_item > a { color: var(--teal); background: var(--teal-soft); }
+.main-nav .sub-menu {
+  display: none; position: absolute; top: 100%; left: 0; min-width: 220px; background: #fff;
+  border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 8px; flex-direction: column; align-items: stretch;
+}
+.main-nav li:hover > .sub-menu, .main-nav li:focus-within > .sub-menu { display: flex; }
+.header-cta { display: flex; align-items: center; gap: 10px; }
+.nav-toggle { display: none; background: none; border: 0; padding: 10px; cursor: pointer; color: var(--navy); }
+.nav-toggle svg { width: 28px; height: 28px; }
+
+/* Hero */
+.hero { position: relative; background: linear-gradient(180deg, var(--cream) 0%, #fff 100%); overflow: hidden; }
+.hero::before {
+  content: ""; position: absolute; right: -180px; top: -180px; width: 620px; height: 620px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(18,160,164,.16), transparent 65%);
+}
+.hero .container { position: relative; display: grid; grid-template-columns: 1.1fr .9fr; gap: 56px; align-items: center; padding-top: 80px; padding-bottom: 90px; }
+.hero h1 em { font-style: italic; color: var(--teal); }
+.hero .lead { margin-bottom: 30px; }
+.hero__actions { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 34px; }
+.hero__trust { display: flex; gap: 26px; flex-wrap: wrap; color: var(--muted); font-size: .92rem; }
+.hero__trust div { display: flex; align-items: center; gap: 8px; }
+.hero__trust svg { width: 20px; height: 20px; color: var(--teal); flex-shrink: 0; }
+.hero__visual { position: relative; }
+.hero__img {
+  border-radius: 28px; aspect-ratio: 4/5; width: 100%; object-fit: cover; box-shadow: var(--shadow-lg);
+  background: linear-gradient(160deg, #cfe9e7, #9ccfcd 45%, #2c7f86);
+}
+.hero__badge {
+  position: absolute; left: -28px; bottom: 36px; background: #fff; border-radius: 18px; padding: 16px 20px;
+  box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 14px; max-width: 280px;
+}
+.hero__badge .seal { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #f5c451, #c8901a); display: grid; place-items: center; color: #fff; flex-shrink: 0; }
+.hero__badge .seal svg { width: 28px; height: 28px; }
+.hero__badge strong { display: block; color: var(--navy); font-size: .98rem; line-height: 1.25; }
+.hero__badge small { color: var(--muted); font-size: .82rem; }
+.hero__badge--top { left: auto; right: -18px; top: 30px; bottom: auto; }
+.hero__badge--top .seal { background: linear-gradient(135deg, var(--teal-2), var(--teal)); }
+
+/* Stats strip */
+.stats { background: var(--navy); color: #fff; }
+.stats .container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding-top: 36px; padding-bottom: 36px; }
+.stat { text-align: center; }
+.stat strong { display: block; font-family: var(--font-head); font-size: 2.3rem; line-height: 1.1; color: #fff; }
+.stat span { color: #b9c9d9; font-size: .92rem; }
+
+/* Cards / services */
+.grid { display: grid; gap: 24px; }
+.grid--3 { grid-template-columns: repeat(3, 1fr); }
+.grid--2 { grid-template-columns: repeat(2, 1fr); }
+.grid--4 { grid-template-columns: repeat(4, 1fr); }
+.card {
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 32px;
+  transition: transform .25s, box-shadow .25s, border-color .25s; position: relative;
+}
+.card:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: transparent; }
+.card__icon { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; background: var(--teal-soft); color: var(--teal); margin-bottom: 20px; }
+.card__icon svg { width: 28px; height: 28px; }
+.card h3 { margin-bottom: 10px; }
+.card p { color: var(--muted); margin-bottom: 16px; }
+.card ul { margin: 0 0 16px; padding-left: 18px; color: var(--muted); font-size: .95rem; }
+.card__link { font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.card__link::after { content: "→"; transition: transform .2s; }
+.card:hover .card__link::after { transform: translateX(4px); }
+
+/* Steps */
+.steps { counter-reset: step; }
+.step { position: relative; padding: 28px 28px 28px 28px; background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--line); }
+.step::before {
+  counter-increment: step; content: counter(step); display: grid; place-items: center; width: 44px; height: 44px;
+  border-radius: 50%; background: var(--coral); color: #fff; font-weight: 700; margin-bottom: 18px; font-family: var(--font-head); font-size: 1.2rem;
+}
+.step p { color: var(--muted); margin: 0; }
+
+/* Split feature */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+.split__media { border-radius: 28px; aspect-ratio: 5/4; width: 100%; object-fit: cover; background: linear-gradient(140deg, #f1e3d3, #e9b9a6 60%, #c8705c); box-shadow: var(--shadow); }
+.checklist { list-style: none; padding: 0; margin: 0 0 28px; }
+.checklist li { position: relative; padding-left: 36px; margin-bottom: 14px; }
+.checklist li::before {
+  content: ""; position: absolute; left: 0; top: 3px; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--teal-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f7c80' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center/14px no-repeat;
+}
+.checklist strong { color: var(--navy); }
+
+/* Areas */
+.areas { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.area {
+  display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px;
+  background: #fff; border: 1px solid var(--line); font-weight: 600; color: var(--navy);
+}
+.area svg { width: 18px; height: 18px; color: var(--coral); }
+
+/* CTA band */
+.cta-band { background: linear-gradient(120deg, var(--teal) 0%, var(--navy) 100%); color: #e4f1f3; border-radius: 28px; padding: 56px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; align-items: center; }
+.cta-band h2 { color: #fff; margin-bottom: 10px; }
+.cta-band p { margin: 0; }
+.cta-band__actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.cta-band .btn--ghost { color: #fff; }
+.cta-band .btn--ghost:hover { background: #fff; color: var(--navy); border-color: #fff; }
+
+/* Posts */
+.post-card { background: #fff; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--line); display: flex; flex-direction: column; }
+.post-card__img { aspect-ratio: 16/9; background: linear-gradient(135deg, var(--teal-soft), #cfe2ef); object-fit: cover; width: 100%; }
+.post-card__body { padding: 24px; display: flex; flex-direction: column; flex: 1; }
+.post-card__meta { font-size: .82rem; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .06em; }
+.post-card h3 { font-size: 1.15rem; }
+.post-card h3 a { color: var(--navy); text-decoration: none; }
+.post-card h3 a:hover { color: var(--teal); }
+.post-card p { color: var(--muted); font-size: .95rem; }
+
+/* Page header */
+.page-hero { background: var(--cream); padding: 72px 0 60px; border-bottom: 1px solid var(--line); }
+.page-hero .lead { margin: 0; }
+.breadcrumbs { font-size: .88rem; color: var(--muted); margin-bottom: 14px; }
+.breadcrumbs a { color: var(--muted); }
+
+/* Content */
+.entry-content { max-width: 780px; }
+.entry-content h2 { margin-top: 1.6em; }
+.entry-content img { border-radius: var(--radius); }
+.entry-content blockquote { border-left: 4px solid var(--teal); margin: 1.5em 0; padding: .5em 1.4em; background: var(--teal-soft); border-radius: 0 var(--radius) var(--radius) 0; }
+
+/* Forms */
+.form-card { background: #fff; border-radius: var(--radius-lg); padding: 36px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-grid .full { grid-column: 1 / -1; }
+.field label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 6px; color: var(--navy); }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 13px 14px; border: 1.5px solid var(--line); border-radius: 10px; font: inherit; font-size: 1rem;
+  background: #fbfcfd; color: var(--ink); transition: border-color .2s, box-shadow .2s;
+}
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 4px rgba(15,124,128,.12); background: #fff; }
+.field textarea { min-height: 130px; resize: vertical; }
+.form-note { font-size: .82rem; color: var(--muted); margin-top: 12px; }
+.hp-field { position: absolute; left: -9999px; }
+.notice { padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; font-weight: 500; }
+.notice--ok { background: #e5f6ec; color: #1d6b3a; }
+.notice--err { background: #fdecea; color: #a1281b; }
+
+/* Contact info list */
+.info-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 18px; }
+.info-list li { display: flex; gap: 16px; align-items: flex-start; }
+.info-list .ico { width: 46px; height: 46px; border-radius: 12px; background: var(--teal-soft); color: var(--teal); display: grid; place-items: center; flex-shrink: 0; }
+.info-list .ico svg { width: 22px; height: 22px; }
+.info-list strong { display: block; color: var(--navy); }
+.info-list span, .info-list a { color: var(--muted); }
+.map-embed { border: 0; width: 100%; height: 340px; border-radius: var(--radius-lg); margin-top: 28px; }
+
+/* FAQ */
+.faq details { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 0 22px; margin-bottom: 12px; }
+.faq summary { cursor: pointer; padding: 20px 0; font-weight: 600; color: var(--navy); list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font-size: 1.4rem; line-height: 1; color: var(--teal); transition: transform .2s; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq details p { color: var(--muted); padding-bottom: 18px; margin: 0; }
+
+/* Footer */
+.site-footer { background: #0b1f33; color: #a9bacb; font-size: .95rem; }
+.site-footer a { color: #d9e4ee; text-decoration: none; }
+.site-footer a:hover { color: #fff; text-decoration: underline; }
+.footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 40px; padding: 72px 0 48px; }
+.site-footer h4 { color: #fff; font-family: var(--font-body); font-size: .85rem; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 18px; }
+.site-footer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.site-footer .brand { color: #fff; margin-bottom: 18px; }
+.site-footer .brand__tag { color: #8ea3b8; }
+.footer-hotline { margin-top: 18px; padding: 14px 16px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; font-size: .88rem; }
+.footer-hotline strong { color: #fff; display: block; }
+.social { display: flex; gap: 10px; margin-top: 18px; }
+.social a { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,.08); display: grid; place-items: center; }
+.social a:hover { background: var(--teal); }
+.social svg { width: 18px; height: 18px; fill: #fff; }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,.08); padding: 22px 0; font-size: .85rem; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.footer-bottom ul { display: flex; gap: 18px; flex-wrap: wrap; }
+
+/* Mobile sticky call bar */
+.mobile-callbar { display: none; }
+
+/* Reveal animation */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+.reveal.is-visible { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .card, .btn { transition: none; }
+}
+
+/* Pagination */
+.pagination { display: flex; gap: 8px; justify-content: center; margin-top: 48px; }
+.pagination .page-numbers { padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line); text-decoration: none; color: var(--navy); }
+.pagination .current { background: var(--teal); color: #fff; border-color: var(--teal); }
+
+/* WordPress core alignment */
+.alignleft { float: left; margin: 0 1.5em 1em 0; }
+.alignright { float: right; margin: 0 0 1em 1.5em; }
+.aligncenter { margin-left: auto; margin-right: auto; }
+.wp-caption-text { font-size: .85rem; color: var(--muted); }
+
+/* ------------------------------------------------------------------ */
+@media (max-width: 1320px) {
+  .header-cta .btn--ghost { display: none; }
+}
+@media (max-width: 1080px) {
+  .main-nav a { padding: 10px 10px; font-size: .93rem; }
+  .header-cta .btn--ghost { display: none; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 960px) {
+  .nav-toggle { display: block; }
+  .main-nav {
+    position: fixed; inset: 78px 0 0 0; background: #fff; padding: 20px; overflow-y: auto;
+    display: none; z-index: 70;
+  }
+  .main-nav.is-open { display: block; animation: chcs-menu-in .25s ease; }
+  @keyframes chcs-menu-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  .main-nav ul { flex-direction: column; align-items: stretch; gap: 2px; }
+  .main-nav a { padding: 14px 12px; font-size: 1.05rem; border-bottom: 1px solid var(--line); border-radius: 0; }
+  .main-nav .sub-menu { display: flex; position: static; box-shadow: none; border: 0; padding: 0 0 0 16px; }
+  .header-cta .btn { display: none; }
+  .hero .container, .split { grid-template-columns: 1fr; gap: 40px; }
+  .hero .container { padding-top: 48px; padding-bottom: 64px; }
+  .hero__visual { max-width: 460px; margin: 0 auto; width: 100%; }
+  .hero__badge { left: 10px; }
+  .hero__badge--top { right: 10px; }
+  .grid--3, .grid--4 { grid-template-columns: repeat(2, 1fr); }
+  .stats .container { grid-template-columns: repeat(2, 1fr); }
+  .cta-band { grid-template-columns: 1fr; padding: 40px 28px; }
+  .cta-band__actions { justify-content: flex-start; }
+  .section { padding: 64px 0; }
+  .mobile-callbar {
+    display: grid; grid-template-columns: 1fr 1fr; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    background: #fff; border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(0,0,0,.06);
+  }
+  .mobile-callbar a { padding: 14px; text-align: center; font-weight: 600; text-decoration: none; }
+  .mobile-callbar a:first-child { color: var(--navy); }
+  .mobile-callbar a:last-child { background: var(--coral); color: #fff; }
+  body { padding-bottom: 54px; }
+}
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .container { padding: 0 16px; }
+  .topbar .topbar__secondary { display: none; }
+  .grid--3, .grid--2, .grid--4, .form-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+  .brand__tag { display: none; }
+  .hero__badge { position: static; margin-top: -40px; margin-left: 12px; margin-right: 12px; max-width: none; }
+  .hero__badge--top { display: none; }
+  .card, .form-card { padding: 24px; }
+  .stat strong { font-size: 1.9rem; }
+}
+</style>
+</head>
+<body class="preview">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="topbar">
+	<div class="container">
+		<div class="topbar__items">
+			<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><a href="tel:7185285493">(718) 528-5493</a></span>
+			<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg><a href="mailto:info@chcsny.com">info@chcsny.com</a></span>
+					</div>
+		<div class="topbar__items topbar__secondary">
+			<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Compliance Hotline:&nbsp;<a href="tel:7189261762">(718) 926-1762</a></span>
+			<a href="careers.html">Careers</a>
+		</div>
+	</div>
+</div>
+
+<header class="site-header">
+	<div class="container">
+		<a class="brand" href="index.html" rel="home">
+	<span class="brand__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11l9-8 9 8v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2z"/></svg></span>
+	<span class="brand__text">
+		<span class="brand__name">CHCS</span>
+		<span class="brand__tag">Home Health Care · Since 1993</span>
+	</span>
+</a>
+
+		<nav class="main-nav" id="primary-nav" aria-label="Primary">
+			<ul class="menu"><li class="menu-item"><a href="about-us.html">About</a></li><li class="menu-item"><a href="services.html">Services</a></li><li class="menu-item"><a href="family-portal.html">Patients &amp; Families</a></li><li class="menu-item"><a href="referrals.html">Referrals</a></li><li class="menu-item"><a href="careers.html">Careers</a></li><li class="menu-item"><a href="news-blog.html">News</a></li><li class="menu-item"><a href="contact-us.html">Contact</a></li></ul>		</nav>
+
+		<div class="header-cta">
+			<a class="btn btn--ghost" href="tel:7185285493"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>Call us</a>
+			<a class="btn btn--primary" href="contact-us.html#request">Request Care</a>
+			<button class="nav-toggle" aria-controls="primary-nav" aria-expanded="false"><span class="screen-reader-text">Menu</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+		</div>
+	</div>
+</header>
+
+<main id="main" tabindex="-1">
+
+<section class="hero">
+	<div class="container">
+		<div>
+			<span class="eyebrow">Licensed Home Health Care · NYC &amp; Nassau</span>
+			<h1>Skilled, compassionate care — <em>right at home.</em></h1>
+			<p class="lead">Since 1993, Complete Home Care Services has brought licensed nurses and therapists to patients across New York City and Nassau County, helping them recover, stay independent, and remain where they feel most comfortable.</p>
+			<div class="hero__actions">
+				<a class="btn btn--primary" href="contact-us.html#request">Request Care <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+				<a class="btn btn--ghost" href="tel:7185285493"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>(718) 528-5493</a>
+			</div>
+			<div class="hero__trust">
+				<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>NYS DOH Licensed</div>
+				<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="6"/><path d="M15.5 13L17 22l-5-3-5 3 1.5-9"/></svg>Joint Commission Accredited</div>
+				<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>Multilingual staff</div>
+			</div>
+		</div>
+		<div class="hero__visual">
+							<img class="hero__img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgMTAwMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJJbGx1c3RyYXRpb24gb2YgYSBjYXJlZ2l2ZXIgc3VwcG9ydGluZyBhIHBhdGllbnQgYXQgaG9tZSI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZGZmMWVmIi8+PHN0b3Agb2Zmc2V0PSIuNTUiIHN0b3AtY29sb3I9IiNhOWQ4ZDQiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyZjhhOTAiLz48L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJ3aW4iIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmY4ZTgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmZmUzYjgiLz48L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjEwMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgPGNpcmNsZSBjeD0iNjQwIiBjeT0iMTcwIiByPSIxMTAiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii4zNSIvPgogIDwhLS0gd2luZG93IC0tPgogIDxyZWN0IHg9IjkwIiB5PSIxNTAiIHdpZHRoPSIyNzAiIGhlaWdodD0iMzMwIiByeD0iMTgiIGZpbGw9InVybCgjd2luKSIgb3BhY2l0eT0iLjkiLz4KICA8cGF0aCBkPSJNMjI1IDE1MHYzMzBNOTAgMzE1aDI3MCIgc3Ryb2tlPSIjZTljNzhmIiBzdHJva2Utd2lkdGg9IjEwIi8+CiAgPCEtLSBwbGFudCAtLT4KICA8cmVjdCB4PSI1NjAiIHk9IjY0MCIgd2lkdGg9IjkwIiBoZWlnaHQ9IjExMCIgcng9IjE0IiBmaWxsPSIjZTg2NjRjIi8+CiAgPHBhdGggZD0iTTYwNSA2NDBjLTQwLTYwLTYwLTEyMC0yMC0xNzAgMjAgNTAgNDAgMTAwIDIwIDE3MHpNNjA1IDY0MGMzMC03MCA4MC0xMTAgMTIwLTExMC0yMCA1MC02MCA5MC0xMjAgMTEwek02MDUgNjQwYy00MC00MC0xMDAtNTAtMTMwLTMwIDQwIDMwIDgwIDQwIDEzMCAzMHoiIGZpbGw9IiMwZjdjODAiLz4KICA8IS0tIHNvZmEgLS0+CiAgPHJlY3QgeD0iNzAiIHk9IjcwMCIgd2lkdGg9IjUyMCIgaGVpZ2h0PSIxNTAiIHJ4PSI0MCIgZmlsbD0iIzBmMmE0NCIvPgogIDxyZWN0IHg9IjEwMCIgeT0iNjQwIiB3aWR0aD0iNDYwIiBoZWlnaHQ9IjExMCIgcng9IjM0IiBmaWxsPSIjMTczYjVlIi8+CiAgPHJlY3QgeD0iODAiIHk9Ijg1MCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjYwIiByeD0iOCIgZmlsbD0iIzBmMmE0NCIvPgogIDxyZWN0IHg9IjU1NiIgeT0iODUwIiB3aWR0aD0iMjQiIGhlaWdodD0iNjAiIHJ4PSI4IiBmaWxsPSIjMGYyYTQ0Ii8+CiAgPCEtLSBwYXRpZW50IChzZWF0ZWQpIC0tPgogIDxjaXJjbGUgY3g9IjIzMCIgY3k9IjUxMCIgcj0iNTgiIGZpbGw9IiM4YTVhNDQiLz4KICA8cGF0aCBkPSJNMTc2IDQ5NWM2LTQ4IDQ2LTc0IDkyLTY0IDMwIDggNDYgMzIgNDQgNTgtMzAtMjYtODAtMjYtMTM2IDZ6IiBmaWxsPSIjZTllNGRjIi8+CiAgPHBhdGggZD0iTTE1MCA3MjBjMC05MCAzNi0xNTAgODAtMTUwczg0IDYwIDg0IDE1MHoiIGZpbGw9IiNmMmI4YTIiLz4KICA8cmVjdCB4PSIxNTAiIHk9IjcwMCIgd2lkdGg9IjIxMCIgaGVpZ2h0PSI3MCIgcng9IjMwIiBmaWxsPSIjYzg3MDVjIi8+CiAgPCEtLSBudXJzZSAoc3RhbmRpbmcpIC0tPgogIDxjaXJjbGUgY3g9IjQ0MCIgY3k9IjQwMCIgcj0iNjIiIGZpbGw9IiM1YjNhMmIiLz4KICA8cGF0aCBkPSJNMzc4IDM5MmMwLTUwIDMwLTgyIDcwLTgyIDQ0IDAgNjggMzQgNjQgNzgtMjAtMzAtNjAtNDItMTM0IDR6IiBmaWxsPSIjMWQyNzMzIi8+CiAgPHBhdGggZD0iTTM2MCA3NjBWNTYwYzAtNTYgMzYtOTYgODAtOTZzODAgNDAgODAgOTZ2MjAweiIgZmlsbD0iI2ZmZmZmZiIvPgogIDxwYXRoIGQ9Ik00MDAgNDcwbDQwIDUwIDQwLTUwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjdjODAiIHN0cm9rZS13aWR0aD0iMTQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICA8cmVjdCB4PSIzNjAiIHk9Ijc0MCIgd2lkdGg9IjE2MCIgaGVpZ2h0PSIxNTAiIHJ4PSIyMCIgZmlsbD0iIzBmN2M4MCIvPgogIDwhLS0gYXJtIHJlYWNoaW5nIHRvIHBhdGllbnQgLS0+CiAgPHBhdGggZD0iTTM3MiA1OTBjLTQwIDMwLTcwIDYwLTEwMCA3MCIgc3Ryb2tlPSIjNWIzYTJiIiBzdHJva2Utd2lkdGg9IjM0IiBzdHJva2UtbGluZWNhcD0icm91bmQiIGZpbGw9Im5vbmUiLz4KICA8Y2lyY2xlIGN4PSI0NzAiIGN5PSI2MDAiIHI9IjIwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjJhNDQiIHN0cm9rZS13aWR0aD0iNiIvPgogIDxwYXRoIGQ9Ik00NzAgNTgwdi00MCIgc3Ryb2tlPSIjMGYyYTQ0IiBzdHJva2Utd2lkdGg9IjYiLz4KICA8IS0tIGhlYXJ0IC0tPgogIDxwYXRoIGQ9Ik02NTAgNDcwYy0xNC0yNi01Ni0yMC01NiAxMCAwIDI2IDU2IDU4IDU2IDU4czU2LTMyIDU2LTU4YzAtMzAtNDItMzYtNTYtMTB6IiBmaWxsPSIjZTg2NjRjIi8+Cjwvc3ZnPgo=" alt="" fetchpriority="high">
+						<div class="hero__badge hero__badge--top">
+				<span class="seal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></span>
+				<div><strong>33+ years</strong><small>of care in our community</small></div>
+			</div>
+			<div class="hero__badge">
+				<span class="seal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="6"/><path d="M15.5 13L17 22l-5-3-5 3 1.5-9"/></svg></span>
+				<div><strong>Gold Seal of Approval®</strong><small>The Joint Commission — Home Care</small></div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<section class="stats" aria-label="At a glance">
+	<div class="container">
+		<div class="stat"><strong>1993</strong><span>Serving families since</span></div>
+		<div class="stat"><strong>6</strong><span>Boroughs &amp; counties served</span></div>
+		<div class="stat"><strong>6</strong><span>Nursing &amp; therapy services</span></div>
+		<div class="stat"><strong>RN-led</strong><span>Personalized plans of care</span></div>
+	</div>
+</section>
+
+<section class="section">
+	<div class="container">
+		<div class="section-head">
+			<span class="eyebrow">Our services</span>
+			<h2>Hospital-quality care, delivered to your door</h2>
+			<p class="lead">Our licensed clinicians work with your physician to help you heal, regain independence and manage your health safely at home.</p>
+		</div>
+		<div class="grid grid--3">
+			<article class="card reveal" id="skilled-nursing">
+			<div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2l7 3v6c0 5-3 8.5-7 11-4-2.5-7-6-7-11V5l7-3z"/><path d="M12 8v6M9 11h6"/></svg></div>
+			<h3>Skilled Nursing</h3>
+			<p>Registered and licensed practical nurses providing clinical care at home under your physician’s plan of care.</p>
+							<a class="card__link" href="services.html#skilled-nursing">Learn more</a>
+					</article>
+			<article class="card reveal" id="physical-therapy">
+			<div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="13" cy="4" r="2"/><path d="M10 22l2-7 3 3v6M7 13l3-5 4 1 3 3M10 8l-1 6"/></svg></div>
+			<h3>Physical Therapy</h3>
+			<p>Restore strength, balance and mobility after surgery, illness or a fall — without travelling to a clinic.</p>
+							<a class="card__link" href="services.html#physical-therapy">Learn more</a>
+					</article>
+			<article class="card reveal" id="occupational-therapy">
+			<div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-3a2 2 0 0 0-4 0"/></svg></div>
+			<h3>Occupational Therapy</h3>
+			<p>Regain the skills for everyday living — dressing, bathing, cooking — with safe, practical strategies at home.</p>
+							<a class="card__link" href="services.html#occupational-therapy">Learn more</a>
+					</article>
+			<article class="card reveal" id="speech-therapy">
+			<div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg></div>
+			<h3>Speech Therapy</h3>
+			<p>Support for communication, cognition and swallowing difficulties following stroke, injury or illness.</p>
+							<a class="card__link" href="services.html#speech-therapy">Learn more</a>
+					</article>
+			<article class="card reveal" id="respiratory-therapy">
+			<div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v8M12 12c-2 0-3-1-4-3-2 1-4 4-4 8 0 2 1 3 3 3s4-1 5-3zM12 12c2 0 3-1 4-3 2 1 4 4 4 8 0 2-1 3-3 3s-4-1-5-3z"/></svg></div>
+			<h3>Respiratory Therapy</h3>
+			<p>Breathing support and education for patients managing COPD, asthma and other respiratory conditions.</p>
+							<a class="card__link" href="services.html#respiratory-therapy">Learn more</a>
+					</article>
+			<article class="card reveal" id="respite-care">
+			<div class="card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></div>
+			<h3>Respite Care</h3>
+			<p>Short-term relief for family caregivers, so your loved one is safe and cared for while you rest and recharge.</p>
+							<a class="card__link" href="services.html#respite-care">Learn more</a>
+					</article>
+	</div>
+	</div>
+</section>
+
+<section class="section section--cream">
+	<div class="container">
+		<div class="section-head section-head--center">
+			<span class="eyebrow">Getting started</span>
+			<h2>Care at home in three simple steps</h2>
+			<p class="lead">We coordinate with your doctor, hospital or insurance so you can focus on getting better.</p>
+		</div>
+		<div class="grid grid--3 steps">
+			<div class="step reveal"><h3>Call or request online</h3><p>Tell us about your needs. Our intake team answers your questions and verifies coverage.</p></div>
+			<div class="step reveal"><h3>In-home assessment</h3><p>A registered nurse visits to assess needs and build a personalized plan of care with your physician.</p></div>
+			<div class="step reveal"><h3>Care begins</h3><p>Your nurse and therapists visit on schedule, keep your family informed, and track your progress.</p></div>
+		</div>
+	</div>
+</section>
+
+<section class="section">
+	<div class="container split">
+		<div class="reveal">
+							<img class="split__media" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAwIDgwMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJJbGx1c3RyYXRpb24gb2YgYSBmYW1pbHkgYXQgaG9tZSB3aXRoIGEgdGhlcmFwaXN0Ij4KICA8ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImIiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmYWYxZTYiLz48c3RvcCBvZmZzZXQ9Ii42IiBzdG9wLWNvbG9yPSIjZjFjN2I1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZDc3ZTY2Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjEwMDAiIGhlaWdodD0iODAwIiBmaWxsPSJ1cmwoI2IpIi8+CiAgPHBhdGggZD0iTTEyMCA0MjBMNTAwIDE0MGwzODAgMjgwdjMzMEgxMjB6IiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIuNyIvPgogIDxwYXRoIGQ9Ik05MCA0NDBMNTAwIDEyMGw0MTAgMzIwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwZjJhNDQiIHN0cm9rZS13aWR0aD0iMjIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICA8cmVjdCB4PSI0MzAiIHk9IjU0MCIgd2lkdGg9IjE0MCIgaGVpZ2h0PSIyMTAiIHJ4PSIxMCIgZmlsbD0iIzBmN2M4MCIvPgogIDxjaXJjbGUgY3g9IjU0NSIgY3k9IjY1MCIgcj0iOSIgZmlsbD0iI2ZmZiIvPgogIDxyZWN0IHg9IjIwMCIgeT0iNDYwIiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjEzMCIgcng9IjEyIiBmaWxsPSIjZmZlM2I4Ii8+CiAgPHJlY3QgeD0iNjUwIiB5PSI0NjAiIHdpZHRoPSIxNTAiIGhlaWdodD0iMTMwIiByeD0iMTIiIGZpbGw9IiNmZmUzYjgiLz4KICA8Y2lyY2xlIGN4PSIzMDAiIGN5PSIzMDAiIHI9IjQ0IiBmaWxsPSIjOGE1YTQ0Ii8+PHBhdGggZD0iTTI0MCA1MjBjMC05MCAyNi0xNjAgNjAtMTYwczYwIDcwIDYwIDE2MHoiIGZpbGw9IiMwZjdjODAiLz4KICA8Y2lyY2xlIGN4PSI3MDAiIGN5PSIyOTAiIHI9IjQ4IiBmaWxsPSIjNWIzYTJiIi8+PHBhdGggZD0iTTY0MCA1MzBjMC0xMDAgMjYtMTcwIDYwLTE3MHM2MCA3MCA2MCAxNzB6IiBmaWxsPSIjMTczYjVlIi8+CiAgPGNpcmNsZSBjeD0iNTAwIiBjeT0iMzMwIiByPSIzNCIgZmlsbD0iI2MwOGE2YSIvPjxwYXRoIGQ9Ik00NjAgNTAwYzAtNzAgMTgtMTMwIDQwLTEzMHM0MCA2MCA0MCAxMzB6IiBmaWxsPSIjZTg2NjRjIi8+CiAgPHBhdGggZD0iTTUwMCAyNTBjLTEyLTIyLTQ4LTE4LTQ4IDggMCAyMiA0OCA1MCA0OCA1MHM0OC0yOCA0OC01MGMwLTI2LTM2LTMwLTQ4LTh6IiBmaWxsPSIjZTg2NjRjIi8+Cjwvc3ZnPgo=" alt="" loading="lazy">
+					</div>
+		<div>
+			<span class="eyebrow">Why families choose CHCS</span>
+			<h2>Clinical excellence with a neighbor’s heart</h2>
+			<ul class="checklist">
+				<li><strong>Accredited quality.</strong> Licensed by NYS DOH and accredited by The Joint Commission for home care.</li>
+				<li><strong>One coordinated team.</strong> Nurses and therapists share one plan of care and keep your doctor in the loop.</li>
+				<li><strong>Rooted in Queens.</strong> A local agency serving New York families since 1993.</li>
+				<li><strong>Family kept informed.</strong> Clear communication and family resources at every step.</li>
+			</ul>
+			<a class="btn btn--teal" href="about-us.html">About our agency</a>
+		</div>
+	</div>
+</section>
+
+<section class="section section--tight">
+	<div class="container">
+		<div class="section-head section-head--center">
+			<span class="eyebrow">Where we serve</span>
+			<h2>Caring for all five boroughs &amp; Nassau</h2>
+		</div>
+		<div class="areas">
+							<span class="area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>Queens</span>
+							<span class="area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>Brooklyn</span>
+							<span class="area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>Bronx</span>
+							<span class="area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>Manhattan</span>
+							<span class="area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>Staten Island</span>
+							<span class="area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>Nassau County</span>
+					</div>
+	</div>
+</section>
+
+<section class="section section--navy">
+	<div class="container">
+		<div class="grid grid--2">
+			<div class="reveal">
+				<span class="eyebrow">For providers</span>
+				<h2>Refer a patient in minutes</h2>
+				<p>Physicians, hospital discharge planners and case managers: our intake team responds quickly and coordinates start of care so your patients transition home safely.</p>
+				<a class="btn btn--primary" href="referrals.html">Make a referral</a>
+			</div>
+			<div class="reveal">
+				<span class="eyebrow">Careers</span>
+				<h2>Join a team that cares</h2>
+				<p>We’re looking for RNs, LPNs and therapists who want meaningful, flexible work caring for patients in their own homes.</p>
+				<a class="btn btn--light" href="careers.html">View openings</a>
+			</div>
+		</div>
+	</div>
+</section>
+
+
+
+<section class="section section--tight">
+	<div class="container">
+		<div class="cta-band reveal">
+			<div>
+				<h2>Ready to bring care home?</h2>
+				<p>Speak with our intake team today — we’ll answer your questions and help you get started.</p>
+			</div>
+			<div class="cta-band__actions">
+				<a class="btn btn--light" href="tel:7185285493"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>(718) 528-5493</a>
+				<a class="btn btn--ghost" href="contact-us.html#request">Request care online</a>
+			</div>
+		</div>
+	</div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+	<div class="container">
+		<div class="footer-grid">
+			<div>
+				<a class="brand" href="index.html" rel="home">
+	<span class="brand__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11l9-8 9 8v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2z"/></svg></span>
+	<span class="brand__text">
+		<span class="brand__name">CHCS</span>
+		<span class="brand__tag">Home Health Care · Since 1993</span>
+	</span>
+</a>
+				<p>Licensed by the New York State Department of Health and accredited by The Joint Commission. Caring for New Yorkers at home since 1993.</p>
+				<div class="social">
+																		<a href="https://www.facebook.com/CHCSNY/" target="_blank" rel="noopener"><span class="screen-reader-text">Facebook</span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 9h3V5h-3c-2.8 0-4 1.8-4 4.3V11H7v4h3v8h4v-8h3l1-4h-4V9.5c0-.3.2-.5.5-.5z"/></svg></a>
+																								<a href="https://www.instagram.com/chcsny/" target="_blank" rel="noopener"><span class="screen-reader-text">Instagram</span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zM17.3 5.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM12 2c-2.7 0-3 0-4.1.1C4.3 2.2 2.2 4.3 2.1 7.9 2 9 2 9.3 2 12s0 3 .1 4.1c.1 3.6 2.2 5.7 5.8 5.8 1.1.1 1.4.1 4.1.1s3 0 4.1-.1c3.6-.1 5.7-2.2 5.8-5.8.1-1.1.1-1.4.1-4.1s0-3-.1-4.1c-.1-3.6-2.2-5.7-5.8-5.8C15 2 14.7 2 12 2z"/></svg></a>
+																										</div>
+			</div>
+
+			<div>
+				<h4>Services</h4>
+				<ul>
+											<li><a href="services.html#skilled-nursing">Skilled Nursing</a></li>
+											<li><a href="services.html#physical-therapy">Physical Therapy</a></li>
+											<li><a href="services.html#occupational-therapy">Occupational Therapy</a></li>
+											<li><a href="services.html#speech-therapy">Speech Therapy</a></li>
+											<li><a href="services.html#respiratory-therapy">Respiratory Therapy</a></li>
+											<li><a href="services.html#respite-care">Respite Care</a></li>
+									</ul>
+			</div>
+
+			<div>
+				<h4>Quick links</h4>
+				<ul><li><a href="about-us.html">About Us</a></li><li><a href="family-portal.html">Patients &amp; Families</a></li><li><a href="referrals.html">For Providers</a></li><li><a href="careers.html">Careers</a></li><li><a href="news-blog.html">News</a></li><li><a href="contact-us.html">Contact</a></li></ul>			</div>
+
+			<div>
+				<h4>Contact</h4>
+				<ul>
+					<li>117-03 203rd Street<br>St. Albans, NY 11412</li>
+					<li><a href="tel:7185285493">(718) 528-5493</a></li>
+					<li><a href="mailto:info@chcsny.com">info@chcsny.com</a></li>
+									</ul>
+				<div class="footer-hotline">
+					<strong>Confidential Compliance Hotline</strong>
+					<a href="tel:7189261762">(718) 926-1762</a> · 8:00 AM – 5:00 PM				</div>
+			</div>
+		</div>
+
+		<div class="footer-bottom">
+			<span>&copy; 2026 Complete Home Care Services, Inc. All rights reserved.</span>
+			<ul><li><a href="privacy-policy-notice.html">Notice of Privacy Practices</a></li><li><a href="non-discrimination.html">Non-Discrimination Notice</a></li></ul>		</div>
+	</div>
+</footer>
+
+<div class="mobile-callbar">
+	<a href="tel:7185285493">Call now</a>
+	<a href="contact-us.html#request">Request care</a>
+</div>
+
+<script>/* CHCS Care theme — interactions */
+(function () {
+  'use strict';
+
+  // Mobile navigation toggle
+  var toggle = document.querySelector('.nav-toggle');
+  var nav = document.getElementById('primary-nav');
+  if (toggle && nav) {
+    toggle.addEventListener('click', function () {
+      var open = nav.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      document.body.style.overflow = open ? 'hidden' : '';
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && nav.classList.contains('is-open')) {
+        nav.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+        toggle.focus();
+      }
+    });
+  }
+
+  // Reveal-on-scroll
+  var els = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    els.forEach(function (el) { io.observe(el); });
+  } else {
+    els.forEach(function (el) { el.classList.add('is-visible'); });
+  }
+})();
+</script></body>
+</html>
