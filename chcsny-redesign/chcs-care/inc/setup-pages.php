@@ -82,6 +82,18 @@ function chcs_after_switch_theme() {
 					)
 				);
 			}
+			wp_update_nav_menu_item(
+				$menu_id,
+				0,
+				array(
+					'menu-item-title'    => __( 'Staff Portal', 'chcs-care' ),
+					'menu-item-url'      => home_url( '/portal/' ),
+					'menu-item-type'     => 'custom',
+					'menu-item-status'   => 'publish',
+					'menu-item-position' => 20,
+					'menu-item-classes'  => 'menu-item--portal',
+				)
+			);
 			$locations['primary'] = $menu_id;
 			set_theme_mod( 'nav_menu_locations', $locations );
 		}

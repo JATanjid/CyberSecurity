@@ -42,6 +42,7 @@ $phone = chcs_opt( 'phone' );
 					foreach ( array( 'about-us' => __( 'About Us', 'chcs-care' ), 'family-portal' => __( 'Patients & Families', 'chcs-care' ), 'referrals' => __( 'For Providers', 'chcs-care' ), 'careers' => __( 'Careers', 'chcs-care' ), 'news-blog' => __( 'News', 'chcs-care' ), 'contact-us' => __( 'Contact', 'chcs-care' ) ) as $slug => $label ) {
 						printf( '<li><a href="%s">%s</a></li>', esc_url( chcs_page_url( $slug ) ), esc_html( $label ) );
 					}
+					printf( '<li><a href="%s">%s</a></li>', esc_url( chcs_staff_portal() ), esc_html__( 'Staff & Employee Portal', 'chcs-care' ) );
 					echo '</ul>';
 				}
 				?>

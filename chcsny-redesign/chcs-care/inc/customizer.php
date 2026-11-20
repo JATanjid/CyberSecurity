@@ -45,6 +45,7 @@ function chcs_customize_register( $wp_customize ) {
 		'chcs_links'   => array(
 			'title'  => __( 'Links, Forms & Social', 'chcs-care' ),
 			'fields' => array(
+				'staff_portal_url' => array( __( 'Staff Portal URL (blank = this site’s /portal/)', 'chcs-care' ), 'url' ),
 				'portal_url'     => array( __( 'Family/Patient portal login URL', 'chcs-care' ), 'url' ),
 				'form_to'        => array( __( 'Send form submissions to (defaults to site admin email)', 'chcs-care' ), 'email' ),
 				'form_shortcode' => array( __( 'Optional: replace built-in form with a plugin shortcode (e.g. [contact-form-7 id="1"])', 'chcs-care' ), 'text' ),

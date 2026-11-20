@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Home Health Aide Duty Sheet</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#0b0f17;
+    --line:#1f2933;
+    --soft:#eef1f4;
+    --soft2:#dde3ea;
+    --paper:#fff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#e9edf2;color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+  body{padding:18px}
+  button,input{font:inherit}
+  .page-stage{width:100%;overflow:auto;padding-bottom:2px}
+  .sheet{
+    width:8.5in;
+    height:11in;
+    margin:0 auto;
+    background:var(--paper);
+    box-shadow:0 8px 30px rgba(15,23,42,.15);
+    padding:.16in .2in .14in;
+    overflow:hidden;
+  }
+  .sheet-content{height:100%;display:flex;flex-direction:column;min-height:0}
+
+  /* ---------- Header ---------- */
+  .title-row{display:flex;flex-direction:column;align-items:center;gap:2px;margin:0 0 3px;flex:0 0 auto;text-align:center}
+  .brand{font-family:Georgia,'Times New Roman',serif;font-size:17px;line-height:1.1;letter-spacing:.3px;color:#000;font-weight:800;text-transform:uppercase}
+  h1{font-family:Georgia,'Times New Roman',serif;font-size:15px;margin:0;font-weight:800;line-height:1.1;color:#000}
+  .intro{font-size:10px;line-height:1.2;margin:2px 0 5px;flex:0 0 auto;text-align:center}
+
+  /* ---------- Employee / patient info ---------- */
+  .info-grid{
+    display:grid;
+    grid-template-columns:auto 1fr auto 1fr auto 1fr;
+    gap:4px 7px;
+    align-items:center;
+    margin-bottom:5px;flex:0 0 auto;
+    padding:5px 7px;border:1px solid #9aa6b4;background:#fbfcfd;border-radius:3px;
+    font-size:10.5px;
+  }
+  .info-grid label{white-space:nowrap;color:#111}
+  .box-input{
+    width:100%;height:22px;
+    border:1px solid #7d8b9b;border-radius:2px;
+    padding:0 5px;font-size:11px;line-height:20px;
+    background:#fff;outline:none;min-width:0;color:#000;margin:0;
+  }
+  .box-input:focus,.tiny-input:focus,.review-input:focus,.other-input:focus{background:#fffbe8;border-color:#111827}
+  .inline-text{font-size:11px;display:flex;align-items:center;gap:3px;min-width:0;white-space:nowrap}
+
+  table{border-collapse:collapse;width:100%}
+  th,td{border:1px solid var(--line);padding:1px 3px;vertical-align:middle;overflow:hidden}
+
+  /* ---------- Instructions + time table ---------- */
+  .top-wrap{display:grid;grid-template-columns:31% 69%;margin-bottom:4px;flex:0 0 auto}
+  .instructions{border:1px solid var(--line);border-right:0;padding:4px 5px;font-size:9.5px;line-height:1.22;background:#fff}
+  .instructions ol{margin:0;padding-left:14px}
+  .instructions li{margin:0 0 1px}
+  .time-table{table-layout:fixed;font-size:10px;background:#fff}
+  .time-table th{font-size:10px;height:17px;padding:1px;background:var(--soft)}
+  .time-table td{height:19px;padding:0 1px}
+  .time-table .label{font-size:10px;line-height:1.05;padding-left:5px;color:#111}
+  .tiny-input{display:block;width:100%;height:17px;border:0;outline:none;text-align:center;font-size:10.5px;line-height:17px;background:transparent;padding:0;min-width:0;color:#000}
+
+  /* ---------- Duty tables ---------- */
+  .duty-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;flex:1 1 auto;min-height:0;margin-bottom:4px}
+  .duty-table{table-layout:fixed;font-size:10px;line-height:1.1;height:100%;background:#fff}
+  .duty-table:last-child{margin-left:-1px}
+  .duty-table col.task{width:44%}
+  .duty-table col.day{width:8%}
+  .section-title{font-weight:800;font-size:10.5px;text-align:left;border:1.5px solid #000!important;line-height:1.05;background:var(--soft2);padding:2px 4px;color:#000;letter-spacing:.2px}
+  .day-head{font-size:9px;text-align:center;padding:1px 0;white-space:nowrap;background:var(--soft)}
+  .task-label{text-align:left;padding:1px 4px;color:#000;overflow-wrap:anywhere}
+  .task-label .code{color:#333}
+  .check-cell{text-align:center;padding:0;cursor:pointer;user-select:none;background:#fff}
+  .check-cell:hover{background:#f3f6f9}
+  .check-cell input[type=checkbox]{width:13px;height:13px;margin:0;accent-color:#000;cursor:pointer;vertical-align:middle}
+  .other-input{border:1px solid #7d8b9b;border-radius:2px;width:62%;font-family:inherit;font-size:10px;height:16px;line-height:12px;outline:none;padding:0 3px;background:#fff;color:#000;vertical-align:middle}
+
+  /* ---------- Signatures ---------- */
+  .sign-table{table-layout:fixed;font-size:9.5px;flex:0 0 auto;background:#fff}
+  .sign-table th{font-size:9.5px;height:16px;padding:1px 3px;background:var(--soft2);letter-spacing:.2px}
+  .sign-table td{height:24px;padding:0 3px;white-space:nowrap}
+  .sign-day{text-align:center;background:#f6f8fa;font-size:9.5px}
+  .signature-cell{padding:0!important;position:relative;overflow:hidden}
+  .signature-box{position:relative;width:100%;height:24px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;padding:0 3px;cursor:pointer;overflow:hidden;color:#000}
+  .signature-box:hover{background:#f3f6f9}
+  .signature-preview{display:flex;align-items:center;justify-content:center;width:100%;height:100%;overflow:hidden;white-space:nowrap;color:#000}
+  .signature-preview.typed{font-family:'Brush Script MT','Segoe Script','Lucida Handwriting',cursive;font-size:16px;font-style:italic;line-height:1;letter-spacing:.2px}
+  .signature-preview img{max-width:98%;max-height:22px;display:block;object-fit:contain}
+  .signature-hint{position:absolute;right:3px;bottom:1px;font:6px/1 Arial,Helvetica,sans-serif;color:#9aa3ad;pointer-events:none}
+  .review-input{border:1px solid #7d8b9b;border-radius:2px;padding:0 3px;height:18px;line-height:16px;outline:none;background:#fff;font-size:9.5px;min-width:0;color:#000;vertical-align:middle}
+  .footer-address{text-align:center;font-size:9px;line-height:1;margin-top:4px;flex:0 0 auto;white-space:nowrap;color:#000}
+
+  /* Bold form typography */
+  .sheet, .sheet table, .sheet th, .sheet td, .sheet label, .sheet .intro,
+  .sheet .instructions, .sheet .inline-text, .sheet .footer-address,
+  .sheet input, .sheet .task-label, .sheet .time-table .label,
+  .sheet .day-head, .sheet .sign-day, .sheet .review-input {font-weight:700!important}
+  .sheet input::placeholder{font-weight:700;color:#8a94a3;opacity:1}
+  .signature-preview.typed{font-weight:700!important}
+  input{border-radius:0}
+
+  /* ---------- Buttons & status ---------- */
+  .actions{width:min(8.5in,calc(100vw - 28px));margin:14px auto 28px;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
+  .btn{border:0;border-radius:9px;padding:11px 18px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .btn-primary{background:#111827;color:#fff}
+  .btn-secondary{background:#fff;color:#111827;border:1px solid #cbd5e1}
+  .status{font-size:13px;color:#374151;display:inline-flex;align-items:center}
+  .status.error{color:#b42318}
+
+  .loading-overlay{position:fixed;inset:0;background:rgba(15,23,42,.65);display:none;align-items:center;justify-content:center;z-index:10000}
+  .loading-overlay.open{display:flex}
+  .loading-card{background:#fff;padding:24px 36px;border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.3);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;min-width:220px}
+  .spinner-large{width:32px;height:32px;border:3px solid #cbd5e1;border-top-color:#111827;border-radius:50%;animation:spin .8s linear infinite}
+  .loading-text{font-size:15px;font-weight:700;color:#111827}
+  .loading-text.success{color:#16a34a}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ---------- Signature modal ---------- */
+  .signature-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,.56);z-index:9999;padding:18px}
+  .signature-modal.open{display:flex}
+  .signature-panel{width:min(560px,96vw);background:#fff;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.28);overflow:hidden}
+  .signature-panel-header{display:flex;justify-content:space-between;align-items:center;padding:15px 18px 11px;border-bottom:1px solid #e5e7eb}
+  .signature-panel-header h2{font:700 18px/1.2 Arial,Helvetica,sans-serif;margin:0;color:#111827}
+  .close-sign{border:0;background:#f1f5f9;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:20px;line-height:1}
+  .signature-tabs{display:flex;gap:6px;padding:12px 18px 0;flex-wrap:wrap}
+  .sig-tab{border:1px solid #cbd5e1;background:#fff;border-radius:8px 8px 0 0;padding:8px 13px;cursor:pointer;font-weight:700;color:#475569}
+  .sig-tab.active{background:#111827;color:#fff;border-color:#111827}
+  .sig-body{padding:16px 18px 12px}
+  .sig-pane{display:none}
+  .sig-pane.active{display:block}
+  .sig-label{display:block;font-weight:700;font-size:13px;margin-bottom:6px;color:#334155}
+  .type-sign-input{width:100%;height:44px;border:1px solid #cbd5e1;border-radius:9px;padding:6px 10px;font-family:'Brush Script MT','Segoe Script','Lucida Handwriting',cursive;font-size:26px;font-style:italic;outline:none}
+  .type-sign-input:focus{border-color:#111827;box-shadow:0 0 0 3px rgba(15,23,42,.08)}
+  .typed-live-preview{margin-top:10px;border:1px dashed #cbd5e1;border-radius:9px;height:74px;display:flex;align-items:center;justify-content:center;font-family:'Brush Script MT','Segoe Script','Lucida Handwriting',cursive;font-size:34px;font-style:italic;overflow:hidden;background:#fcfcfd;color:#111}
+  .draw-wrap{border:1px solid #cbd5e1;border-radius:10px;background:#fff;overflow:hidden;position:relative}
+  #drawCanvas{display:block;width:100%;height:160px;touch-action:none;cursor:crosshair}
+  .draw-help{font-size:12px;color:#64748b;margin-top:8px}
+  .upload-card{border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;padding:12px}
+  .upload-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .upload-input{font:600 12px/1.2 Arial,Helvetica,sans-serif;max-width:100%;color:#334155}
+  .upload-input::file-selector-button{border:1px solid #cbd5e1;background:#fff;border-radius:8px;padding:8px 11px;margin-right:9px;font-weight:700;color:#334155;cursor:pointer}
+  .upload-help{font-size:12px;line-height:1.35;color:#64748b;margin-top:8px}
+  .upload-status{font-size:12px;line-height:1.3;color:#334155;margin-top:8px;min-height:16px}
+  .upload-preview-wrap{margin-top:10px;height:110px;border:1px dashed #cbd5e1;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:8px}
+  .upload-preview-wrap img{max-width:100%;max-height:92px;object-fit:contain;display:none}
+  .upload-placeholder{font-size:12px;color:#94a3b8;text-align:center}
+  .sig-footer{display:flex;justify-content:space-between;gap:10px;padding:12px 18px 16px;border-top:1px solid #eef2f6;flex-wrap:wrap}
+  .sig-footer .group{display:flex;gap:8px}
+  .mini-btn{border-radius:8px;border:1px solid #cbd5e1;background:#fff;padding:8px 13px;font-weight:700;cursor:pointer;color:#334155}
+  .mini-btn.primary{background:#111827;color:#fff;border-color:#111827}
+  .mini-btn.danger{color:#b42318}
+
+  @page{size:Letter portrait;margin:0}
+  @media print{
+    html,body{width:8.5in;height:11in;background:#fff!important;margin:0!important;padding:0!important;overflow:hidden!important}
+    .page-stage{width:8.5in;height:11in;overflow:hidden!important;padding:0!important}
+    .sheet{box-shadow:none!important;margin:0!important}
+    .actions,.signature-modal,.signature-hint,.loading-overlay{display:none!important}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+  body.pdf-mode{padding:0;background:#fff}
+  body.pdf-mode .page-stage{overflow:hidden;padding:0}
+  body.pdf-mode .sheet{box-shadow:none;margin:0}
+  body.pdf-mode .signature-hint{display:none!important}
+  body.pdf-mode .check-cell:hover, body.pdf-mode .signature-box:hover{background:#fff}
+
+  @media (max-width:850px){body{padding:8px}.sheet{margin:0}.actions{margin-top:10px}}
+</style>
+</head>
+<body>
+<div class="page-stage">
+<div id="printArea" class="sheet">
+  <div id="sheetContent" class="sheet-content">
+    <div class="title-row">
+      <div class="brand">Complete Home Care Services, Inc.</div>
+      <h1>Home Health Aide Duty Sheet</h1>
+    </div>
+
+    <div class="intro">Instructions: Check ( &#10003; ) off all completed tasks. Complete all tasks which are either checked or noted in HHA Plan of Care.</div>
+
+    <div class="info-grid">
+      <label for="employeeName">Employee Name</label><input id="employeeName" class="box-input" type="text" />
+      <label for="patientName">Patient Name</label><input id="patientName" class="box-input" type="text" />
+      <label for="ssnLast4">SS#</label><div class="inline-text">XXX-XX-<input id="ssnLast4" aria-label="Last four digits of SSN" maxlength="4" inputmode="numeric" class="box-input" style="width:52px" /></div>
+
+      <label for="employeeNumber">Employee #</label><input id="employeeNumber" class="box-input" type="text" />
+      <label for="patientNumber">Patient #</label><input id="patientNumber" class="box-input" type="text" />
+      <label for="weekEnding">Week Ending</label><input id="weekEnding" class="box-input" type="date" />
+
+      <label for="position">Position</label><input id="position" class="box-input" type="text" value="HHA / PCA" />
+      <label for="phone">Phone</label><input id="phone" class="box-input" type="tel" />
+      <label for="address">Address</label><input id="address" class="box-input" type="text" />
+    </div>
+
+    <div class="top-wrap">
+      <div class="instructions">
+        <ol>
+          <li>Use BLACK INK ONLY.</li>
+          <li>Fill this form out every day that you see the patient.</li>
+          <li>You and the patient must sign daily.</li>
+          <li>In case of a patient emergency, call 911 and then notify Complete Home Care at (718) 528-5493.</li>
+          <li>Mail or bring this form to the office every Friday.</li>
+        </ol>
+      </div>
+      <table class="time-table">
+        <colgroup><col style="width:37%"><col span="7" style="width:9%"></colgroup>
+        <thead><tr><th></th><th>SAT</th><th>SUN</th><th>MON</th><th>TUES</th><th>WED</th><th>THU</th><th>FRI</th></tr></thead>
+        <tbody id="timeRows"></tbody>
+      </table>
+    </div>
+
+    <div class="duty-grid">
+      <table id="leftDuty" class="duty-table"></table>
+      <table id="rightDuty" class="duty-table"></table>
+    </div>
+
+    <table class="sign-table">
+      <colgroup>
+        <col style="width:7%"><col style="width:21.5%"><col style="width:21.5%"><col style="width:7%"><col style="width:21.5%"><col style="width:21.5%">
+      </colgroup>
+      <thead>
+        <tr><th></th><th>CLIENT SIGNATURE</th><th>PCA / HHA SIGNATURE</th><th></th><th>CLIENT SIGNATURE</th><th>PCA / HHA SIGNATURE</th></tr>
+      </thead>
+      <tbody id="signatureRows"></tbody>
+    </table>
+
+    <div class="footer-address">117-03 203<sup>rd</sup> Street, St. Albans, NY 11412 &nbsp;&bull;&nbsp; Tel: (718) 528-5493 / 525-4348 &nbsp;&bull;&nbsp; Fax: (718) 525-4305</div>
+  </div>
+</div>
+</div>
+
+<div class="actions" data-html2canvas-ignore="true">
+  <button class="btn btn-secondary" type="button" onclick="downloadPDF()">Download PDF</button>
+  <button class="btn btn-secondary" type="button" onclick="window.print()">Print</button>
+  <button class="btn btn-primary" id="submitDriveBtn" type="button" onclick="submitFormToDrive()">Submit</button>
+  <span id="status" class="status" aria-live="polite"></span>
+</div>
+
+<div id="loadingOverlay" class="loading-overlay" data-html2canvas-ignore="true" aria-hidden="true">
+  <div class="loading-card" role="dialog" aria-modal="true" aria-label="Submitting form">
+    <div id="loadingSpinner" class="spinner-large"></div>
+    <div id="loadingText" class="loading-text">Submitting...</div>
+  </div>
+</div>
+
+<div id="signatureModal" class="signature-modal" data-html2canvas-ignore="true" aria-hidden="true">
+  <div class="signature-panel" role="dialog" aria-modal="true" aria-labelledby="sigTitle">
+    <div class="signature-panel-header">
+      <h2 id="sigTitle">Add Signature</h2>
+      <button type="button" class="close-sign" onclick="closeSignatureModal()" aria-label="Close">&times;</button>
+    </div>
+    <div class="signature-tabs">
+      <button type="button" class="sig-tab active" data-tab="type" onclick="switchSignatureTab('type')">Type Signature</button>
+      <button type="button" class="sig-tab" data-tab="draw" onclick="switchSignatureTab('draw')">Draw Signature</button>
+      <button type="button" class="sig-tab" data-tab="upload" onclick="switchSignatureTab('upload')">Upload Signature</button>
+    </div>
+    <div class="sig-body">
+      <div id="typePane" class="sig-pane active">
+        <label class="sig-label" for="typeSignature">Type your full name</label>
+        <input id="typeSignature" class="type-sign-input" type="text" autocomplete="off" placeholder="Your signature" />
+        <div id="typedPreview" class="typed-live-preview">Your signature</div>
+      </div>
+      <div id="drawPane" class="sig-pane">
+        <label class="sig-label">Draw with your mouse, finger, or stylus</label>
+        <div class="draw-wrap"><canvas id="drawCanvas" width="1024" height="320"></canvas></div>
+        <div class="draw-help">Use the full signature area. You can clear and redraw before saving.</div>
+      </div>
+      <div id="uploadPane" class="sig-pane">
+        <label class="sig-label" for="signatureUpload">Upload a picture of the signature</label>
+        <div class="upload-card">
+          <div class="upload-row">
+            <input id="signatureUpload" class="upload-input" type="file" accept="image/png,image/jpeg,image/webp" />
+            <button type="button" class="mini-btn" onclick="clearUploadedSignature()">Clear Upload</button>
+          </div>
+          <div class="upload-help">Choose a clear photo or scan. The form will automatically detect the ink, remove the light background, crop extra space, and resize the signature to fit the signature box.</div>
+          <div id="uploadStatus" class="upload-status"></div>
+          <div class="upload-preview-wrap">
+            <span id="uploadPlaceholder" class="upload-placeholder">Processed signature preview will appear here.</span>
+            <img id="uploadPreview" alt="Processed signature preview" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sig-footer">
+      <div class="group">
+        <button type="button" class="mini-btn danger" onclick="clearCurrentSignature()">Remove Signature</button>
+        <button type="button" class="mini-btn" onclick="clearDrawCanvas()">Clear Drawing</button>
+      </div>
+      <div class="group">
+        <button type="button" class="mini-btn" onclick="closeSignatureModal()">Cancel</button>
+        <button type="button" class="mini-btn primary" onclick="saveSignature()">Save Signature</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Your deployed Google Apps Script web app URL ===== */
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxy3XovFwa116Vw6lszWUXA_mpnmHSPLHvJ6iy4JGJTZ_bBOS5dUt5UErCeO1SHD41S/exec';
+
+const DAYS = ['SAT','SUN','MON','TUES','WED','THU','FRI'];
+
+/* ---------- Time table ---------- */
+(function buildTimeRows(){
+  const rows = [
+    ['DATE VISITED', '/'],
+    ['TIME ARRIVED IN HOME', ''],
+    ['TIME LEFT HOME', ''],
+    ['TOTAL HOURS WORKED', '']
+  ];
+  document.getElementById('timeRows').innerHTML = rows.map(([label, ph]) =>
+    `<tr><td class="label">${label}</td>${DAYS.map(d => `<td><input class="tiny-input" aria-label="${label} ${d}" placeholder="${ph}" /></td>`).join('')}</tr>`
+  ).join('');
+})();
+
+/* ---------- Duty tables ---------- */
+const leftSections = [
+  {title:'PERSONAL CARE', rows:[
+    'BATH: SHOWER 101 / SPONGE 102 / ASSIST, TOTAL 103',
+    'ORAL HYGIENE: ROUTINE / DENTURE CARE 106',
+    'HAIR CARE: COMB 107 / SHAMPOO 108',
+    'GROOMING: SHAVE 109 / NAILS 110',
+    'TOILETING: COMMODE / BEDPAN / URINAL / TOILET / DIAPER 115',
+    'SKIN CARE 112',
+    'DRESSING 111'
+  ]},
+  {title:'NUTRITION', rows:[
+    'DIET 201',
+    'PREPARE: BREAKFAST 202 / LUNCH 203 / DINNER 204 / SNACK 205',
+    'ASSIST WITH FEEDING 206',
+    'RECORD FOOD / FLUID INTAKE 208/209'
+  ]},
+  {title:'ACTIVITY', rows:[
+    'BEDBOUND: POSITIONING / TURNING EVERY 2 HRS 311',
+    'TRANSFER BED TO CHAIR 300',
+    'AMBULATION: INDEPENDENT / ASSIST 301',
+    'WEIGHT BEARING: FULL / PARTIAL / NONE',
+    'PROM EXERCISES 306',
+    'APPLY ASSISTIVE ORTHOPEDIC DEVICES',
+    'ASSISTIVE DEVICES: HOYER LIFT / WALKER / CANE / WHEELCHAIR / CRUTCHES 302'
+  ]}
+];
+
+const rightSections = [
+  {title:'PATIENT SUPPORT ACTIVITIES', rows:[
+    'ACCOMPANY TO MEDICAL APPOINTMENTS 508',
+    'LIGHT HOUSEKEEPING 502',
+    'BATHROOM / KITCHEN',
+    'PATIENT LAUNDRY 501',
+    'CHANGE BED LINEN 500',
+    'SHOPPING 506',
+    'SOCIAL 509'
+  ]},
+  {title:'TREATMENT / SPECIAL NEEDS', rows:[
+    'ASSIST TREATMENT AS DIRECTED ON PLAN OF CARE',
+    'TAKE TEMPERATURE ORAL / AXILLARY, B/P 405',
+    'RECORD OUTPUT (URINE / BM) 407',
+    'WEIGH PATIENT 406',
+    'ASSIST WITH OSTOMY CARE 410',
+    'EMPTY FOLEY BAG / PERINEAL CARE 409',
+    'OBSERVE DRESSING &amp; REPORT CHANGES TO RN 412',
+    'REMIND / ASSIST WITH MEDS / TREATMENT 411',
+    'OTHER: <input class="other-input" aria-label="Other treatment or special need" />'
+  ]},
+  {title:'MAINTAIN SAFETY', rows:[
+    'MAINTAIN ENVIRONMENTAL SAFETY 511',
+    'MAINTAIN FALL PREVENTION',
+    'UNIVERSAL / STANDARD PRECAUTIONS',
+    'REPORT CHANGES IN PATIENT STATUS / ACCIDENT / INJURY'
+  ]}
+];
+
+function sectionHead(title){
+  return `<tr><th class="section-title">${title}</th>${DAYS.map(d=>`<th class="day-head">${d}</th>`).join('')}</tr>`;
+}
+function taskRow(label){
+  return `<tr><td class="task-label">${label}</td>${DAYS.map(d=>`<td class="check-cell"><input type="checkbox" aria-label="${d} completed" /></td>`).join('')}</tr>`;
+}
+function buildTable(id, sections){
+  let html = '<colgroup><col class="task"><col span="7" class="day"></colgroup>';
+  sections.forEach(s=>{
+    html += sectionHead(s.title);
+    s.rows.forEach(r=> html += taskRow(r));
+  });
+  document.getElementById(id).innerHTML = html;
+}
+buildTable('leftDuty', leftSections);
+buildTable('rightDuty', rightSections);
+
+/* ---------- Signature rows ---------- */
+const signatureLayout = [
+  ['SAT','client-sat','hha-sat','WED','client-wed','hha-wed'],
+  ['SUN','client-sun','hha-sun','THU','client-thu','hha-thu'],
+  ['MON','client-mon','hha-mon','FRI','client-fri','hha-fri']
+];
+
+function signatureButton(id, label){
+  return `<button type="button" class="signature-box" data-signature-id="${id}" data-signature-label="${label}" onclick="openSignatureModal(this)"><span class="signature-preview"></span><span class="signature-hint">Tap to sign</span></button>`;
+}
+
+(function buildSignatureRows(){
+  let html = signatureLayout.map(r => `
+    <tr>
+      <td class="sign-day">${r[0]}</td>
+      <td class="signature-cell">${signatureButton(r[1], r[0]+' Client Signature')}</td>
+      <td class="signature-cell">${signatureButton(r[2], r[0]+' PCA / HHA Signature')}</td>
+      <td class="sign-day">${r[3]}</td>
+      <td class="signature-cell">${signatureButton(r[4], r[3]+' Client Signature')}</td>
+      <td class="signature-cell">${signatureButton(r[5], r[3]+' PCA / HHA Signature')}</td>
+    </tr>`).join('');
+  html += `
+    <tr>
+      <td class="sign-day">TUES</td>
+      <td class="signature-cell">${signatureButton('client-tues','TUES Client Signature')}</td>
+      <td class="signature-cell">${signatureButton('hha-tues','TUES PCA / HHA Signature')}</td>
+      <td colspan="2" style="background:#f6f8fa">OFFICE REVIEW: <input class="review-input" type="text" aria-label="Office review" style="width:58%" /></td>
+      <td style="background:#f6f8fa">DATE: <input class="review-input" type="date" aria-label="Office review date" style="width:72%" /></td>
+    </tr>`;
+  document.getElementById('signatureRows').innerHTML = html;
+})();
+
+/* Click anywhere in a check cell to toggle */
+document.addEventListener('click', (e)=>{
+  const cell = e.target.closest('.check-cell');
+  if(cell && e.target.tagName !== 'INPUT'){
+    const box = cell.querySelector('input[type=checkbox]');
+    box.checked = !box.checked;
+  }
+});
+
+/* ---------- Signature modal ---------- */
+let activeSignatureButton = null;
+let activeSignatureMode = 'type';
+let drawing = false;
+let lastPoint = null;
+let canvas, ctx;
+let uploadedSignatureData = '';
+
+function setupCanvas(){
+  canvas = document.getElementById('drawCanvas');
+  ctx = canvas.getContext('2d');
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#111111';
+  clearDrawCanvas();
+
+  const getPoint = (ev)=>{
+    const rect = canvas.getBoundingClientRect();
+    const p = ev.touches ? ev.touches[0] : ev;
+    return {x:(p.clientX-rect.left)*(canvas.width/rect.width), y:(p.clientY-rect.top)*(canvas.height/rect.height)};
+  };
+  const start = (ev)=>{drawing=true;lastPoint=getPoint(ev);ev.preventDefault();};
+  const move = (ev)=>{
+    if(!drawing) return;
+    const p=getPoint(ev);
+    ctx.beginPath();ctx.moveTo(lastPoint.x,lastPoint.y);ctx.lineTo(p.x,p.y);ctx.stroke();lastPoint=p;ev.preventDefault();
+  };
+  const end = ()=>{drawing=false;lastPoint=null;};
+  canvas.addEventListener('mousedown',start);
+  canvas.addEventListener('mousemove',move);
+  window.addEventListener('mouseup',end);
+  canvas.addEventListener('touchstart',start,{passive:false});
+  canvas.addEventListener('touchmove',move,{passive:false});
+  canvas.addEventListener('touchend',end);
+}
+
+function openSignatureModal(button){
+  activeSignatureButton = button;
+  const modal = document.getElementById('signatureModal');
+  document.getElementById('sigTitle').textContent = button.dataset.signatureLabel || 'Add Signature';
+  const existingType = button.dataset.signatureType || '';
+  const typed = existingType === 'typed' ? (button.dataset.signatureValue || '') : '';
+  document.getElementById('typeSignature').value = typed;
+  document.getElementById('typedPreview').textContent = typed || 'Your signature';
+  switchSignatureTab(existingType === 'drawn' ? 'draw' : (existingType === 'uploaded' ? 'upload' : 'type'));
+  clearDrawCanvas();
+  clearUploadedSignature(true);
+  if(existingType === 'drawn' && button.dataset.signatureValue){
+    const img = new Image();
+    img.onload = ()=>ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    img.src = button.dataset.signatureValue;
+  } else if(existingType === 'uploaded' && button.dataset.signatureValue){
+    uploadedSignatureData = button.dataset.signatureValue;
+    showUploadedPreview(uploadedSignatureData, 'Saved uploaded signature loaded.');
+  }
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+  setTimeout(()=>{ if(activeSignatureMode === 'type') document.getElementById('typeSignature').focus(); },50);
+}
+
+function closeSignatureModal(){
+  const modal = document.getElementById('signatureModal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden','true');
+  activeSignatureButton = null;
+}
+
+function switchSignatureTab(mode){
+  activeSignatureMode = mode;
+  document.querySelectorAll('.sig-tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===mode));
+  document.getElementById('typePane').classList.toggle('active',mode==='type');
+  document.getElementById('drawPane').classList.toggle('active',mode==='draw');
+  document.getElementById('uploadPane').classList.toggle('active',mode==='upload');
+}
+
+function clearDrawCanvas(){
+  if(!ctx || !canvas) return;
+  ctx.save();
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.restore();
+}
+
+function canvasHasInk(){
+  const px = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+  for(let i=0;i<px.length;i+=4){
+    if(px[i] < 245 || px[i+1] < 245 || px[i+2] < 245) return true;
+  }
+  return false;
+}
+
+function showUploadedPreview(dataUrl, message){
+  const img = document.getElementById('uploadPreview');
+  const placeholder = document.getElementById('uploadPlaceholder');
+  if(dataUrl){
+    img.src = dataUrl; img.style.display = 'block'; placeholder.style.display = 'none';
+  } else {
+    img.removeAttribute('src'); img.style.display = 'none'; placeholder.style.display = 'block';
+  }
+  document.getElementById('uploadStatus').textContent = message || '';
+}
+
+function clearUploadedSignature(resetInput=true){
+  uploadedSignatureData = '';
+  if(resetInput){
+    const input = document.getElementById('signatureUpload');
+    if(input) input.value = '';
+  }
+  showUploadedPreview('', '');
+}
+
+function median(values){
+  if(!values.length) return 255;
+  values.sort((a,b)=>a-b);
+  const m = Math.floor(values.length/2);
+  return values.length % 2 ? values[m] : (values[m-1] + values[m]) / 2;
+}
+
+function autoExtractSignature(img){
+  const maxSide = 1800;
+  const scale = Math.min(1, maxSide / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+  const w = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
+  const h = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
+
+  const work = document.createElement('canvas');
+  work.width = w; work.height = h;
+  const wctx = work.getContext('2d', {willReadFrequently:true});
+  wctx.drawImage(img, 0, 0, w, h);
+  const d = wctx.getImageData(0,0,w,h).data;
+
+  const rs=[], gs=[], bs=[];
+  const step = Math.max(1, Math.floor(Math.min(w,h)/120));
+  for(let x=0;x<w;x+=step){
+    for(const y of [0, Math.max(0,h-1)]){
+      const i=(y*w+x)*4; rs.push(d[i]); gs.push(d[i+1]); bs.push(d[i+2]);
+    }
+  }
+  for(let y=0;y<h;y+=step){
+    for(const x of [0, Math.max(0,w-1)]){
+      const i=(y*w+x)*4; rs.push(d[i]); gs.push(d[i+1]); bs.push(d[i+2]);
+    }
+  }
+  const bgR=median(rs), bgG=median(gs), bgB=median(bs);
+  const bgLum=.2126*bgR+.7152*bgG+.0722*bgB;
+
+  let minX=w, minY=h, maxX=-1, maxY=-1, inkCount=0;
+  const alphaMask = new Uint8ClampedArray(w*h);
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const i=(y*w+x)*4;
+      const r=d[i], g=d[i+1], b=d[i+2];
+      const lum=.2126*r+.7152*g+.0722*b;
+      const colorDist=Math.sqrt((r-bgR)**2+(g-bgG)**2+(b-bgB)**2);
+      const darkDelta=Math.max(0,bgLum-lum);
+      const saturation=Math.max(r,g,b)-Math.min(r,g,b);
+      const inkScore = Math.max(darkDelta*1.35, colorDist*.95, saturation*.8 + darkDelta*.65);
+      const a = inkScore > 24 ? Math.max(0, Math.min(255, Math.round((inkScore-18)*4.8))) : 0;
+      alphaMask[y*w+x]=a;
+      if(a>42){
+        inkCount++;
+        if(x<minX) minX=x; if(x>maxX) maxX=x;
+        if(y<minY) minY=y; if(y>maxY) maxY=y;
+      }
+    }
+  }
+
+  if(inkCount < Math.max(18, (w*h)*0.00008) || maxX < minX || maxY < minY){
+    throw new Error('No clear signature strokes were detected. Try a darker, sharper photo on plain paper.');
+  }
+
+  const padX=Math.max(8,Math.round((maxX-minX+1)*.08));
+  const padY=Math.max(6,Math.round((maxY-minY+1)*.16));
+  minX=Math.max(0,minX-padX); maxX=Math.min(w-1,maxX+padX);
+  minY=Math.max(0,minY-padY); maxY=Math.min(h-1,maxY+padY);
+  const cw=maxX-minX+1, ch=maxY-minY+1;
+
+  const crop=document.createElement('canvas');
+  crop.width=cw; crop.height=ch;
+  const cctx=crop.getContext('2d');
+  const cimg=cctx.createImageData(cw,ch);
+  for(let y=0;y<ch;y++){
+    for(let x=0;x<cw;x++){
+      const di=(y*cw+x)*4;
+      cimg.data[di]=17; cimg.data[di+1]=17; cimg.data[di+2]=17;
+      cimg.data[di+3]=alphaMask[(minY+y)*w+(minX+x)];
+    }
+  }
+  cctx.putImageData(cimg,0,0);
+
+  const out=document.createElement('canvas');
+  const targetW=Math.min(1200, Math.max(360, cw));
+  const targetH=Math.max(120, Math.round(targetW*(ch/cw)));
+  out.width=targetW; out.height=targetH;
+  const octx=out.getContext('2d');
+  octx.imageSmoothingEnabled=true;
+  octx.imageSmoothingQuality='high';
+  octx.drawImage(crop,0,0,cw,ch,0,0,targetW,targetH);
+  return out.toDataURL('image/png');
+}
+
+function handleSignatureUpload(file){
+  if(!file) return;
+  if(!/^image\/(png|jpeg|webp)$/i.test(file.type)){
+    alert('Please upload a PNG, JPG/JPEG, or WebP image.');
+    clearUploadedSignature();
+    return;
+  }
+  if(file.size > 12*1024*1024){
+    alert('Please use an image smaller than 12 MB.');
+    clearUploadedSignature();
+    return;
+  }
+  document.getElementById('uploadStatus').textContent='Detecting signature and cleaning the background...';
+  const reader=new FileReader();
+  reader.onerror=()=>{ document.getElementById('uploadStatus').textContent='Could not read that image.'; };
+  reader.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        uploadedSignatureData=autoExtractSignature(img);
+        showUploadedPreview(uploadedSignatureData,'Signature detected, background cleaned, and size adapted.');
+      }catch(err){
+        console.error(err);
+        uploadedSignatureData='';
+        showUploadedPreview('',err.message || 'Could not detect a signature.');
+      }
+    };
+    img.onerror=()=>showUploadedPreview('','That image could not be opened.');
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveSignature(){
+  if(!activeSignatureButton) return;
+  const preview = activeSignatureButton.querySelector('.signature-preview');
+  if(activeSignatureMode === 'type'){
+    const value = document.getElementById('typeSignature').value.trim();
+    if(!value){ alert('Please type a name, choose Draw Signature, or use Upload Signature.'); return; }
+    activeSignatureButton.dataset.signatureType='typed';
+    activeSignatureButton.dataset.signatureValue=value;
+    preview.className='signature-preview typed';
+    preview.textContent=value;
+  } else if(activeSignatureMode === 'draw') {
+    if(!canvasHasInk()){ alert('Please draw a signature first.'); return; }
+    const data=canvas.toDataURL('image/png');
+    activeSignatureButton.dataset.signatureType='drawn';
+    activeSignatureButton.dataset.signatureValue=data;
+    preview.className='signature-preview';
+    preview.innerHTML=`<img src="${data}" alt="Signature" />`;
+  } else {
+    if(!uploadedSignatureData){ alert('Please upload a signature picture and wait for it to be processed.'); return; }
+    activeSignatureButton.dataset.signatureType='uploaded';
+    activeSignatureButton.dataset.signatureValue=uploadedSignatureData;
+    preview.className='signature-preview';
+    preview.innerHTML=`<img src="${uploadedSignatureData}" alt="Signature" />`;
+  }
+  closeSignatureModal();
+}
+
+function clearCurrentSignature(){
+  if(!activeSignatureButton) return;
+  activeSignatureButton.dataset.signatureType='';
+  activeSignatureButton.dataset.signatureValue='';
+  const preview=activeSignatureButton.querySelector('.signature-preview');
+  preview.className='signature-preview';
+  preview.innerHTML='';
+  clearUploadedSignature();
+  closeSignatureModal();
+}
+
+document.getElementById('typeSignature').addEventListener('input', (e)=>{
+  document.getElementById('typedPreview').textContent = e.target.value || 'Your signature';
+});
+document.getElementById('signatureUpload').addEventListener('change',(e)=>{
+  handleSignatureUpload(e.target.files && e.target.files[0]);
+});
+document.getElementById('signatureModal').addEventListener('click',(e)=>{
+  if(e.target.id==='signatureModal') closeSignatureModal();
+});
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape' && document.getElementById('signatureModal').classList.contains('open')) closeSignatureModal();
+});
+
+/* ---------- PDF generation ---------- */
+function formatDate(value){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+  return m ? `${m[2]}/${m[3]}/${m[1]}` : (value || '');
+}
+
+/* Swap inputs for static divs so html2canvas renders their text crisply */
+function preparePdfElements(root){
+  const replacements = [];
+  root.querySelectorAll('input:not([type=checkbox])').forEach(input => {
+    const style = window.getComputedStyle(input);
+    const div = document.createElement('div');
+    div.textContent = input.type === 'date' ? formatDate(input.value) : (input.value || '');
+    ['width','height','border','borderRadius','backgroundColor','fontSize','fontWeight','fontFamily','color','padding','margin','verticalAlign']
+      .forEach(p => div.style[p] = style[p]);
+    div.style.display = input.style.display === 'block' || style.display === 'block' ? 'flex' : 'inline-flex';
+    div.style.alignItems = 'center';
+    div.style.justifyContent = style.textAlign === 'center' ? 'center' : 'flex-start';
+    div.style.boxSizing = 'border-box';
+    div.style.lineHeight = '1';
+    div.style.overflow = 'hidden';
+    div.style.whiteSpace = 'nowrap';
+    input.parentNode.insertBefore(div, input);
+    input.style.display = 'none';
+    replacements.push({input, div});
+  });
+  return replacements;
+}
+
+function restorePdfElements(replacements){
+  replacements.forEach(({input, div}) => {
+    input.style.display = '';
+    if(div && div.parentNode) div.parentNode.removeChild(div);
+  });
+}
+
+async function buildPdf(){
+  if(typeof html2canvas === 'undefined' || !window.jspdf || !window.jspdf.jsPDF){
+    throw new Error('PDF library unavailable. Check your internet connection and try again.');
+  }
+  const element = document.getElementById('printArea');
+  document.body.classList.add('pdf-mode');
+  const replacements = preparePdfElements(element);
+  try{
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const canvasOut = await html2canvas(element, {
+      scale: 2.5, useCORS: true, backgroundColor: '#ffffff',
+      scrollX: 0, scrollY: 0,
+      width: element.offsetWidth, height: element.offsetHeight,
+      windowWidth: element.offsetWidth, windowHeight: element.offsetHeight,
+      logging: false
+    });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation:'portrait', unit:'in', format:'letter', compress:true});
+    pdf.addImage(canvasOut.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
+    return pdf;
+  } finally {
+    restorePdfElements(replacements);
+    document.body.classList.remove('pdf-mode');
+  }
+}
+
+function makeFilename(){
+  const safe = v => (v || '').trim().replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, '_').slice(0, 60);
+  const emp = safe(document.getElementById('employeeName').value) || 'Employee';
+  const pat = safe(document.getElementById('patientName').value) || 'Patient';
+  const week = safe(document.getElementById('weekEnding').value);
+  return `Duty_Sheet_${emp}_${pat}${week ? '_' + week : ''}.pdf`;
+}
+
+function setStatus(text, isError){
+  const s = document.getElementById('status');
+  s.textContent = text || '';
+  s.classList.toggle('error', !!isError);
+}
+
+async function downloadPDF(){
+  setStatus('Preparing PDF...');
+  try{
+    const pdf = await buildPdf();
+    pdf.save(makeFilename());
+    setStatus('PDF downloaded.');
+  }catch(err){
+    console.error(err);
+    setStatus('PDF library unavailable. Opening print dialog - choose Save as PDF.', true);
+    window.print();
+  }
+  setTimeout(()=>setStatus(''), 4500);
+}
+
+/* ---------- Overlay ---------- */
+function showLoadingOverlay(text){
+  document.getElementById('loadingSpinner').style.display = 'block';
+  const t = document.getElementById('loadingText');
+  t.className = 'loading-text';
+  t.textContent = text || 'Submitting...';
+  const o = document.getElementById('loadingOverlay');
+  o.classList.add('open'); o.setAttribute('aria-hidden','false');
+}
+function showSuccessOverlay(text){
+  document.getElementById('loadingSpinner').style.display = 'none';
+  const t = document.getElementById('loadingText');
+  t.className = 'loading-text success';
+  t.textContent = text || 'Submitted successfully!';
+}
+function hideLoadingOverlay(){
+  const o = document.getElementById('loadingOverlay');
+  o.classList.remove('open'); o.setAttribute('aria-hidden','true');
+}
+
+/* ---------- Submit to Google Drive via Apps Script ---------- */
+async function submitFormToDrive(){
+  const button = document.getElementById('submitDriveBtn');
+  button.disabled = true;
+  setStatus('');
+  showLoadingOverlay('Building\u2026');
+
+  try{
+    const pdf = await buildPdf();
+    const dataUri = pdf.output('datauristring');
+    const payload = {
+      filename: makeFilename(),
+      pdf: dataUri.substring(dataUri.indexOf(',') + 1),
+      employeeName: document.getElementById('employeeName').value.trim(),
+      patientName: document.getElementById('patientName').value.trim(),
+      weekEnding: document.getElementById('weekEnding').value
+    };
+
+    // text/plain keeps this a "simple" request, so the browser skips the CORS
+    // preflight that Apps Script cannot answer.
+    showLoadingOverlay('Submitting\u2026');
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload),
+      redirect: 'follow'
+    });
+    const text = await res.text();
+    let result;
+    try { result = JSON.parse(text); } catch(_) { throw new Error('Unexpected response from server.'); }
+    if(!result.ok) throw new Error(result.error || 'Submission failed.');
+
+    showSuccessOverlay('Submitted successfully');
+    setTimeout(hideLoadingOverlay, 2000);
+  }catch(err){
+    console.error(err);
+    hideLoadingOverlay();
+    setStatus('Submission failed: ' + (err && err.message ? err.message : err), true);
+  }finally{
+    button.disabled = false;
+  }
+}
+
+/* ---------- Layout check (used for testing) ---------- */
+function verifyOnePageLayout(){
+  const sheet = document.getElementById('printArea');
+  const content = document.getElementById('sheetContent');
+  const cs = getComputedStyle(sheet);
+  const innerH = sheet.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const sign = document.querySelector('.sign-table').getBoundingClientRect().top;
+  const dutyBottom = Math.max(...[...document.querySelectorAll('.duty-table')].map(t => t.getBoundingClientRect().bottom));
+  const overflow = content.scrollHeight > innerH + 1 || dutyBottom > sign + 1;
+  document.documentElement.dataset.onePageFit = overflow ? 'overflow' : 'ok';
+}
+
+window.addEventListener('load', ()=>{ setupCanvas(); verifyOnePageLayout(); });
+window.addEventListener('resize', verifyOnePageLayout);
+</script>
+</body>
+</html>

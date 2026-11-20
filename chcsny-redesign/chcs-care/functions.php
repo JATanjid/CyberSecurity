@@ -110,6 +110,23 @@ function chcs_opt( $key ) {
 	return get_theme_mod( 'chcs_' . $key, $default );
 }
 
+/** Staff & employee portal URL (the CHCS Staff Portal plugin serves it at /portal/). */
+function chcs_staff_portal( $hash = '' ) {
+	$url = chcs_opt( 'staff_portal_url' );
+	$url = $url ? $url : home_url( '/portal/' );
+	return $url . ( $hash ? '#/' . $hash : '' );
+}
+
+/** Favicon fallback when no Site Icon is set in the Customizer. */
+add_action(
+	'wp_head',
+	function () {
+		if ( ! has_site_icon() ) {
+			echo '<link rel="icon" type="image/png" href="' . esc_url( CHCS_URI . '/assets/img/favicon.png' ) . '">' . "\n";
+		}
+	}
+);
+
 /** Helper: phone number to tel: link. */
 function chcs_tel( $phone ) {
 	return 'tel:' . preg_replace( '/[^0-9+]/', '', $phone );
@@ -139,6 +156,7 @@ function chcs_fallback_menu() {
 		$current = is_page( $slug ) ? ' current-menu-item' : '';
 		printf( '<li class="menu-item%s"><a href="%s">%s</a></li>', esc_attr( $current ), esc_url( chcs_page_url( $slug ) ), esc_html( $label ) );
 	}
+	printf( '<li class="menu-item menu-item--portal"><a href="%s">%s</a></li>', esc_url( chcs_staff_portal() ), esc_html__( 'Staff Portal', 'chcs-care' ) );
 	echo '</ul>';
 }
 

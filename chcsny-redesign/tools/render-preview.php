@@ -57,6 +57,9 @@ function language_attributes() { echo 'lang="en-US"'; }
 // ---------- URLs ----------
 function home_url( $p = '/' ) {
 	$p = trim( $p, '/' );
+	if ( 'portal' === $p ) {
+		return 'portal/';
+	}
 	return '' === $p ? 'index.html' : $p . '.html';
 }
 function get_page_by_path( $s ) { return null; }
@@ -75,7 +78,26 @@ function wp_head() {
 	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap">' . "\n";
 	echo '<link rel="stylesheet" href="assets-root/assets/css/main.css">' . "\n";
 }
-function wp_footer() { echo '<script src="assets-root/assets/js/main.js"></script>'; }
+function wp_footer() {
+	echo '<script src="assets-root/assets/js/main.js"></script>';
+	if ( 'home' !== $GLOBALS['__page'] ) {
+		return;
+	}
+	// Preview only: show "Website" posts published in the demo portal (same origin, same browser storage).
+	echo '<script src="portal/js/core.js"></script><script src="portal/js/demo-server.js"></script><script>
+(function () {
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"\']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "\x27": "&#39;" }[c]; }); }
+  CHCSDemoServer.handle("GET", "posts?public=1").then(function (posts) {
+    if (!posts.length) return;
+    var cta = document.querySelectorAll("main .section--tight"); cta = cta[cta.length - 1];
+    var sec = document.createElement("section"); sec.className = "section section--cream";
+    sec.innerHTML = "<div class=\"container\"><div class=\"section-head\"><span class=\"eyebrow\">News &amp; updates</span><h2>From the CHCS community</h2><p class=\"lead\">Posted by staff from the CHCS Portal admin panel.</p></div><div class=\"grid grid--3\">" +
+      posts.slice(0, 3).map(function (p) { return "<article class=\"post-card\"><div class=\"post-card__img\"></div><div class=\"post-card__body\"><div class=\"post-card__meta\">" + esc(new Date(p.publishedAt || p.createdAt).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })) + "</div><h3>" + esc(p.title) + "</h3><p>" + esc(p.body.slice(0, 140)) + (p.body.length > 140 ? "…" : "") + "</p></div></article>"; }).join("") + "</div></div>";
+    cta.parentNode.insertBefore(sec, cta);
+  });
+})();
+</script>';
+}
 function wp_body_open() {
 	echo '<div style="background:#fff4d6;color:#5c4400;text-align:center;font:600 14px/1.4 system-ui,sans-serif;padding:8px 16px;border-bottom:1px solid #f0d58a">Design preview of a proposed redesign — not the official CHCS website. Forms are disabled. Official site: <a href="https://chcsny.com/" style="color:#5c4400">chcsny.com</a></div>';
 }

@@ -29,6 +29,7 @@ $phone = chcs_opt( 'phone' );
 		<div class="topbar__items topbar__secondary">
 			<span><?php echo chcs_icon( 'shield' ); // phpcs:ignore ?><?php esc_html_e( 'Compliance Hotline:', 'chcs-care' ); ?>&nbsp;<a href="<?php echo esc_attr( chcs_tel( chcs_opt( 'hotline' ) ) ); ?>"><?php echo esc_html( chcs_opt( 'hotline' ) ); ?></a></span>
 			<a href="<?php echo esc_url( chcs_page_url( 'careers' ) ); ?>"><?php esc_html_e( 'Careers', 'chcs-care' ); ?></a>
+			<a class="portal-link" href="<?php echo esc_url( chcs_staff_portal() ); ?>"><?php echo chcs_icon( 'lock' ); // phpcs:ignore ?><?php esc_html_e( 'Staff Portal', 'chcs-care' ); ?></a>
 		</div>
 	</div>
 </div>

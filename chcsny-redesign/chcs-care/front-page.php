@@ -104,7 +104,10 @@ $years     = (int) gmdate( 'Y' ) - (int) chcs_opt( 'founded' );
 				<span class="eyebrow"><?php esc_html_e( 'Careers', 'chcs-care' ); ?></span>
 				<h2><?php esc_html_e( 'Join a team that cares', 'chcs-care' ); ?></h2>
 				<p><?php esc_html_e( 'We’re looking for RNs, LPNs and therapists who want meaningful, flexible work caring for patients in their own homes.', 'chcs-care' ); ?></p>
-				<a class="btn btn--light" href="<?php echo esc_url( chcs_page_url( 'careers' ) ); ?>"><?php esc_html_e( 'View openings', 'chcs-care' ); ?></a>
+				<div class="hero__actions" style="margin:0">
+					<a class="btn btn--primary" href="<?php echo esc_url( chcs_staff_portal( 'signup' ) ); ?>"><?php esc_html_e( 'Apply online', 'chcs-care' ); ?></a>
+					<a class="btn btn--light" href="<?php echo esc_url( chcs_page_url( 'careers' ) ); ?>"><?php esc_html_e( 'View openings', 'chcs-care' ); ?></a>
+				</div>
 			</div>
 		</div>
 	</div>

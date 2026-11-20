@@ -36,6 +36,7 @@ function chcs_defaults() {
 		'hero_image'    => '',
 		'about_image'   => '',
 		'form_shortcode' => '',
+		'staff_portal_url' => '',
 	);
 }
 

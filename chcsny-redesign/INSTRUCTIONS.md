@@ -1,4 +1,22 @@
-# CHCS Care — WordPress Theme: Installation & Setup Guide
+# CHCS Website + Staff Portal: Installation & Setup Guide
+
+This package has two parts. Both install from the normal WordPress dashboard:
+
+| File | What it is | Install from |
+|---|---|---|
+| **`chcs-care.zip`** | The redesigned website **theme** (with your logo and colors) | Appearance → Themes → Add New → Upload |
+| **`chcs-portal.zip`** | The **Staff & Employee Portal** plugin: sign-up with email verification, admin approvals, designations and access, clock in/out, timesheets, payroll Excel export, intake and cases, visit notes, chat, schedules, in-services, orientation, job applications, news and posts, Resend emails, and a phone app | Plugins → Add New → Upload |
+
+**Quick start:** install and activate the theme, then install and activate the plugin. Go to **Settings → Permalinks → Save**, then open
+**`https://your-site/portal/`** and sign in with your WordPress admin account. Full portal documentation is in
+**`chcs-portal/README.md`** (Resend setup, phone app install, how each flow works, and HIPAA notes).
+
+**Try before installing:** open `chcsny-preview/index.html` for the website and `chcsny-preview/portal/index.html` for the portal demo
+(demo password `demo1234`), or use the GitHub Pages link.
+
+---
+
+## Website theme
 
 A redesigned, mobile-first WordPress theme for **Complete Home Care Services, Inc. (chcsny.com)**.
 
