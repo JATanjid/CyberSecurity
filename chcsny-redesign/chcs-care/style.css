@@ -1,0 +1,16 @@
+/*
+Theme Name: CHCS Care
+Theme URI: https://chcsny.com/
+Author: CHCS Web Team
+Description: A modern, accessible, mobile-first WordPress theme for Complete Home Care Services, Inc. (CHCS) — a licensed home health care agency serving NYC and Nassau County. Includes a designed homepage, Services, About, Careers, Referrals, Family Portal, Contact pages, a built-in secure contact/referral form, and Customizer settings for all contact details.
+Version: 1.0.0
+Requires at least: 6.0
+Tested up to: 6.7
+Requires PHP: 7.4
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: chcs-care
+Tags: health, medical, one-column, custom-menu, custom-logo, featured-images, accessibility-ready, translation-ready
+*/
+
+/* Main styles live in assets/css/main.css (enqueued in functions.php). */

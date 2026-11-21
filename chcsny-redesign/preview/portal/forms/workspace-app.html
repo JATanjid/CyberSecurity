@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedded Google Apps Script App</title>
+    <style>
+        /* Resets padding and margin to ensure a clean layout */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Container designed to fit the full viewport */
+        .iframe-container {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Styles the embedded frame */
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="iframe-container">
+        <iframe 
+            src="https://script.google.com/a/macros/completehcs.com/s/AKfycby5SkWVCZun2PDTA3W4uBRtyVM291pY1wnT90Cl_i3WRBcfy2fBFuj2eMaRXKZmlnZhRQ/exec" 
+            title="Google Apps Script Application"
+            allow="geolocation; microphone; camera">
+        </iframe>
+    </div>
+
+</body>
+</html>

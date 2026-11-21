@@ -1,0 +1,3340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Complete Home Care Services - Interactive Application Form</title>
+    <style>
+        /* CSS Page setup for Letter Size */
+        @page {
+            size: letter portrait;
+            margin: 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            line-height: 1.25;
+            color: #000;
+            background-color: #787878;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Container for printable pages */
+        .page-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0 80px 0;
+            margin-left: 270px;
+            transition: margin-left 0.22s ease;
+        }
+
+        /* Standard Letter Page Styling */
+        .page {
+            width: 8.5in;
+            height: 11in;
+            padding: 0.5in;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+            position: relative;
+            page-break-after: always;
+            overflow: hidden;
+        }
+
+        .page:last-child {
+            page-break-after: avoid;
+        }
+
+        /* Centered Header Layout */
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+        }
+
+        .company-name {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #002060;
+            line-height: 1.1;
+            text-transform: uppercase;
+        }
+
+        /* Centered Fixed Footer inside Page */
+        .page-footer {
+            position: absolute;
+            bottom: 0.4in;
+            left: 0.5in;
+            right: 0.5in;
+            text-align: center;
+            font-size: 8.5pt;
+            border-top: 1px solid #ccc;
+            padding-top: 4px;
+            line-height: 1.3;
+        }
+
+        .page-number {
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        /* Headers & Sections */
+        h1, h2 {
+            text-align: center;
+            margin: 8px 0;
+            text-transform: uppercase;
+        }
+
+        h1 { font-size: 13pt; }
+        h2 { font-size: 11pt; }
+
+        .section-title {
+            font-weight: bold;
+            background-color: #f0f0f0;
+            padding: 3px 6px;
+            margin-top: 10px;
+            margin-bottom: 6px;
+            border: 1px solid #ccc;
+            font-size: 9.5pt;
+            text-transform: uppercase;
+        }
+
+        /* Form Controls & Inputs */
+        input[type="checkbox"], input[type="radio"] {
+            vertical-align: middle;
+            margin-right: 2px;
+            cursor: pointer;
+        }
+
+        .field-label {
+            font-weight: bold;
+            font-size: 9pt;
+        }
+
+        /* Editable Text Inputs for Screen & Print */
+        input[type="text"], input[type="date"], input[type="tel"], input[type="email"], select {
+            border: none;
+            border-bottom: 1px solid #000;
+            background: transparent;
+            font-family: inherit;
+            font-size: 9pt;
+            padding: 1px 4px 4px;
+            line-height: 1.25;
+            outline: none;
+        }
+
+        textarea {
+            border: 1px solid #ccc;
+            width: 100%;
+            font-family: inherit;
+            font-size: 8.5pt;
+            padding: 4px;
+            outline: none;
+            resize: none;
+            background: transparent;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+            font-size: 9pt;
+        }
+
+        table.bordered, table.bordered th, table.bordered td {
+            border: 1px solid #000;
+        }
+
+        table th, table td {
+            padding: 3px 5px;
+            vertical-align: middle;
+        }
+
+        .question-table td {
+            padding: 4px 6px;
+        }
+        
+        .radio-cell {
+            white-space: nowrap;
+            text-align: center;
+            width: 65px;
+        }
+
+        .hr-box {
+            border: 2px dashed #000;
+            padding: 6px;
+            margin-top: 10px;
+            background-color: #fafafa;
+        }
+
+        .hr-title {
+            font-weight: bold;
+            text-align: center;
+            font-size: 8.5pt;
+            margin-bottom: 4px;
+        }
+
+        .legal-text {
+            font-size: 7.5pt;
+            text-align: justify;
+            line-height: 1.15;
+            margin: 6px 0;
+        }
+
+        /* Dedicated Document Page Container */
+        .doc-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .doc-box-large {
+            border: 2px dashed #666;
+            background-color: #fdfdfd;
+            border-radius: 6px;
+            height: 3.6in;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .doc-box-full {
+            border: 2px dashed #666;
+            background-color: #fdfdfd;
+            border-radius: 6px;
+            height: 7.2in;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 15px;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .doc-box-title {
+            font-size: 11pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+            text-transform: uppercase;
+        }
+
+        .doc-preview-large {
+            max-width: 100%;
+            max-height: 2.7in;
+            object-fit: contain;
+            display: none;
+            border: 1px solid #ccc;
+            margin-bottom: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .doc-preview-full {
+            max-width: 100%;
+            max-height: 6.0in;
+            object-fit: contain;
+            display: none;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .doc-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        /* ID Card Frame - constrains preview to the same landscape ID-card
+           shape used by the capture guide, so what you see is exactly what
+           will sit in the PDF layout. */
+        .id-card-frame {
+            width: 100%;
+            max-width: 3.6in;
+            aspect-ratio: 1.586 / 1;
+            border: 2px dashed #999;
+            border-radius: 8px;
+            background: #f4f4f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            margin: 0 auto 8px auto;
+        }
+
+        .id-card-frame .doc-preview-large {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            margin: 0;
+            border: none;
+            box-shadow: none;
+            border-radius: 6px;
+        }
+
+        /* Pages 10-12: the outer dashed box is the frame, so the image
+           fills the whole box instead of a small inner card outline. */
+        .doc-box-large .id-card-frame {
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            max-width: none;
+            aspect-ratio: auto;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            margin: 0 0 6px 0;
+        }
+
+        /* Crop popup */
+        .crop-content { max-width: 720px; }
+        .crop-stage { position: relative; margin: 0 auto; touch-action: none; user-select: none; -webkit-user-select: none; overflow: hidden; background: #222; border-radius: 4px; }
+        .crop-stage img { display: block; width: 100%; height: 100%; pointer-events: none; }
+        .crop-box { position: absolute; border: 2px solid #fff; box-shadow: 0 0 0 9999px rgba(0,0,0,0.55); cursor: move; box-sizing: border-box; }
+        .crop-box::before, .crop-box::after { content: ''; position: absolute; border: 0 dashed rgba(255,255,255,0.6); pointer-events: none; }
+        .crop-box::before { left: 33.33%; right: 33.33%; top: 0; bottom: 0; border-left-width: 1px; border-right-width: 1px; }
+        .crop-box::after { top: 33.33%; bottom: 33.33%; left: 0; right: 0; border-top-width: 1px; border-bottom-width: 1px; }
+        .crop-handle { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; background: #fff; border: 2px solid #0056b3; border-radius: 50%; box-sizing: border-box; z-index: 1; }
+        .crop-handle[data-h="nw"] { left: 0; top: 0; cursor: nwse-resize; }
+        .crop-handle[data-h="n"]  { left: 50%; top: 0; cursor: ns-resize; }
+        .crop-handle[data-h="ne"] { left: 100%; top: 0; cursor: nesw-resize; }
+        .crop-handle[data-h="e"]  { left: 100%; top: 50%; cursor: ew-resize; }
+        .crop-handle[data-h="se"] { left: 100%; top: 100%; cursor: nwse-resize; }
+        .crop-handle[data-h="s"]  { left: 50%; top: 100%; cursor: ns-resize; }
+        .crop-handle[data-h="sw"] { left: 0; top: 100%; cursor: nesw-resize; }
+        .crop-handle[data-h="w"]  { left: 0; top: 50%; cursor: ew-resize; }
+        .crop-actions { margin-top: 12px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        .crop-actions .btn-light { background: #e5e7eb; color: #111; }
+
+        .id-frame-placeholder {
+            font-size: 7.5pt;
+            font-weight: bold;
+            color: #aaa;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Camera Viewport + Capture Guide */
+        .camera-viewport {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            overflow: hidden;
+            border-radius: 4px;
+            background: #000;
+        }
+
+        .camera-viewport video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+            display: block;
+        }
+
+        .camera-guide-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 82%;
+            aspect-ratio: 1.586 / 1;
+            border: 3px dashed #00e676;
+            border-radius: 10px;
+            box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+
+        .camera-guide-frame.doc-mode {
+            width: 52%;
+            aspect-ratio: 0.773 / 1;
+            border-color: #ffca28;
+        }
+
+        .camera-guide-caption {
+            font-size: 8pt;
+            color: #666;
+            margin: -5px 0 8px 0;
+        }
+
+        /* Submit progress indicator */
+        .submit-status { color:#fff; font-size:9pt; max-width:260px; }
+        .submit-status.success { color:#86efac; }
+        .submit-status.error { color:#fca5a5; }
+        .loading-spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:chcsSpin .7s linear infinite; vertical-align:middle; margin-right:7px; }
+        @keyframes chcsSpin { to { transform:rotate(360deg); } }
+        .btn:disabled { opacity:.65; cursor:wait; }
+
+        /* Action Bar at the Bottom */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #1a1a1a;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+            z-index: 9999;
+        }
+
+        .btn {
+            background-color: #0056b3;
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            font-size: 9pt;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background-color 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn:hover { background-color: #003d80; }
+        .btn-secondary { background-color: #28a745; }
+        .btn-secondary:hover { background-color: #1e7e34; }
+        .btn-sm { padding: 5px 12px; font-size: 8.5pt; }
+        .btn-danger { background-color: #dc3545; }
+        .btn-danger:hover { background-color: #bd2130; }
+
+        /* PDF export controls in the fixed bottom action bar */
+        .pdf-export-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #fff;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+
+        .pdf-page-picker {
+            position: relative;
+            min-width: 350px;
+        }
+
+        .pdf-page-picker > summary {
+            list-style: none;
+            height: 34px;
+            min-width: 350px;
+            max-width: 470px;
+            border: 1px solid #777;
+            border-radius: 5px;
+            background: #fff;
+            color: #111;
+            padding: 7px 34px 7px 10px;
+            cursor: pointer;
+            position: relative;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            user-select: none;
+        }
+
+        .pdf-page-picker > summary::-webkit-details-marker { display: none; }
+
+        .pdf-page-picker > summary::after {
+            content: '▾';
+            position: absolute;
+            right: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #444;
+            font-size: 11pt;
+        }
+
+        .pdf-page-picker[open] > summary::after { content: '▴'; }
+
+        .pdf-page-menu {
+            position: absolute;
+            left: 0;
+            bottom: calc(100% + 8px);
+            width: min(470px, 90vw);
+            max-height: 390px;
+            overflow: auto;
+            background: #fff;
+            color: #111;
+            border: 1px solid #777;
+            border-radius: 7px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+            padding: 8px;
+            z-index: 10020;
+            font-weight: normal;
+        }
+
+        .pdf-page-menu-header {
+            display: flex;
+            gap: 6px;
+            position: sticky;
+            top: -8px;
+            background: #fff;
+            padding: 8px 0 7px;
+            border-bottom: 1px solid #ddd;
+            z-index: 1;
+        }
+
+        .pdf-mini-btn {
+            border: 1px solid #aaa;
+            background: #f5f5f5;
+            color: #222;
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-size: 8.5pt;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .pdf-mini-btn:hover { background: #e8e8e8; }
+
+        .pdf-page-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 7px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            line-height: 1.25;
+        }
+
+        .pdf-page-option:hover { background: #f1f6ff; }
+
+        .pdf-page-option input {
+            margin-top: 2px;
+            flex: 0 0 auto;
+        }
+
+        .pdf-page-picker.disabled > summary {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        @media (max-width: 680px) {
+            .action-bar {
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 9px 10px;
+            }
+
+            .pdf-export-controls {
+                order: 2;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .pdf-page-picker,
+            .pdf-page-picker > summary {
+                min-width: 0;
+                width: min(100%, 390px);
+                max-width: 390px;
+            }
+
+            .pdf-page-menu {
+                left: 50%;
+                transform: translateX(-50%);
+                width: min(94vw, 430px);
+            }
+        }
+
+        /* Left page navigation */
+        .page-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 66px;
+            width: 270px;
+            background: #111827;
+            color: #fff;
+            z-index: 9000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 3px 0 14px rgba(0,0,0,0.28);
+            transition: width 0.22s ease, transform 0.22s ease;
+        }
+
+        .page-nav-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 15px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+            flex: 0 0 auto;
+        }
+
+        .page-nav-title {
+            font-size: 11pt;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .page-nav-toggle {
+            width: 30px;
+            height: 30px;
+            border: 1px solid rgba(255,255,255,0.28);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            font-size: 15px;
+            cursor: pointer;
+            flex: 0 0 auto;
+        }
+
+        .page-nav-toggle:hover { background: rgba(255,255,255,0.16); }
+
+        .page-nav-list {
+            padding: 8px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        .page-nav-item {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: #e5e7eb;
+            text-align: left;
+            padding: 9px 8px;
+            border-radius: 7px;
+            display: grid;
+            grid-template-columns: 38px minmax(0,1fr);
+            gap: 8px;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 3px;
+            font-family: inherit;
+        }
+
+        .page-nav-item:hover { background: rgba(255,255,255,0.09); }
+
+        .page-nav-item.active {
+            background: #0d6efd;
+            color: #fff;
+            box-shadow: inset 3px 0 0 #fff;
+        }
+
+        .page-nav-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 34px;
+            height: 28px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.10);
+            font-size: 8.5pt;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .page-nav-name {
+            font-size: 8.8pt;
+            font-weight: 600;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+        }
+
+        body.page-nav-collapsed .page-nav { width: 58px; }
+        body.page-nav-collapsed .page-container { margin-left: 58px; }
+        body.page-nav-collapsed .page-nav-title,
+        body.page-nav-collapsed .page-nav-name { display: none; }
+        body.page-nav-collapsed .page-nav-header { justify-content: center; padding-left: 6px; padding-right: 6px; }
+        body.page-nav-collapsed .page-nav-list { padding-left: 5px; padding-right: 5px; }
+        body.page-nav-collapsed .page-nav-item { display: flex; justify-content: center; padding-left: 3px; padding-right: 3px; }
+        body.page-nav-collapsed .page-nav-number { min-width: 38px; }
+
+        .page-nav-mobile-open {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 84px;
+            z-index: 8999;
+            border: 0;
+            border-radius: 0 7px 7px 0;
+            background: #111827;
+            color: #fff;
+            padding: 10px 11px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 1100px) {
+            .page-container,
+            body.page-nav-collapsed .page-container { margin-left: 0; }
+            .page-nav {
+                bottom: 0;
+                width: 270px;
+                transform: translateX(-100%);
+            }
+            .page-nav.mobile-open { transform: translateX(0); }
+            .page-nav-mobile-open { display: block; }
+            body.page-nav-collapsed .page-nav { width: 270px; }
+            body.page-nav-collapsed .page-nav-title,
+            body.page-nav-collapsed .page-nav-name { display: block; }
+            body.page-nav-collapsed .page-nav-header { justify-content: space-between; padding: 15px 12px; }
+            body.page-nav-collapsed .page-nav-list { padding: 8px; }
+            body.page-nav-collapsed .page-nav-item { display: grid; justify-content: initial; padding: 9px 8px; }
+            body.page-nav-collapsed .page-nav-number { min-width: 34px; }
+        }
+
+        /* Signature Line Styles */
+        .sig-container {
+            display: inline-block;
+            vertical-align: middle;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .sig-preview-img {
+            max-height: 35px;
+            max-width: 100%;
+            vertical-align: middle;
+            display: none;
+        }
+
+        .sig-placeholder-text {
+            border-bottom: 1px dashed #0056b3;
+            color: #0056b3;
+            font-weight: bold;
+            padding: 2px 8px;
+            font-size: 8.5pt;
+            background: #f0f7ff;
+            border-radius: 3px;
+        }
+
+        /* Modals Setup */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 650px;
+            width: 90%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+
+        video {
+            width: 100%;
+            max-height: 300px;
+            background: #000;
+            border-radius: 4px;
+        }
+        /* .camera-viewport video (defined above) overrides sizing for the guided capture view */
+
+        /* Submit progress popup */
+        .submit-popup-content { max-width: 360px; padding: 32px 24px 24px; }
+        .submit-popup-icon { width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; color: #fff; }
+        .submit-popup-icon.loading { border: 5px solid #dbe7f5; border-top-color: #0056b3; animation: chcsSpin .8s linear infinite; }
+        .submit-popup-icon.success { background: #16a34a; }
+        .submit-popup-icon.error { background: #dc2626; }
+        .submit-popup-title { font-size: 18px; font-weight: bold; color: #1f2937; margin: 0 0 6px; }
+        .submit-popup-message { font-size: 14px; color: #4b5563; margin: 0; word-break: break-word; }
+        .submit-popup-ok { margin-top: 20px; padding: 10px 32px; border: none; border-radius: 6px; background: #0056b3; color: #fff; font-size: 15px; cursor: pointer; }
+        .submit-popup-ok:hover { background: #00418a; }
+
+        /* Large Canvas for Expanded Signature Popup */
+        #sig-canvas {
+            border: 2px dashed #0056b3;
+            background-color: #fafafa;
+            border-radius: 6px;
+            cursor: crosshair;
+            touch-action: none;
+            width: 100%;
+            height: 250px;
+        }
+
+        /* Signature modal: draw or type */
+        .signature-mode-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0 14px;
+            padding: 4px;
+            background: #eef3f8;
+            border-radius: 8px;
+        }
+
+        .signature-tab {
+            flex: 1;
+            border: 0;
+            border-radius: 6px;
+            padding: 9px 12px;
+            background: transparent;
+            color: #334155;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .signature-tab.active {
+            background: #0056b3;
+            color: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,.18);
+        }
+
+        .signature-panel { display: none; }
+        .signature-panel.active { display: block; }
+
+        .typed-signature-wrap {
+            border: 2px dashed #0056b3;
+            background: #fafafa;
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        .typed-signature-input {
+            width: 100%;
+            border: 1px solid #aeb9c5 !important;
+            border-radius: 6px;
+            padding: 10px 12px !important;
+            font-size: 11pt !important;
+            background: #fff !important;
+            margin-bottom: 12px;
+        }
+
+        .typed-signature-preview {
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: #fff;
+            border: 1px solid #d8dee6;
+            color: #000080;
+            font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
+            font-size: 42px;
+            font-style: italic;
+            line-height: 1.1;
+            padding: 12px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .typed-signature-preview.empty {
+            color: #94a3b8;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            font-style: normal;
+        }
+
+        .signature-font-label {
+            display: block;
+            margin: 2px 0 7px;
+            font-size: 8.5pt;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .signature-font-options {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 7px;
+            margin-bottom: 12px;
+        }
+
+        .signature-font-option {
+            min-height: 48px;
+            border: 1px solid #b8c3cf;
+            border-radius: 7px;
+            background: #fff;
+            color: #111827;
+            padding: 5px 4px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1px;
+            line-height: 1;
+        }
+
+        .signature-font-option:hover { background: #f4f8fc; border-color: #7b91aa; }
+        .signature-font-option.active {
+            border: 2px solid #0056b3;
+            background: #eef6ff;
+            box-shadow: 0 0 0 1px rgba(0,86,179,.08);
+        }
+
+        .signature-font-option .font-sample { font-size: 21px; white-space: nowrap; }
+        .signature-font-option .font-name { font: 600 7px Arial, sans-serif; color: #64748b; margin-top: 3px; }
+
+        @media (max-width: 620px) {
+            .signature-font-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        .signature-helper {
+            font-size: 8.5pt;
+            color: #666;
+            margin: 6px 0 0;
+        }
+
+
+
+        /* Pre-Employment Clinical Competency Assessment */
+        .clinical-assessment-page h2 {
+            font-size: 14pt;
+            color: #002060;
+            margin: 4px 0 10px;
+            letter-spacing: 0.1px;
+            text-transform: none;
+        }
+
+        .clinical-meta-table {
+            margin: 0 0 8px 0;
+            font-size: 8.5pt;
+            border: 1px solid #4a5568;
+            table-layout: fixed;
+        }
+
+        .clinical-meta-table td {
+            border: 1px solid #4a5568;
+            padding: 5px 7px;
+            height: 30px;
+        }
+
+        .clinical-meta-table .sig-preview-img {
+            max-height: 28px;
+        }
+
+        .clinical-instruction {
+            display: grid;
+            grid-template-columns: 1fr 2.15in;
+            border: 1px solid #4a5568;
+            border-bottom: 0;
+            background: #eef3f8;
+            font-size: 8.2pt;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+
+        .clinical-instruction > div {
+            padding: 6px 7px;
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+        }
+
+        .clinical-instruction > div + div {
+            border-left: 1px solid #4a5568;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .clinical-skill-table {
+            margin: 0;
+            table-layout: fixed;
+            font-size: 8pt;
+            border: 1px solid #4a5568;
+        }
+
+        .clinical-skill-table td {
+            border: 1px solid #4a5568;
+            padding: 2px 7px;
+            height: 19px;
+            line-height: 1.05;
+            vertical-align: middle;
+        }
+
+        .clinical-skill-table td:first-child {
+            font-weight: 500;
+        }
+
+        .clinical-skill-table .clinical-check-cell {
+            width: 2.15in;
+            text-align: center;
+            background: #fbfcfe;
+        }
+
+        .clinical-skill-table .clinical-check-cell label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            cursor: pointer;
+            font-size: 7.7pt;
+            color: #334155;
+        }
+
+        .clinical-skill-table .clinical-check-cell input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            margin: 0;
+        }
+
+        .clinical-additional {
+            margin-top: 7px;
+            border: 1px solid #a0a9b4;
+            background: #fafbfc;
+            padding: 6px 7px;
+            font-size: 8.3pt;
+        }
+
+        .clinical-additional textarea {
+            height: 34px;
+            margin-top: 4px;
+            font-size: 8pt;
+            border-color: #a0a9b4;
+            background: #fff;
+        }
+
+        .clinical-review-row {
+            display: grid;
+            grid-template-columns: 1.45fr 0.75fr;
+            gap: 18px;
+            margin-top: 8px;
+            font-size: 8.5pt;
+            font-weight: bold;
+        }
+
+        .clinical-review-row input {
+            width: 68%;
+            font-weight: normal;
+        }
+
+        .clinical-comments {
+            margin-top: 7px;
+            font-size: 8.5pt;
+            font-weight: bold;
+        }
+
+        .clinical-comments textarea {
+            height: 36px;
+            margin-top: 3px;
+            background: #fff;
+            border-color: #a0a9b4;
+        }
+
+        /* Print Formatting Adjustments */
+        @media print {
+            body {
+                background-color: #fff;
+            }
+
+            .page-container {
+                padding: 0;
+                margin-left: 0 !important;
+            }
+
+            .page {
+                width: 100%;
+                height: 100vh;
+                margin: 0;
+                padding: 0.5in;
+                box-shadow: none;
+                page-break-after: always;
+            }
+
+            .action-bar, .doc-controls, .modal, .sig-placeholder-text, .page-nav, .page-nav-mobile-open {
+                display: none !important;
+            }
+
+            .sig-preview-img {
+                display: inline-block !important;
+            }
+
+            .doc-box-large {
+                border: 1px dashed #333;
+                height: 4.1in;
+            }
+
+            .doc-box-full {
+                border: 1px dashed #333;
+                height: 7.8in;
+            }
+
+            .doc-preview-large {
+                max-height: 3.5in;
+            }
+
+            .doc-preview-full {
+                max-height: 7.0in;
+            }
+
+            .id-card-frame {
+                max-width: 4in;
+            }
+
+            input[type="text"], input[type="date"], input[type="tel"], input[type="email"] {
+                border-bottom: 1px solid #000 !important;
+            }
+
+            textarea {
+                border: 1px solid #000 !important;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+    <aside class="page-nav" id="pageNav" aria-label="Page navigation">
+        <div class="page-nav-header">
+            <div class="page-nav-title">Application Pages</div>
+            <button type="button" class="page-nav-toggle" id="pageNavToggle" onclick="togglePageNavigation()" aria-label="Collapse page navigation" title="Collapse/expand page navigation">‹</button>
+        </div>
+        <div class="page-nav-list" id="pageNavList"></div>
+    </aside>
+    <button type="button" class="page-nav-mobile-open" id="pageNavMobileOpen" onclick="toggleMobilePageNavigation()" aria-label="Open page navigation">☰ Pages</button>
+
+
+    <div class="page-container" id="document-content">
+
+        <!-- PAGE 1 -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">COMPLETE HOME CARE SERVICES, INC.</div>
+            </div>
+
+            <h2>Requirements for Employment</h2>
+
+            <div style="margin-top: 15px;">
+                <p><strong>Expired/Expiring Documents</strong></p>
+                <p>Complete Home Care Services, Inc. requires the following documents for employment:</p>
+
+                <ul style="list-style-type: none; padding-left: 10px; line-height: 1.7;">
+                    <li><label><input type="checkbox" checked> NYS PCA/HHA/RN/LPN Certificate or License</label></li>
+                    <li><label><input type="checkbox" checked> Pre Employment Physical Exam</label>
+                        <ul style="list-style-type: none; padding-left: 20px;">
+                            <li><label><input type="checkbox" checked> PPD/Mantoux Skin Test for TB OR</label></li>
+                            <li><label><input type="checkbox"> Chest X-Ray for TB (if history of + PPD every 3 years)</label></li>
+                            <li><label><input type="checkbox" checked> Drug Screen</label></li>
+                            <li><label><input type="checkbox" checked> Rubeola and rubella titers for measles</label></li>
+                        </ul>
+                    </li>
+                    <li><label><input type="checkbox" checked> Annual Health Assessment</label></li>
+                    <li><label><input type="checkbox" checked> Medical History Questionnaire</label></li>
+                    <li><label><input type="checkbox" checked> 2 Professional Reference letters</label></li>
+                    <li><label><input type="checkbox" checked> Employment Authorization</label></li>
+                    <li><label><input type="checkbox" checked> Updated Authorization</label></li>
+                    <li><label><input type="checkbox" checked> Social Security and Picture ID</label></li>
+                </ul>
+
+                <br>
+                <p>In addition, I am required to fulfill the 12 hours of the In-service Education Program.</p>
+                <p>I will be separated from HCR and CHRC after 60 days of not working with Complete Home Care Services.</p>
+                <p>I will need to sign the CHRC/102 form to resume employment.</p>
+            </div>
+
+            <div style="margin-top: 40px;">
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="width: 60%;">Employee Name: <input type="text" class="field-fullname" style="width: 65%;"></td>
+                        <td style="width: 40%;">Date: <input type="date" class="field-date" style="width: 70%;"></td>
+                    </tr>
+                    <tr><td colspan="2" style="height: 15px;"></td></tr>
+                    <tr>
+                        <td>Witness Name: <input type="text" style="width: 68%;"></td>
+                        <td>Date: <input type="date" style="width: 70%;"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="page-footer">
+                <div>Complete Home Care Services, Inc. | 718.528.5493 | info@chcsny.com</div>
+                <div>117-03 203rd Street, St. Albans, NY 11412</div>
+                <div class="page-number">Page 1</div>
+            </div>
+        </div>
+
+        <!-- PAGE 2 -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">COMPLETE HOME CARE SERVICES, INC.</div>
+            </div>
+
+            <h1>APPLICATION FOR EMPLOYMENT</h1>
+
+            <table style="width:100%;">
+                <tr>
+                    <td colspan="2">Last Name: <input type="text" id="input-lastname" class="field-lastname" style="width: 70%;"></td>
+                    <td colspan="2">First Name: <input type="text" id="input-firstname" class="field-firstname" style="width: 65%;"></td>
+                    <td>Middle: <input type="text" id="input-middlename" class="field-middlename" style="width: 40%;"></td>
+                </tr>
+                <tr>
+                    <td colspan="2">Home Address: <input type="text" id="input-address" class="field-address" style="width: 55%;"></td>
+                    <td colspan="2">City: <input type="text" id="input-city" class="field-city" style="width: 78%;"></td>
+                    <td>State: <input type="text" id="input-state" class="field-state" style="width: 25%;"> Zip: <input type="text" id="input-zip" class="field-zip" style="width: 25%;"></td>
+                </tr>
+                <tr>
+                    <td colspan="2">Telephone #: <input type="tel" id="input-phone" class="field-phone" style="width: 60%;"></td>
+                    <td colspan="2">Alternate #: <input type="tel" style="width: 60%;"></td>
+                    <td>Social Security #: <input type="text" id="input-ssn" class="field-ssn" style="width: 45%;"></td>
+                </tr>
+                <tr>
+                    <td>Sex: <input type="text" style="width: 40%;"></td>
+                    <td colspan="2"><div style="display:flex; align-items:center; gap:6px; white-space:nowrap;"><span>Date of Birth:</span><input type="date" id="input-dob" class="field-dob" style="width: 145px; min-width:145px;"></div></td>
+                    <td colspan="2">Maiden Name: <input type="text" style="width: 60%;"></td>
+                </tr>
+                <tr>
+                    <td colspan="5">Email Address: <input type="email" id="input-email" class="field-email" style="width: 80%;"></td>
+                </tr>
+            </table>
+
+            <table class="question-table" style="width:100%; margin-top: 5px;">
+                <tr>
+                    <td>Are you a citizen of the United States?</td>
+                    <td class="radio-cell"><label><input type="radio" name="cit"> YES</label></td>
+                    <td class="radio-cell"><label><input type="radio" name="cit"> NO</label></td>
+                </tr>
+                <tr>
+                    <td>If not, do you have the right to remain permanently and work in the United States?</td>
+                    <td class="radio-cell"><label><input type="radio" name="perm"> YES</label></td>
+                    <td class="radio-cell"><label><input type="radio" name="perm"> NO</label></td>
+                </tr>
+                <tr>
+                    <td>Do you have authorization to work?</td>
+                    <td class="radio-cell"><label><input type="radio" name="auth"> YES</label></td>
+                    <td class="radio-cell"><label><input type="radio" name="auth"> NO</label></td>
+                </tr>
+                <tr>
+                    <td>Are you involved as a defendant in any professional litigation?</td>
+                    <td class="radio-cell"><label><input type="radio" name="lit"> YES</label></td>
+                    <td class="radio-cell"><label><input type="radio" name="lit"> NO</label></td>
+                </tr>
+                <tr>
+                    <td>Have you ever been convicted of a crime? If yes please explain:</td>
+                    <td class="radio-cell"><label><input type="radio" name="crime"> YES</label></td>
+                    <td class="radio-cell"><label><input type="radio" name="crime"> NO</label></td>
+                </tr>
+                <tr>
+                    <td>Have you ever been convicted for negligence?</td>
+                    <td class="radio-cell"><label><input type="radio" name="neg"> YES</label></td>
+                    <td class="radio-cell"><label><input type="radio" name="neg"> NO</label></td>
+                </tr>
+                <tr>
+                    <td>Do you have any criminal convictions?</td>
+                    <td class="radio-cell"><label><input type="radio" name="crim_conv"> YES</label></td>
+                    <td class="radio-cell"><label><input type="radio" name="crim_conv"> NO</label></td>
+                </tr>
+                <tr>
+                    <td>Valid New York Drivers License</td>
+                    <td class="radio-cell"><label><input type="radio" name="dl"> YES</label></td>
+                    <td class="radio-cell"><label><input type="radio" name="dl"> NO</label></td>
+                </tr>
+            </table>
+
+            <div style="margin-top: 5px; font-size: 9pt;">
+                License No: <input type="text" style="width: 130px;">
+                State: <input type="text" style="width: 60px;">
+                Expiration Date: <input type="date" style="width: 100px;">
+            </div>
+
+            <div style="margin-top: 5px;">
+                <span class="field-label">Title:</span>
+                <label><input type="checkbox"> RN</label>
+                <label><input type="checkbox"> LPN</label>
+                <label><input type="checkbox"> HHA</label>
+                <label><input type="checkbox"> PCA</label>
+            </div>
+
+            <div style="margin-top: 4px;">
+                <span class="field-label">Position Applied For:</span> <input type="text" style="width: 250px;">
+            </div>
+
+            <div style="margin-top: 4px;">
+                <label><input type="checkbox"> Full Time</label>
+                <label><input type="checkbox"> Part Time</label>
+                <label><input type="checkbox"> Per Diem</label>
+            </div>
+
+            <div style="margin-top: 4px;">
+                <span class="field-label">Availability:</span>
+                <label><input type="checkbox"> Sun</label>
+                <label><input type="checkbox"> Mon</label>
+                <label><input type="checkbox"> Tue</label>
+                <label><input type="checkbox"> Wed</label>
+                <label><input type="checkbox"> Thu</label>
+                <label><input type="checkbox"> Fri</label>
+                <label><input type="checkbox"> Sat</label>
+            </div>
+
+            <div style="margin-top: 4px;">
+                Preferred Shifts Hours: <input type="text" style="width: 120px;">
+                Languages spoken: <input type="text" style="width: 180px;">
+            </div>
+
+            <div style="margin-top: 4px;">
+                <span class="field-label">Boros:</span>
+                <label><input type="checkbox"> BK</label>
+                <label><input type="checkbox"> QU</label>
+                <label><input type="checkbox"> BX</label>
+                <label><input type="checkbox"> MAN</label>
+                <label><input type="checkbox"> SI</label>
+                <label><input type="checkbox"> NA</label>
+            </div>
+
+            <div class="section-title">EDUCATION BACKGROUND</div>
+            <table class="bordered">
+                <thead>
+                    <tr>
+                        <th>School</th>
+                        <th>Name and Location of school</th>
+                        <th>Years</th>
+                        <th>Major Subject</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><input type="text" style="width:100%;"></td><td><input type="text" style="width:100%;"></td><td><input type="text" style="width:100%;"></td><td><input type="text" style="width:100%;"></td></tr>
+                    <tr><td><input type="text" style="width:100%;"></td><td><input type="text" style="width:100%;"></td><td><input type="text" style="width:100%;"></td><td><input type="text" style="width:100%;"></td></tr>
+                    <tr><td><input type="text" style="width:100%;"></td><td><input type="text" style="width:100%;"></td><td><input type="text" style="width:100%;"></td><td><input type="text" style="width:100%;"></td></tr>
+                </tbody>
+            </table>
+
+            <div class="page-footer">
+                <div>Complete Home Care Services, Inc. | 718.528.5493 | info@chcsny.com</div>
+                <div>117-03 203rd Street, St. Albans, NY 11412</div>
+                <div class="page-number">Page 2</div>
+            </div>
+        </div>
+
+        <!-- PAGE 3 -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">COMPLETE HOME CARE SERVICES, INC.</div>
+            </div>
+
+            <div class="section-title">EMPLOYMENT HISTORY</div>
+            <p style="font-size: 8.5pt;">List your job history, last two employers. Start with your present status and note any periods in which you were not employed.</p>
+
+            <table class="bordered">
+                <tr>
+                    <td style="width: 50%;">Name of Employer: <input type="text" style="width: 60%;"></td>
+                    <td style="width: 50%;">Telephone Number of Employer: <input type="tel" style="width: 40%;"></td>
+                </tr>
+                <tr><td colspan="2">Address of Employer: <input type="text" style="width: 80%;"></td></tr>
+                <tr><td colspan="2">Type of work performed: <input type="text" style="width: 78%;"></td></tr>
+                <tr><td colspan="2">Reason for leaving: <input type="text" style="width: 80%;"></td></tr>
+            </table>
+
+            <table class="bordered" style="margin-top: 6px;">
+                <tr>
+                    <td style="width: 50%;">Name of Employer: <input type="text" style="width: 60%;"></td>
+                    <td style="width: 50%;">Telephone Number of Employer: <input type="tel" style="width: 40%;"></td>
+                </tr>
+                <tr><td colspan="2">Address of Employer: <input type="text" style="width: 80%;"></td></tr>
+                <tr><td colspan="2">Type of work performed: <input type="text" style="width: 78%;"></td></tr>
+                <tr><td colspan="2">Reason for leaving: <input type="text" style="width: 80%;"></td></tr>
+            </table>
+
+            <div class="section-title">PHYSICAL RECORD</div>
+            <p style="font-size: 8.5pt;">Do you have any physical defects that preclude you from performing any work for which you are being considered?
+                <label><input type="radio" name="defects"> Yes</label> <label><input type="radio" name="defects"> No</label>
+            </p>
+            <p style="font-size: 8.5pt;">Were you ever injured?
+                <label><input type="radio" name="injured"> Yes</label> <label><input type="radio" name="injured"> No</label>
+                &nbsp;&nbsp;Give details: <input type="text" style="width: 50%;">
+            </p>
+            <p style="font-size: 8.5pt;">Have you any defects in hearing?
+                <label><input type="radio" name="hearing"> Yes</label> <label><input type="radio" name="hearing"> No</label>
+                &nbsp;&nbsp;In vision: <label><input type="radio" name="vision"> Yes</label> <label><input type="radio" name="vision"> No</label>
+                &nbsp;&nbsp;In speech: <label><input type="radio" name="speech"> Yes</label> <label><input type="radio" name="speech"> No</label>
+            </p>
+
+            <div style="margin-top: 6px; font-size: 8.5pt;">
+                <strong>In case of emergency notify:</strong>
+                <table style="width: 100%; margin-top: 2px;">
+                    <tr>
+                        <td>Name: <input type="text" style="width: 65%;"></td>
+                        <td>Relationship: <input type="text" style="width: 55%;"></td>
+                    </tr>
+                    <tr>
+                        <td>Address: <input type="text" style="width: 65%;"></td>
+                        <td>Telephone: <input type="tel" style="width: 55%;"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="margin-top: 6px; font-size: 8.5pt;">
+                <strong>2ND emergency contact:</strong>
+                <table style="width: 100%; margin-top: 2px;">
+                    <tr>
+                        <td>Name: <input type="text" style="width: 65%;"></td>
+                        <td>Relationship: <input type="text" style="width: 55%;"></td>
+                    </tr>
+                    <tr>
+                        <td>Address: <input type="text" style="width: 65%;"></td>
+                        <td>Telephone: <input type="tel" style="width: 55%;"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <p class="legal-text">
+                I certify that I am free from any health impairment which is of potential risk to the patient or which might interfere with the performance of my duties including the habituation or addiction to depressants, stimulants, narcotics, alcohol or other drugs or substances which may alter my behavior.
+            </p>
+            <p class="legal-text">
+                I authorize investigation of all statements contained in this application. I understand that misrepresentation or omission of facts called for is cause for dismissal. Further, I understand and agree that my employment is for no definite period and may, regardless of the date of payment of my wages and salary be terminated at any time without any previous notice.
+            </p>
+
+            <div style="margin-top: 10px; font-size: 8.5pt;">
+                Applicant's Signature: 
+                <div class="sig-container applicant-signature" data-signature-role="applicant" onclick="openSignatureModal(this)">
+                    <span class="sig-placeholder-text">[ Click to Sign ]</span>
+                    <img class="sig-preview-img" alt="Signature">
+                </div>
+                Date: <input type="date" class="field-date" style="width: 25%;">
+            </div>
+
+            <div class="hr-box">
+                <div class="hr-title">HR USE ONLY. DO NOT WRITE BELOW THIS LINE</div>
+                Comments by Interviewer:<br>
+                <textarea rows="2"></textarea><br>
+                Approved by HR management: <input type="text" style="width: 180px;">
+            </div>
+
+            <div class="page-footer">
+                <div>Complete Home Care Services, Inc. | 718.528.5493 | info@chcsny.com</div>
+                <div>117-03 203rd Street, St. Albans, NY 11412</div>
+                <div class="page-number">Page 3</div>
+            </div>
+        </div>
+
+        <!-- PAGE 4 -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">COMPLETE HOME CARE SERVICES, INC.</div>
+            </div>
+
+            <h2>WRITTEN REFERENCE</h2>
+
+            <div style="font-size: 8.5pt;">
+                To: <input type="text" style="width: 220px;">
+                <span style="float: right;">Attn: <input type="text" style="width: 130px;"></span>
+                <br><br>
+                I authorize the release of any information requested on the form.<br><br>
+                Applicant: <input type="text" class="field-fullname" style="width: 180px;">
+                Soc. Sec. No: <input type="text" class="field-ssn" style="width: 130px;"><br><br>
+                Signature: 
+                <div class="sig-container applicant-signature" data-signature-role="applicant" onclick="openSignatureModal(this)">
+                    <span class="sig-placeholder-text">[ Click to Sign ]</span>
+                    <img class="sig-preview-img" alt="Signature">
+                </div>
+            </div>
+
+            <p class="legal-text" style="margin-top: 10px;">
+                The above individual has applied for employment with Complete Home Care Services, Inc. He/she has authorized the release of information requested on the form. We would appreciate your replies to the questions asked. Enclose additional information if you wish. All information is confidential. A return envelope is provided for your convenience. Thank you for your assistance.
+            </p>
+
+            <div style="font-size: 8.5pt;">
+                Position Applied For: <input type="text" style="width: 180px;">
+                Personnel Coordinator: <input type="text" style="width: 160px;">
+            </div>
+
+            <div class="section-title">EMPLOYMENT VERIFICATION TO BE COMPLETED BY THE EMPLOYER</div>
+            <div style="font-size: 8.5pt; line-height: 1.5;">
+                Applicant's Name: <input type="text" class="field-fullname" style="width: 70%;"><br>
+                Position In Your Employment: <input type="text" style="width: 60%;"><br>
+                Employment Dates: (From) <input type="date" style="width: 120px;"> (To) <input type="date" style="width: 120px;"><br>
+                Reason for Leaving: <input type="text" style="width: 70%;"><br>
+                Would you rehire: <label><input type="radio" name="rehire"> YES</label> <label><input type="radio" name="rehire"> NO</label> If no, please explain: <input type="text" style="width: 35%;"><br>
+                Additional Comments: <input type="text" style="width: 75%;"><br>
+                Signature: <div class="sig-container" style="min-width: 130px;" onclick="openSignatureModal(this)"><span class="sig-placeholder-text">[ Click to Sign ]</span><img class="sig-preview-img" alt="Signature"></div> 
+                Title: <input type="text" style="width: 90px;"> 
+                Date: <input type="date" style="width: 110px;">
+            </div>
+
+            <div class="section-title">PERSONAL REFERENCE</div>
+            <div style="font-size: 8.5pt; line-height: 1.5;">
+                Number of Years Acquainted with Applicant: <input type="text" style="width: 80px;"><br>
+                Relationship to Applicant: <input type="text" style="width: 180px;"><br>
+                Additional comments with regard to Applicant's character, judgment, reliability, interpersonal relationships and/or any other information which you would like to provide:<br>
+                <textarea rows="2"></textarea><br>
+                Signature: <div class="sig-container" style="min-width: 180px;" onclick="openSignatureModal(this)"><span class="sig-placeholder-text">[ Click to Sign ]</span><img class="sig-preview-img" alt="Signature"></div>
+                Date Mailed: <input type="date" style="width: 110px;">
+                Date: <input type="date" style="width: 110px;">
+            </div>
+
+            <div class="hr-box">
+                <div class="hr-title">HR USE ONLY. DO NOT WRITE BELOW THIS LINE</div>
+                Date Received: <input type="date" style="width: 150px;">
+            </div>
+
+            <div class="section-title">APPLICANT'S STATEMENT</div>
+            <p class="legal-text">
+                I certify that answers given herein are true and complete.<br>
+                I authorize Investigation of all statements contained in this application for employment as may be necessary in arriving at an employment decision.<br>
+                This application for employment shall be considered active for a period of time not to exceed 45 days. Any applicant wishing to be considered for employment beyond this time period should inquire as to whether or not applications are being accepted at that time.<br>
+                I hereby understand and acknowledge that, unless otherwise defined by applicable law, any employment relationship with this organization is of an "at will" nature, which means that the Employee may resign at any time and the Employer may discharge Employee at any time with or without cause. It is further understood that this "at will" employment relationship may not be changed by any written document or by conduct unless such change is specifically acknowledged in writing by the Executive Director of this organization.<br>
+                In the event of employment, I understand that false or misleading information given in my application or interview(s) may result in discharge. I understand, also, that I am required to abide by all rules and regulations of the employer.
+            </p>
+
+            <div style="font-size: 8.5pt; margin-top: 6px;">
+                Signature: 
+                <div class="sig-container applicant-signature" data-signature-role="applicant" onclick="openSignatureModal(this)">
+                    <span class="sig-placeholder-text">[ Click to Sign ]</span>
+                    <img class="sig-preview-img" alt="Signature">
+                </div>
+                Date: <input type="date" class="field-date" style="width: 20%;">
+            </div>
+
+            <div class="page-footer">
+                <div>Complete Home Care Services, Inc. | 718.528.5493 | info@chcsny.com</div>
+                <div>117-03 203rd Street, St. Albans, NY 11412</div>
+                <div class="page-number">Page 4</div>
+            </div>
+        </div>
+
+        <!-- PAGE 5 -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">COMPLETE HOME CARE SERVICES, INC.</div>
+            </div>
+
+            <h2>WRITTEN REFERENCE</h2>
+
+            <div style="font-size: 8.5pt;">
+                To: <input type="text" style="width: 220px;">
+                <span style="float: right;">Attn: <input type="text" style="width: 130px;"></span>
+                <br><br>
+                I authorize the release of any information requested on the form.<br><br>
+                Applicant: <input type="text" class="field-fullname" style="width: 180px;">
+                Soc. Sec. No: <input type="text" class="field-ssn" style="width: 130px;"><br><br>
+                Signature: 
+                <div class="sig-container applicant-signature" data-signature-role="applicant" onclick="openSignatureModal(this)">
+                    <span class="sig-placeholder-text">[ Click to Sign ]</span>
+                    <img class="sig-preview-img" alt="Signature">
+                </div>
+            </div>
+
+            <p class="legal-text" style="margin-top: 10px;">
+                The above individual has applied for employment with Complete Home Care Services, Inc. He/she has authorized the release of information requested on the form. We would appreciate your replies to the questions asked. Enclose additional information if you wish. All information is confidential. A return envelope is provided for your convenience. Thank you for your assistance.
+            </p>
+
+            <div style="font-size: 8.5pt;">
+                Position Applied For: <input type="text" style="width: 180px;">
+                Personnel Coordinator: <input type="text" style="width: 160px;">
+            </div>
+
+            <div class="section-title">EMPLOYMENT VERIFICATION TO BE COMPLETED BY THE EMPLOYER</div>
+            <div style="font-size: 8.5pt; line-height: 1.5;">
+                Applicant's Name: <input type="text" class="field-fullname" style="width: 70%;"><br>
+                Position In Your Employment: <input type="text" style="width: 60%;"><br>
+                Employment Dates: (From) <input type="date" style="width: 120px;"> (To) <input type="date" style="width: 120px;"><br>
+                Reason for Leaving: <input type="text" style="width: 70%;"><br>
+                Would you rehire: <label><input type="radio" name="rehire2"> YES</label> <label><input type="radio" name="rehire2"> NO</label> If no, please explain: <input type="text" style="width: 35%;"><br>
+                Additional Comments: <input type="text" style="width: 75%;"><br>
+                Signature: <div class="sig-container" style="min-width: 130px;" onclick="openSignatureModal(this)"><span class="sig-placeholder-text">[ Click to Sign ]</span><img class="sig-preview-img" alt="Signature"></div> 
+                Title: <input type="text" style="width: 90px;"> 
+                Date: <input type="date" style="width: 110px;">
+            </div>
+
+            <div class="section-title">PERSONAL REFERENCE</div>
+            <div style="font-size: 8.5pt; line-height: 1.5;">
+                Number of Years Acquainted with Applicant: <input type="text" style="width: 80px;"><br>
+                Relationship to Applicant: <input type="text" style="width: 180px;"><br>
+                Additional comments with regard to Applicant's character, judgment, reliability, interpersonal relationships and/or any other information which you would like to provide:<br>
+                <textarea rows="2"></textarea><br>
+                Signature: <div class="sig-container" style="min-width: 180px;" onclick="openSignatureModal(this)"><span class="sig-placeholder-text">[ Click to Sign ]</span><img class="sig-preview-img" alt="Signature"></div>
+                Date Mailed: <input type="date" style="width: 110px;">
+                Date: <input type="date" style="width: 110px;">
+            </div>
+
+            <div class="hr-box">
+                <div class="hr-title">HR USE ONLY. DO NOT WRITE BELOW THIS LINE</div>
+                Date Received: <input type="date" style="width: 150px;">
+            </div>
+
+            <div class="section-title">APPLICANT'S STATEMENT</div>
+            <p class="legal-text">
+                I certify that answers given herein are true and complete.<br>
+                I authorize Investigation of all statements contained in this application for employment as may be necessary in arriving at an employment decision.<br>
+                This application for employment shall be considered active for a period of time not to exceed 45 days. Any applicant wishing to be considered for employment beyond this time period should inquire as to whether or not applications are being accepted at that time.<br>
+                I hereby understand and acknowledge that, unless otherwise defined by applicable law, any employment relationship with this organization is of an "at will" nature, which means that the Employee may resign at any time and the Employer may discharge Employee at any time with or without cause. It is further understood that this "at will" employment relationship may not be changed by any written document or by conduct unless such change is specifically acknowledged in writing by the Executive Director of this organization.<br>
+                In the event of employment, I understand that false or misleading information given in my application or interview(s) may result in discharge. I understand, also, that I am required to abide by all rules and regulations of the employer.
+            </p>
+
+            <div style="font-size: 8.5pt; margin-top: 6px;">
+                Signature: 
+                <div class="sig-container applicant-signature" data-signature-role="applicant" onclick="openSignatureModal(this)">
+                    <span class="sig-placeholder-text">[ Click to Sign ]</span>
+                    <img class="sig-preview-img" alt="Signature">
+                </div>
+                Date: <input type="date" class="field-date" style="width: 20%;">
+            </div>
+
+            <div class="page-footer">
+                <div>Complete Home Care Services, Inc. | 718.528.5493 | info@chcsny.com</div>
+                <div>117-03 203rd Street, St. Albans, NY 11412</div>
+                <div class="page-number">Page 5</div>
+            </div>
+        </div>
+
+        <!-- PAGE 6 -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">COMPLETE HOME CARE SERVICES, INC.</div>
+            </div>
+
+            <h2>REQUIRED EMPLOYEE HEALTH ASSESSMENT</h2>
+
+            <div style="font-size: 8.5pt; margin-bottom: 6px;">
+                <label><input type="radio" name="assessment_type"> Initial</label>
+                <label><input type="radio" name="assessment_type"> Annual</label>
+                <label><input type="radio" name="assessment_type"> Other</label>
+            </div>
+
+            <table style="width: 100%; font-size: 8.5pt;">
+                <tr>
+                    <td>Name: <input type="text" class="field-fullname" style="width: 65%;"></td>
+                    <td>Date of Birth: <input type="date" class="field-dob" style="width: 45%;"></td>
+                    <td>Sex: <label><input type="radio" name="sex"> M</label> <label><input type="radio" name="sex"> F</label></td>
+                </tr>
+                <tr>
+                    <td colspan="3">Address: <input type="text" class="field-fulladdress" style="width: 75%;"></td>
+                </tr>
+                <tr>
+                    <td>Emergency Contact: <input type="text" style="width: 55%;"></td>
+                    <td colspan="2">Relationship: <input type="text" style="width: 55%;"></td>
+                </tr>
+                <tr>
+                    <td colspan="3">Emergency Address/Phone number: <input type="text" style="width: 65%;"></td>
+                </tr>
+            </table>
+
+            <div style="font-size: 8pt; font-weight: bold; margin-top: 6px;">Indicate if you are suffering from or have a history of the following conditions:</div>
+            <table class="bordered">
+                <thead>
+                    <tr>
+                        <th>CONDITION</th>
+                        <th style="width:30px;">YES</th>
+                        <th style="width:30px;">NO</th>
+                        <th>CONDITION</th>
+                        <th style="width:30px;">YES</th>
+                        <th style="width:30px;">NO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>DIABETES</td><td><input type="radio" name="c1"></td><td><input type="radio" name="c1"></td><td>BACK PAIN</td><td><input type="radio" name="c2"></td><td><input type="radio" name="c2"></td></tr>
+                    <tr><td>KIDNEY DISEASE</td><td><input type="radio" name="c3"></td><td><input type="radio" name="c3"></td><td>PAIN ON URINATION</td><td><input type="radio" name="c4"></td><td><input type="radio" name="c4"></td></tr>
+                    <tr><td>HEART DISEASE</td><td><input type="radio" name="c5"></td><td><input type="radio" name="c5"></td><td>CHANGE IN BOWEL HABITS</td><td><input type="radio" name="c6"></td><td><input type="radio" name="c6"></td></tr>
+                    <tr><td>HIGH BLOOD PRESSURE</td><td><input type="radio" name="c7"></td><td><input type="radio" name="c7"></td><td>INCREASED THIRST</td><td><input type="radio" name="c8"></td><td><input type="radio" name="c8"></td></tr>
+                    <tr><td>ARTHRITIS</td><td><input type="radio" name="c9"></td><td><input type="radio" name="c9"></td><td>PERSISTENT SORES/LUMPS</td><td><input type="radio" name="c10"></td><td><input type="radio" name="c10"></td></tr>
+                    <tr><td>MENTAL ILLNESS</td><td><input type="radio" name="c11"></td><td><input type="radio" name="c11"></td><td>INFECTIOUS DISEASE</td><td><input type="radio" name="c12"></td><td><input type="radio" name="c12"></td></tr>
+                    <tr><td>EPILEPSY/CONVULSIONS</td><td><input type="radio" name="c13"></td><td><input type="radio" name="c13"></td><td>CANCER</td><td><input type="radio" name="c14"></td><td><input type="radio" name="c14"></td></tr>
+                    <tr><td>SWELLING IN THE EXTREMITIES</td><td><input type="radio" name="c15"></td><td><input type="radio" name="c15"></td><td>ANY OTHER PHYSICAL DISABILITY</td><td><input type="radio" name="c16"></td><td><input type="radio" name="c16"></td></tr>
+                    <tr><td colspan="6">ALLERGIES: <input type="text" style="width: 80%;"></td></tr>
+                </tbody>
+            </table>
+
+            <div style="font-size: 8pt; font-weight: bold; margin-top: 6px;">TURBERCULOSIS QUESTIONNAIRE<br>Indicate if you have been experiencing the following conditions:</div>
+            <table class="bordered">
+                <thead>
+                    <tr>
+                        <th>CONDITION</th>
+                        <th style="width:30px;">YES</th>
+                        <th style="width:30px;">NO</th>
+                        <th>CONDITION</th>
+                        <th style="width:30px;">YES</th>
+                        <th style="width:30px;">NO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>PERSISTENT COUGH FOR &lt; 3 WEEKS</td><td><input type="radio" name="tb1"></td><td><input type="radio" name="tb1"></td><td>UNEXPLAINED WEIGHT LOSS</td><td><input type="radio" name="tb2"></td><td><input type="radio" name="tb2"></td></tr>
+                    <tr><td>BLOOD IN THE SPUTUM</td><td><input type="radio" name="tb3"></td><td><input type="radio" name="tb3"></td><td>LOSS OF APPETITE</td><td><input type="radio" name="tb4"></td><td><input type="radio" name="tb4"></td></tr>
+                    <tr><td>SHORTNESS OF BREATH</td><td><input type="radio" name="tb5"></td><td><input type="radio" name="tb5"></td><td>HOARSENESS</td><td><input type="radio" name="tb6"></td><td><input type="radio" name="tb6"></td></tr>
+                    <tr><td>NIGHT SWEATS</td><td><input type="radio" name="tb7"></td><td><input type="radio" name="tb7"></td><td>FATIGUE</td><td><input type="radio" name="tb8"></td><td><input type="radio" name="tb8"></td></tr>
+                    <tr><td>CHEST PAIN</td><td><input type="radio" name="tb9"></td><td><input type="radio" name="tb9"></td><td>FEVER</td><td><input type="radio" name="tb10"></td><td><input type="radio" name="tb10"></td></tr>
+                </tbody>
+            </table>
+
+            <div style="font-size: 8.5pt; line-height: 1.35; margin-top: 4px;">
+                Have you had a positive PPD reading? <label><input type="radio" name="ppd"> Yes</label> <label><input type="radio" name="ppd"> No</label><br>
+                Are you under the care of a physician? <label><input type="radio" name="phys"> Yes</label> <label><input type="radio" name="phys"> No</label> Reason: <input type="text" style="width: 180px;"><br>
+                Do you take depressants, stimulants, narcotic drugs that alter your behavior? <label><input type="radio" name="narc"> Yes</label> <label><input type="radio" name="narc"> No</label><br>
+                Do you take prescription medications? <label><input type="radio" name="rx"> Yes</label> <label><input type="radio" name="rx"> No</label> If yes, which medications? <input type="text" style="width: 180px;"><br>
+                If required in your position, would you be willing to have screening test for drugs/alcohol done on your blood/urine as a condition for employment? <label><input type="radio" name="dt"> Yes</label> <label><input type="radio" name="dt"> No</label><br>
+                Have you had any operations or hospitalization for illnesses past 5 years? Reason: <input type="text" style="width: 200px;"><br>
+                Name of Physician: <input type="text" style="width: 180px;"> Telephone: <input type="tel" style="width: 120px;">
+            </div>
+
+            <p class="legal-text">
+                I have read the above and declare that I have had no injury, illness or ailment other than as specifically identified. I certify that I am not habituated or addicted to any depressants, stimulants, narcotics, drugs, alcohol or other substances that may alter my behavior.
+            </p>
+
+            <table style="width: 100%; font-size: 8.5pt; margin-top: 6px;">
+                <tr>
+                    <td>Employee Signature: 
+                        <div class="sig-container applicant-signature" data-signature-role="applicant" onclick="openSignatureModal(this)">
+                            <span class="sig-placeholder-text">[ Click to Sign ]</span>
+                            <img class="sig-preview-img" alt="Signature">
+                        </div>
+                    </td>
+                    <td>Date: <input type="date" class="field-date" style="width: 45%;"></td>
+                </tr>
+                <tr>
+                    <td>RN Signature: <div class="sig-container" style="min-width: 60%;" onclick="openSignatureModal(this)"><span class="sig-placeholder-text">[ Click to Sign ]</span><img class="sig-preview-img" alt="Signature"></div></td>
+                    <td>Date: <input type="date" style="width: 45%;"></td>
+                </tr>
+            </table>
+
+            <div class="page-footer">
+                <div>Complete Home Care Services, Inc. | 718.528.5493 | info@chcsny.com</div>
+                <div>117-03 203rd Street, St. Albans, NY 11412</div>
+                <div class="page-number">Page 6</div>
+            </div>
+        </div>
+
+        <!-- PAGE 7 -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">COMPLETE HOME CARE SERVICES, INC.</div>
+            </div>
+
+            <h2>SKILLS COMPETENCY CHECKLIST</h2>
+
+            <p style="font-size: 8.5pt;">This check list will help us when making assignments based on your level of competence to meet the patient's needs.</p>
+
+            <table style="width: 100%; font-size: 8.5pt;">
+                <tr>
+                    <td>Name: <input type="text" class="field-fullname" style="width: 75%;"></td>
+                    <td>Title: <input type="text" style="width: 65%;"></td>
+                </tr>
+                <tr>
+                    <td colspan="2">Special Training/Experience: <input type="text" style="width: 70%;"></td>
+                </tr>
+            </table>
+
+            <p style="font-size: 8.5pt; font-weight: bold; margin-top: 6px;">Check the skills you can perform independently.</p>
+
+            <table class="bordered" style="font-size: 8pt;">
+                <tbody>
+                    <tr>
+                        <td style="width: 50%;">
+                            <label><input type="checkbox"> Bath: Tub / Shower / Bed</label><br>
+                            <label><input type="checkbox"> Oral Hygiene / Denture Care</label><br>
+                            <label><input type="checkbox"> Hair Care: Comb / Shampoo / Shave</label><br>
+                            <label><input type="checkbox"> Nails</label><br>
+                            <label><input type="checkbox"> Skin Care / Grooming</label><br>
+                            <label><input type="checkbox"> Dressing</label>
+                        </td>
+                        <td style="width: 50%;">
+                            <label><input type="checkbox"> Bed bound Positioning/Turning</label><br>
+                            <label><input type="checkbox"> Weight Bearing</label><br>
+                            <label><input type="checkbox"> Patient Activity: Ambulation / ROM Exercises</label><br>
+                            <label><input type="checkbox"> Hoyer Lift</label><br>
+                            <label><input type="checkbox"> Transfer Techniques</label><br>
+                            <label><input type="checkbox"> Walker/Cane/Wheel Chair</label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label><input type="checkbox"> Assist to toilet/bed pan</label><br>
+                            <label><input type="checkbox"> Light Housekeeping</label><br>
+                            <label><input type="checkbox"> Prepare Meals</label><br>
+                            <label><input type="checkbox"> Assist with feeding</label>
+                        </td>
+                        <td>
+                            <label><input type="checkbox"> Assist w/Orthopedic Devices</label><br>
+                            <label><input type="checkbox"> Record Output(Urine/BM)</label><br>
+                            <label><input type="checkbox"> Assist w/ ostomy care</label><br>
+                            <label><input type="checkbox"> Empty Foley Bag</label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Nutrition (understand elements of):</strong><br>
+                            <label><input type="checkbox"> Special Diet</label><br>
+                            <label><input type="checkbox"> Fluid Restriction/I&amp;O</label><br>
+                            <label><input type="checkbox"> Divisional Activities</label><br>
+                            <label><input type="checkbox"> Bed Making/occupied</label>
+                        </td>
+                        <td>
+                            <label><input type="checkbox"> Assist with Meds</label><br>
+                            <label><input type="checkbox"> Client Laundry done</label><br>
+                            <label><input type="checkbox"> Patient Support Activity</label><br>
+                            <label><input type="checkbox"> Treatment / Special needs</label><br>
+                            <label><input type="checkbox"> Accompany to MD/Clinic</label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <label><input type="checkbox"> Record TPR</label> &nbsp;&nbsp;
+                            <label><input type="checkbox"> Blood pressure</label> &nbsp;&nbsp;
+                            <label><input type="checkbox"> Observe Dressing</label> &nbsp;&nbsp;
+                            <label><input type="checkbox"> Report changes to Off./RN</label>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="font-size: 8.5pt; margin-top: 8px;">
+                I have worked in the following areas: <input type="text" style="width: 60%;"><br><br>
+                I need in-services in the following areas: <input type="text" style="width: 55%;">
+            </div>
+
+            <table style="width: 100%; font-size: 8.5pt; margin-top: 15px;">
+                <tr>
+                    <td>Signature: 
+                        <div class="sig-container applicant-signature" data-signature-role="applicant" onclick="openSignatureModal(this)">
+                            <span class="sig-placeholder-text">[ Click to Sign ]</span>
+                            <img class="sig-preview-img" alt="Signature">
+                        </div>
+                    </td>
+                    <td>Date: <input type="date" class="field-date" style="width: 55%;"></td>
+                </tr>
+                <tr>
+                    <td colspan="2">CHC staff: <input type="text" style="width: 35%;"></td>
+                </tr>
+            </table>
+
+            <div class="page-footer">
+                <div>Complete Home Care Services, Inc. | 718.528.5493 | info@chcsny.com</div>
+                <div>117-03 203rd Street, St. Albans, NY 11412</div>
+                <div class="page-number">Page 7</div>
+            </div>
+        </div>
+
+
+        <!-- PAGE 8: PRE-EMPLOYMENT CLINICAL COMPETENCY ASSESSMENT -->
+        <div class="page clinical-assessment-page">
+            <div class="header">
+                <div class="company-name">COMPLETE HOME CARE SERVICES, INC.</div>
+            </div>
+
+            <h2>Pre-Employment Clinical Competency Assessment RN / LPN</h2>
+
+            <table class="clinical-meta-table">
+                <tr>
+                    <td style="width: 66%;">Name: <input type="text" class="field-fullname" style="width: 78%;"></td>
+                    <td>Status: <input type="text" style="width: 62%;" placeholder="RN / LPN"></td>
+                </tr>
+                <tr>
+                    <td>Signature:
+                        <div class="sig-container applicant-signature" data-signature-role="applicant" onclick="openSignatureModal(this)">
+                            <span class="sig-placeholder-text">[ Click to Sign ]</span>
+                            <img class="sig-preview-img" alt="Signature">
+                        </div>
+                    </td>
+                    <td>Date: <input type="date" class="field-date" style="width: 68%;"></td>
+                </tr>
+            </table>
+
+            <div class="clinical-instruction">
+                <div>Employee is able to describe or demonstrate the skill for each item</div>
+                <div>Please check all the skills that you can perform independently.</div>
+            </div>
+
+            <table class="clinical-skill-table">
+                <tbody>
+                <tr>
+                    <td>Physical assessments</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Physical assessments - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Venipuncture</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Venipuncture - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Foley insertion/care</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Foley insertion/care - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>IV Therapy</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="IV Therapy - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>IV med administration</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="IV med administration - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Pumps: Cadd, Gemstar, Kangaroo</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Pumps: Cadd, Gemstar, Kangaroo - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Central line and dressing change</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Central line and dressing change - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>IV flush /care of central line</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="IV flush /care of central line - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Port Access and Deaccess</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Port Access and Deaccess - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>IM/SC med administration</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="IM/SC med administration - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Wound care/dressing changes</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Wound care/dressing changes - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>S/P tube insertion/care</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="S/P tube insertion/care - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Care /maintenance of ostomy</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Care /maintenance of ostomy - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Blood glucose monitoring/testing/teaching/cleaning/calibration</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Blood glucose monitoring/testing/teaching/cleaning/calibration - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Collection and transport of lab specimens</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Collection and transport of lab specimens - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Collection of urine specimens</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Collection of urine specimens - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Use of assistive devices /patient teaching</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Use of assistive devices /patient teaching - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Insertion/maintenance of NG tubes</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Insertion/maintenance of NG tubes - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Maintenance of G tubes/ J Tube</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Maintenance of G tubes/ J Tube - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Insertion/maintenance of enema/suppository</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Insertion/maintenance of enema/suppository - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Chest PT</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Chest PT - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Special consideration</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Special consideration - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Pulse Oximetry</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Pulse Oximetry - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Vent dependent</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Vent dependent - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>Pediatric Nursing</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="Pediatric Nursing - can perform independently"> Can perform independently</label></td>
+                </tr>
+                <tr>
+                    <td>HHA orientation/supervision</td>
+                    <td class="clinical-check-cell"><label><input type="checkbox" aria-label="HHA orientation/supervision - can perform independently"> Can perform independently</label></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="clinical-additional">
+                <strong>Additional Skills:</strong>
+                <textarea aria-label="Additional Skills"></textarea>
+            </div>
+
+            <div class="clinical-review-row">
+                <div>RN/LPN Reviewer: <input type="text"></div>
+                <div>Date: <input type="date" style="width: 72%;"></div>
+            </div>
+
+            <div class="clinical-comments">
+                Comments:
+                <textarea aria-label="Reviewer Comments"></textarea>
+            </div>
+
+            <div class="page-footer">
+                <div>Complete Home Care Services, Inc. | 718.528.5493 | info@chcsny.com</div>
+                <div>117-03 203rd Street, St. Albans, NY 11412</div>
+                <div class="page-number">Page 8</div>
+            </div>
+        </div>
+
+        <!-- PAGE 9: PROFESSIONAL CERTIFICATION / LICENSE -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">COMPLETE HOME CARE SERVICES, INC.</div>
+            </div>
+
+            <h2>PROFESSIONAL CERTIFICATION / LICENSE</h2>
+            
+            <div style="text-align: center; font-size: 9.5pt; margin-bottom: 12px;">
+                <strong>Credential Type:</strong>
+                <label style="margin-left: 12px;"><input type="radio" name="cert_type_page"> HHA</label>
+                <label style="margin-left: 12px;"><input type="radio" name="cert_type_page"> PCA</label>
+                <label style="margin-left: 12px;"><input type="radio" name="cert_type_page"> RN</label>
+                <label style="margin-left: 12px;"><input type="radio" name="cert_type_page"> LPN</label>
+            </div>
+
+            <div style="font-size: 9pt; margin-bottom: 12px; text-align: center;">
+                Certificate / License #: <input type="text" style="width: 160px;">
+                &nbsp;&nbsp;State Issued: <input type="text" style="width: 70px;">
+                &nbsp;&nbsp;Expiration Date: <input type="date" style="width: 120px;">
+            </div>
+
+            <p style="font-size: 9pt; text-align: center; margin-bottom: 8px;">Please upload or capture a clear photo of the <strong>FRONT</strong> of your Certificate or Nursing License below.</p>
+
+            <div class="doc-box-full" id="box-cert-front">
+                <div class="doc-box-title">Certification / License - FRONT ONLY</div>
+                <img class="doc-preview-full" id="prev-cert-front" alt="Certification Front Preview">
+                <div class="doc-controls">
+                    <input type="file" accept="image/*" id="file-cert-front" style="display:none" onchange="handleFile(this, 'prev-cert-front')">
+                    <button class="btn" onclick="document.getElementById('file-cert-front').click()">Upload Front</button>
+                    <button class="btn btn-secondary" onclick="openCamera('prev-cert-front', 'doc')">Use Camera</button>
+                </div>
+            </div>
+
+            <div class="page-footer">
+                <div>Complete Home Care Services, Inc. | 718.528.5493 | info@chcsny.com</div>
+                <div>117-03 203rd Street, St. Albans, NY 11412</div>
+                <div class="page-number">Page 9</div>
+            </div>
+        </div>
+
+        <!-- PAGE 10: SOCIAL SECURITY CARD -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">COMPLETE HOME CARE SERVICES, INC.</div>
+            </div>
+
+            <h2>IDENTIFICATION: SOCIAL SECURITY CARD</h2>
+            <p style="font-size: 8.5pt; text-align: center; margin-bottom: 12px;">Please upload or capture clear photos of the <strong>FRONT</strong> and <strong>BACK</strong> of your Social Security Card below.</p>
+
+            <div class="doc-stack">
+                <div class="doc-box-large" id="box-ssn-front">
+                    <div class="doc-box-title">Social Security Card - FRONT</div>
+                    <div class="id-card-frame">
+                        <span class="id-frame-placeholder">Card&nbsp;(landscape)</span>
+                        <img class="doc-preview-large" id="prev-ssn-front" alt="SSN Front Preview" style="display:none;">
+                    </div>
+                    <div class="doc-controls">
+                        <input type="file" accept="image/*" id="file-ssn-front" style="display:none" onchange="handleFile(this, 'prev-ssn-front')">
+                        <button class="btn btn-sm" onclick="document.getElementById('file-ssn-front').click()">Upload Front</button>
+                        <button class="btn btn-sm btn-secondary" onclick="openCamera('prev-ssn-front', 'id')">Use Camera</button>
+                    </div>
+                </div>
+
+                <div class="doc-box-large" id="box-ssn-back">
+                    <div class="doc-box-title">Social Security Card - BACK</div>
+                    <div class="id-card-frame">
+                        <span class="id-frame-placeholder">Card&nbsp;(landscape)</span>
+                        <img class="doc-preview-large" id="prev-ssn-back" alt="SSN Back Preview" style="display:none;">
+                    </div>
+                    <div class="doc-controls">
+                        <input type="file" accept="image/*" id="file-ssn-back" style="display:none" onchange="handleFile(this, 'prev-ssn-back')">
+                        <button class="btn btn-sm" onclick="document.getElementById('file-ssn-back').click()">Upload Back</button>
+                        <button class="btn btn-sm btn-secondary" onclick="openCamera('prev-ssn-back', 'id')">Use Camera</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-footer">
+                <div>Complete Home Care Services, Inc. | 718.528.5493 | info@chcsny.com</div>
+                <div>117-03 203rd Street, St. Albans, NY 11412</div>
+                <div class="page-number">Page 10</div>
+            </div>
+        </div>
+
+        <!-- PAGE 11: PHOTO ID CARD -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">COMPLETE HOME CARE SERVICES, INC.</div>
+            </div>
+
+            <h2>IDENTIFICATION: PHOTO ID CARD</h2>
+            <p style="font-size: 8.5pt; text-align: center; margin-bottom: 12px;">Please upload or capture clear photos of the <strong>FRONT</strong> and <strong>BACK</strong> of your Driver's License or State ID.</p>
+
+            <div class="doc-stack">
+                <div class="doc-box-large" id="box-id-front">
+                    <div class="doc-box-title">Photo ID Card - FRONT</div>
+                    <div class="id-card-frame">
+                        <span class="id-frame-placeholder">Card&nbsp;(landscape)</span>
+                        <img class="doc-preview-large" id="prev-id-front" alt="ID Front Preview" style="display:none;">
+                    </div>
+                    <div class="doc-controls">
+                        <input type="file" accept="image/*" id="file-id-front" style="display:none" onchange="handleFile(this, 'prev-id-front')">
+                        <button class="btn btn-sm" onclick="document.getElementById('file-id-front').click()">Upload Front</button>
+                        <button class="btn btn-sm btn-secondary" onclick="openCamera('prev-id-front', 'id')">Use Camera</button>
+                    </div>
+                </div>
+
+                <div class="doc-box-large" id="box-id-back">
+                    <div class="doc-box-title">Photo ID Card - BACK</div>
+                    <div class="id-card-frame">
+                        <span class="id-frame-placeholder">Card&nbsp;(landscape)</span>
+                        <img class="doc-preview-large" id="prev-id-back" alt="ID Back Preview" style="display:none;">
+                    </div>
+                    <div class="doc-controls">
+                        <input type="file" accept="image/*" id="file-id-back" style="display:none" onchange="handleFile(this, 'prev-id-back')">
+                        <button class="btn btn-sm" onclick="document.getElementById('file-id-back').click()">Upload Back</button>
+                        <button class="btn btn-sm btn-secondary" onclick="openCamera('prev-id-back', 'id')">Use Camera</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-footer">
+                <div>Complete Home Care Services, Inc. | 718.528.5493 | info@chcsny.com</div>
+                <div>117-03 203rd Street, St. Albans, NY 11412</div>
+                <div class="page-number">Page 11</div>
+            </div>
+        </div>
+
+        <!-- PAGE 12: CITIZENSHIP / WORK AUTHORIZATION -->
+        <div class="page">
+            <div class="header">
+                <div class="company-name">COMPLETE HOME CARE SERVICES, INC.</div>
+            </div>
+
+            <h2>WORK AUTHORIZATION / CITIZENSHIP DOCUMENT</h2>
+            
+            <div style="text-align: center; font-size: 9pt; margin-bottom: 10px;">
+                <strong>Document Type Provided:</strong>
+                <select style="font-size: 9pt; font-weight: bold; padding: 2px;">
+                    <option>Permanent Resident Card</option>
+                    <option>Passport Card / US Passport</option>
+                    <option>Employment Authorization Card (EAD)</option>
+                    <option>Birth Certificate</option>
+                </select>
+            </div>
+
+            <div class="doc-stack">
+                <div class="doc-box-large" id="box-auth-front">
+                    <div class="doc-box-title">Document - FRONT</div>
+                    <div class="id-card-frame">
+                        <span class="id-frame-placeholder">Card&nbsp;(landscape)</span>
+                        <img class="doc-preview-large" id="prev-auth-front" alt="Document Front Preview" style="display:none;">
+                    </div>
+                    <div class="doc-controls">
+                        <input type="file" accept="image/*" id="file-auth-front" style="display:none" onchange="handleFile(this, 'prev-auth-front')">
+                        <button class="btn btn-sm" onclick="document.getElementById('file-auth-front').click()">Upload Front</button>
+                        <button class="btn btn-sm btn-secondary" onclick="openCamera('prev-auth-front', 'id')">Use Camera</button>
+                    </div>
+                </div>
+
+                <div class="doc-box-large" id="box-auth-back">
+                    <div class="doc-box-title">Document - BACK</div>
+                    <div class="id-card-frame">
+                        <span class="id-frame-placeholder">Card&nbsp;(landscape)</span>
+                        <img class="doc-preview-large" id="prev-auth-back" alt="Document Back Preview" style="display:none;">
+                    </div>
+                    <div class="doc-controls">
+                        <input type="file" accept="image/*" id="file-auth-back" style="display:none" onchange="handleFile(this, 'prev-auth-back')">
+                        <button class="btn btn-sm" onclick="document.getElementById('file-auth-back').click()">Upload Back</button>
+                        <button class="btn btn-sm btn-secondary" onclick="openCamera('prev-auth-back', 'id')">Use Camera</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-footer">
+                <div>Complete Home Care Services, Inc. | 718.528.5493 | info@chcsny.com</div>
+                <div>117-03 203rd Street, St. Albans, NY 11412</div>
+                <div class="page-number">Page 12</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Camera Modal Overlay -->
+    <div class="modal" id="cameraModal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">Take Photo</h3>
+            <p class="camera-guide-caption" id="cameraGuideCaption">Fit the card inside the frame, landscape side up.</p>
+            <div class="camera-viewport">
+                <video id="webcam" autoplay playsinline></video>
+                <div class="camera-guide-frame" id="cameraGuideFrame"></div>
+            </div>
+            <canvas id="canvas" style="display:none;"></canvas>
+            <div style="margin-top:10px; display:flex; justify-content:center; gap:10px;">
+                <button class="btn btn-secondary" onclick="capturePhoto()">Capture</button>
+                <button class="btn btn-danger" onclick="closeCamera()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Crop Modal -->
+    <div class="modal" id="cropModal" role="dialog" aria-modal="true" aria-labelledby="cropTitle">
+        <div class="modal-content crop-content">
+            <h3 style="margin-top:0;" id="cropTitle">Crop Image</h3>
+            <p style="font-size:13px; color:#555; margin:0 0 10px;">Drag the corners or edges to crop. Drag inside the box to move it.</p>
+            <div class="crop-stage" id="cropStage">
+                <img id="cropImage" alt="Image to crop">
+                <div class="crop-box" id="cropBox">
+                    <span class="crop-handle" data-h="nw"></span><span class="crop-handle" data-h="n"></span>
+                    <span class="crop-handle" data-h="ne"></span><span class="crop-handle" data-h="e"></span>
+                    <span class="crop-handle" data-h="se"></span><span class="crop-handle" data-h="s"></span>
+                    <span class="crop-handle" data-h="sw"></span><span class="crop-handle" data-h="w"></span>
+                </div>
+            </div>
+            <div class="crop-actions">
+                <button type="button" class="btn btn-light" onclick="rotateCropImage(-90)">&#8634; Rotate Left</button>
+                <button type="button" class="btn btn-light" onclick="rotateCropImage(90)">&#8635; Rotate Right</button>
+                <button type="button" class="btn btn-light" onclick="resetCropBox()">Reset</button>
+            </div>
+            <div class="crop-actions">
+                <button type="button" class="btn btn-secondary" onclick="applyCrop()">Crop &amp; Use</button>
+                <button type="button" class="btn" onclick="applyCrop(true)">Use Full Image</button>
+                <button type="button" class="btn btn-danger" onclick="closeCropModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expanded Signature Modal: Draw or Type -->
+    <div class="modal" id="submitPopup" role="dialog" aria-modal="true" aria-labelledby="submitPopupTitle">
+        <div class="modal-content submit-popup-content">
+            <div class="submit-popup-icon loading" id="submitPopupIcon"></div>
+            <p class="submit-popup-title" id="submitPopupTitle">Submitting...</p>
+            <p class="submit-popup-message" id="submitPopupMessage">Please wait and don't close this page.</p>
+            <button type="button" class="submit-popup-ok" id="submitPopupOk" style="display:none" onclick="closeSubmitPopup()">OK</button>
+        </div>
+    </div>
+
+    <div class="modal" id="signatureModal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:#0056b3;">Add Signature</h3>
+            <p style="font-size: 8.5pt; color: #666; margin-top:-5px;">Draw your signature or type your name to create a signature-style version.</p>
+
+            <div class="signature-mode-tabs" role="tablist" aria-label="Signature method">
+                <button type="button" class="signature-tab active" id="drawSignatureTab" onclick="setSignatureMode('draw')">✍ Draw Signature</button>
+                <button type="button" class="signature-tab" id="typeSignatureTab" onclick="setSignatureMode('type')">⌨ Type to Sign</button>
+            </div>
+
+            <div class="signature-panel active" id="drawSignaturePanel">
+                <canvas id="sig-canvas"></canvas>
+                <p class="signature-helper">Use your mouse, trackpad, or finger to sign inside the box.</p>
+            </div>
+
+            <div class="signature-panel" id="typeSignaturePanel">
+                <div class="typed-signature-wrap">
+                    <input type="text" id="typedSignatureName" class="typed-signature-input" maxlength="80" placeholder="Type your full name" oninput="updateTypedSignaturePreview()">
+                    <span class="signature-font-label">Choose a signature style:</span>
+                    <div class="signature-font-options" id="signatureFontOptions" role="radiogroup" aria-label="Signature font style">
+                        <button type="button" class="signature-font-option active" data-font-index="0" onclick="selectSignatureFont(0)" role="radio" aria-checked="true">
+                            <span class="font-sample" style='font-family:"Brush Script MT","Segoe Script",cursive;'>Signature</span><span class="font-name">Style 1</span>
+                        </button>
+                        <button type="button" class="signature-font-option" data-font-index="1" onclick="selectSignatureFont(1)" role="radio" aria-checked="false">
+                            <span class="font-sample" style='font-family:"Segoe Script","Lucida Handwriting",cursive;'>Signature</span><span class="font-name">Style 2</span>
+                        </button>
+                        <button type="button" class="signature-font-option" data-font-index="2" onclick="selectSignatureFont(2)" role="radio" aria-checked="false">
+                            <span class="font-sample" style='font-family:"Lucida Handwriting","Segoe Print",cursive;'>Signature</span><span class="font-name">Style 3</span>
+                        </button>
+                        <button type="button" class="signature-font-option" data-font-index="3" onclick="selectSignatureFont(3)" role="radio" aria-checked="false">
+                            <span class="font-sample" style='font-family:"Monotype Corsiva","Times New Roman",cursive;'>Signature</span><span class="font-name">Style 4</span>
+                        </button>
+                        <button type="button" class="signature-font-option" data-font-index="4" onclick="selectSignatureFont(4)" role="radio" aria-checked="false">
+                            <span class="font-sample" style='font-family:"Segoe Print","Comic Sans MS",cursive;'>Signature</span><span class="font-name">Style 5</span>
+                        </button>
+                    </div>
+                    <div id="typedSignaturePreview" class="typed-signature-preview empty">Your signature preview will appear here</div>
+                </div>
+                <p class="signature-helper">Your typed name is converted into a signature image for the form and PDF.</p>
+            </div>
+
+            <div style="margin-top:15px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-secondary" onclick="saveSignature()">Save & Apply Signature</button>
+                <button type="button" class="btn btn-sm" style="background-color:#6c757d;" onclick="clearSignature()">Clear</button>
+                <button type="button" class="btn btn-danger" onclick="closeSignatureModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar for Download & Print -->
+    <div class="action-bar">
+        <button class="btn" onclick="window.print()">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
+                <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm1 3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2H6v-2z"/>
+            </svg>
+            Print Form
+        </button>
+
+        <div class="pdf-export-controls">
+            <span>PDF pages:</span>
+            <details class="pdf-page-picker" id="pdfPagePicker">
+                <summary id="pdfPageSummary">All Pages — Complete Application</summary>
+                <div class="pdf-page-menu" role="group" aria-label="Choose pages to download as PDF">
+                    <div class="pdf-page-menu-header">
+                        <button type="button" class="pdf-mini-btn" onclick="setAllPdfPages(true)">Select All</button>
+                        <button type="button" class="pdf-mini-btn" onclick="setAllPdfPages(false)">Clear All</button>
+                    </div>
+                    <div id="pdfPageOptions"></div>
+                </div>
+            </details>
+        </div>
+
+        <span id="submitStatus" class="submit-status" role="status" aria-live="polite"></span>
+        <button class="btn" id="submitBtn" onclick="submitFormToDrive()">
+            <span id="submitBtnLabel">Submit</span>
+        </button>
+        <button class="btn btn-secondary" id="pdfBtn" onclick="downloadPDF()">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+            </svg>
+            <span id="pdfBtnLabel">Download PDF</span>
+        </button>
+    </div>
+
+    <script>
+        let currentTargetImgId = null;
+        let videoStream = null;
+
+        /* Auto-Populate Logic Across Pages */
+        function updateUserData() {
+            const firstName = document.getElementById('input-firstname').value.trim();
+            const middleName = document.getElementById('input-middlename').value.trim();
+            const lastName = document.getElementById('input-lastname').value.trim();
+            
+            // Preserve spaces while the user types in Home Address and City.
+            // Trimming here used to remove a newly typed trailing space immediately.
+            const address = document.getElementById('input-address').value;
+            const city = document.getElementById('input-city').value;
+            const state = document.getElementById('input-state').value.trim();
+            const zip = document.getElementById('input-zip').value.trim();
+
+            const phone = document.getElementById('input-phone').value;
+            const ssn = document.getElementById('input-ssn').value;
+            const dob = document.getElementById('input-dob').value;
+            const email = document.getElementById('input-email').value;
+
+            // Compute Full Name & Address
+            const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
+            const fullAddress = [address.trim(), city.trim(), state, zip].filter(Boolean).join(', ');
+
+            // Propagate Full Name
+            document.querySelectorAll('.field-fullname').forEach(el => el.value = fullName);
+            
+            // Propagate First, Middle, Last
+            document.querySelectorAll('.field-firstname').forEach(el => el.value = firstName);
+            document.querySelectorAll('.field-middlename').forEach(el => el.value = middleName);
+            document.querySelectorAll('.field-lastname').forEach(el => el.value = lastName);
+
+            // Propagate Address
+            document.querySelectorAll('.field-address').forEach(el => el.value = address);
+            document.querySelectorAll('.field-city').forEach(el => el.value = city);
+            document.querySelectorAll('.field-state').forEach(el => el.value = state);
+            document.querySelectorAll('.field-zip').forEach(el => el.value = zip);
+            document.querySelectorAll('.field-fulladdress').forEach(el => el.value = fullAddress);
+
+            // Propagate Other Identifiers
+            document.querySelectorAll('.field-phone').forEach(el => el.value = phone);
+            document.querySelectorAll('.field-ssn').forEach(el => el.value = ssn);
+            document.querySelectorAll('.field-dob').forEach(el => el.value = dob);
+            document.querySelectorAll('.field-email').forEach(el => el.value = email);
+        }
+
+        // Add listeners for real-time field auto-population
+        document.querySelectorAll('#input-firstname, #input-middlename, #input-lastname, #input-address, #input-city, #input-state, #input-zip, #input-phone, #input-ssn, #input-dob, #input-email').forEach(input => {
+            input.addEventListener('input', updateUserData);
+        });
+
+        /* Image Capture/Upload Logic */
+
+        // Places an image into its preview slot and, if the slot has a
+        // landscape id-card-frame placeholder, hides that placeholder so
+        // only the captured image shows - matching the PDF layout exactly.
+        function showCapturedImage(img, dataUrl) {
+            img.src = dataUrl;
+            img.style.display = 'block';
+            const frame = img.closest('.id-card-frame');
+            if (frame) {
+                const placeholder = frame.querySelector('.id-frame-placeholder');
+                if (placeholder) placeholder.style.display = 'none';
+            }
+        }
+
+        function handleFile(input, targetImgId) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    openCropModal(targetImgId, e.target.result);
+                };
+                reader.readAsDataURL(input.files[0]);
+                input.value = ''; // allow choosing the same file again
+            }
+        }
+
+        /* ---------- Image cropper (no external library) ---------- */
+        const cropState = { targetId: null, src: null, box: null, natW: 0, natH: 0, dispW: 0, dispH: 0 };
+
+        function openCropModal(targetImgId, dataUrl) {
+            cropState.targetId = targetImgId;
+            document.getElementById('cropModal').style.display = 'flex';
+            loadCropSource(dataUrl);
+        }
+
+        function loadCropSource(dataUrl) {
+            const img = document.getElementById('cropImage');
+            cropState.src = dataUrl;
+            img.onload = () => {
+                cropState.natW = img.naturalWidth;
+                cropState.natH = img.naturalHeight;
+                layoutCropStage();
+                resetCropBox();
+            };
+            img.src = dataUrl;
+        }
+
+        function layoutCropStage() {
+            const stage = document.getElementById('cropStage');
+            const content = stage.parentElement;
+            const maxW = content.clientWidth - 40;
+            const maxH = Math.max(200, window.innerHeight * 0.6);
+            const scale = Math.min(maxW / cropState.natW, maxH / cropState.natH, 1);
+            cropState.dispW = Math.round(cropState.natW * scale);
+            cropState.dispH = Math.round(cropState.natH * scale);
+            stage.style.width = cropState.dispW + 'px';
+            stage.style.height = cropState.dispH + 'px';
+        }
+
+        function resetCropBox() {
+            const w = cropState.dispW, h = cropState.dispH;
+            const inset = 0.05;
+            cropState.box = { x: w * inset, y: h * inset, w: w * (1 - 2 * inset), h: h * (1 - 2 * inset) };
+            drawCropBox();
+        }
+
+        function drawCropBox() {
+            const b = cropState.box, el = document.getElementById('cropBox');
+            el.style.left = b.x + 'px';
+            el.style.top = b.y + 'px';
+            el.style.width = b.w + 'px';
+            el.style.height = b.h + 'px';
+        }
+
+        (function initCropDrag() {
+            const MIN = 30;
+            let drag = null;
+            const boxEl = () => document.getElementById('cropBox');
+
+            document.addEventListener('pointerdown', e => {
+                const box = boxEl();
+                if (!box || !box.contains(e.target)) return;
+                e.preventDefault();
+                drag = {
+                    mode: e.target.dataset.h || 'move',
+                    startX: e.clientX, startY: e.clientY,
+                    orig: Object.assign({}, cropState.box)
+                };
+                try { e.target.setPointerCapture(e.pointerId); } catch (_) {}
+            });
+
+            document.addEventListener('pointermove', e => {
+                if (!drag) return;
+                e.preventDefault();
+                const dx = e.clientX - drag.startX, dy = e.clientY - drag.startY;
+                const W = cropState.dispW, H = cropState.dispH, o = drag.orig;
+                let { x, y, w, h } = o;
+                if (drag.mode === 'move') {
+                    x = Math.min(Math.max(0, o.x + dx), W - o.w);
+                    y = Math.min(Math.max(0, o.y + dy), H - o.h);
+                } else {
+                    const m = drag.mode;
+                    if (m.includes('w')) { const nx = Math.min(Math.max(0, o.x + dx), o.x + o.w - MIN); w = o.w + (o.x - nx); x = nx; }
+                    if (m.includes('e')) { w = Math.min(Math.max(MIN, o.w + dx), W - o.x); }
+                    if (m.includes('n')) { const ny = Math.min(Math.max(0, o.y + dy), o.y + o.h - MIN); h = o.h + (o.y - ny); y = ny; }
+                    if (m.includes('s')) { h = Math.min(Math.max(MIN, o.h + dy), H - o.y); }
+                }
+                cropState.box = { x, y, w, h };
+                drawCropBox();
+            }, { passive: false });
+
+            const end = () => { drag = null; };
+            document.addEventListener('pointerup', end);
+            document.addEventListener('pointercancel', end);
+
+            window.addEventListener('resize', () => {
+                if (document.getElementById('cropModal').style.display !== 'flex' || !cropState.box) return;
+                const oldW = cropState.dispW, oldH = cropState.dispH;
+                layoutCropStage();
+                const sx = cropState.dispW / oldW, sy = cropState.dispH / oldH, b = cropState.box;
+                cropState.box = { x: b.x * sx, y: b.y * sy, w: b.w * sx, h: b.h * sy };
+                drawCropBox();
+            });
+        })();
+
+        function rotateCropImage(deg) {
+            const img = document.getElementById('cropImage');
+            const c = document.createElement('canvas');
+            const w = img.naturalWidth, h = img.naturalHeight;
+            c.width = h; c.height = w;
+            const ctx = c.getContext('2d');
+            ctx.translate(h / 2, w / 2);
+            ctx.rotate(deg * Math.PI / 180);
+            ctx.drawImage(img, -w / 2, -h / 2);
+            loadCropSource(c.toDataURL('image/jpeg', 0.92));
+        }
+
+        function applyCrop(useFull) {
+            const img = document.getElementById('cropImage');
+            let sx = 0, sy = 0, sw = cropState.natW, sh = cropState.natH;
+            if (!useFull) {
+                const k = cropState.natW / cropState.dispW, b = cropState.box;
+                sx = Math.round(b.x * k); sy = Math.round(b.y * k);
+                sw = Math.round(b.w * k); sh = Math.round(b.h * k);
+            }
+            // Cap the output size so the submitted PDF stays a reasonable size.
+            const MAX = 2000;
+            const scale = Math.min(1, MAX / Math.max(sw, sh));
+            const c = document.createElement('canvas');
+            c.width = Math.round(sw * scale);
+            c.height = Math.round(sh * scale);
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, c.width, c.height);
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+            const target = document.getElementById(cropState.targetId);
+            if (target) showCapturedImage(target, c.toDataURL('image/jpeg', 0.92));
+            closeCropModal();
+        }
+
+        function closeCropModal() {
+            document.getElementById('cropModal').style.display = 'none';
+        }
+
+        let currentCaptureMode = 'id';
+
+        async function openCamera(targetImgId, mode) {
+            currentTargetImgId = targetImgId;
+            currentCaptureMode = mode || 'id';
+
+            const modal = document.getElementById('cameraModal');
+            const video = document.getElementById('webcam');
+            const guideFrame = document.getElementById('cameraGuideFrame');
+            const caption = document.getElementById('cameraGuideCaption');
+
+            if (currentCaptureMode === 'doc') {
+                guideFrame.classList.add('doc-mode');
+                caption.textContent = 'Fit the whole document inside the frame.';
+            } else {
+                guideFrame.classList.remove('doc-mode');
+                caption.textContent = 'Fit the card inside the frame, landscape side up.';
+            }
+
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = videoStream;
+                modal.style.display = 'flex';
+            } catch (err) {
+                alert('Unable to access camera: ' + err.message);
+            }
+        }
+
+        /* Captures only the region of the video feed inside the guide
+           frame, so the saved image matches the guide's aspect ratio
+           (landscape ID-card, or portrait document) exactly - regardless
+           of the camera's native resolution or the video preview's
+           on-screen size. */
+        function capturePhoto() {
+            const video = document.getElementById('webcam');
+            const viewport = document.querySelector('.camera-viewport');
+            const guideFrame = document.getElementById('cameraGuideFrame');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+
+            const vw = video.videoWidth;
+            const vh = video.videoHeight;
+
+            const containerRect = viewport.getBoundingClientRect();
+            const guideRect = guideFrame.getBoundingClientRect();
+            const cw = containerRect.width;
+            const ch = containerRect.height;
+
+            // The video is shown with object-fit: cover, so figure out how
+            // the native video frame maps onto the displayed container.
+            const scale = Math.max(cw / vw, ch / vh);
+            const drawX = (cw - vw * scale) / 2;
+            const drawY = (ch - vh * scale) / 2;
+
+            const toSource = (px, py) => ({
+                x: (px - drawX) / scale,
+                y: (py - drawY) / scale
+            });
+
+            const topLeft = toSource(guideRect.left - containerRect.left, guideRect.top - containerRect.top);
+            const bottomRight = toSource(guideRect.right - containerRect.left, guideRect.bottom - containerRect.top);
+
+            const sx = Math.max(0, topLeft.x);
+            const sy = Math.max(0, topLeft.y);
+            const sw = Math.min(vw, bottomRight.x) - sx;
+            const sh = Math.min(vh, bottomRight.y) - sy;
+
+            canvas.width = sw;
+            canvas.height = sh;
+            context.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
+
+            const dataUrl = canvas.toDataURL('image/png');
+            closeCamera();
+            openCropModal(currentTargetImgId, dataUrl);
+        }
+
+        function closeCamera() {
+            const modal = document.getElementById('cameraModal');
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            modal.style.display = 'none';
+        }
+
+        /* Interactive Signature Setup: Draw or Type */
+        let sigCanvas, sigCtx, isDrawing = false;
+        let signatureMode = 'draw';
+        let signaturePadInitialized = false;
+        let activeSignatureContainer = null;
+
+        function initSignaturePad() {
+            sigCanvas = document.getElementById('sig-canvas');
+            sigCtx = sigCanvas.getContext('2d');
+
+            // Responsive high-res positioning
+            sigCanvas.width = sigCanvas.offsetWidth;
+            sigCanvas.height = sigCanvas.offsetHeight;
+
+            sigCtx.lineWidth = 2.5;
+            sigCtx.lineCap = 'round';
+            sigCtx.lineJoin = 'round';
+            sigCtx.strokeStyle = '#000080'; // Navy Ink
+
+            if (signaturePadInitialized) return;
+            signaturePadInitialized = true;
+
+            function getPos(e) {
+                const rect = sigCanvas.getBoundingClientRect();
+                const source = e.touches && e.touches.length ? e.touches[0] : e;
+                return {
+                    x: source.clientX - rect.left,
+                    y: source.clientY - rect.top
+                };
+            }
+
+            function startDraw(e) {
+                isDrawing = true;
+                const pos = getPos(e);
+                sigCtx.beginPath();
+                sigCtx.moveTo(pos.x, pos.y);
+                e.preventDefault();
+            }
+
+            function draw(e) {
+                if (!isDrawing) return;
+                const pos = getPos(e);
+                sigCtx.lineTo(pos.x, pos.y);
+                sigCtx.stroke();
+                e.preventDefault();
+            }
+
+            function stopDraw() {
+                if (isDrawing) {
+                    sigCtx.closePath();
+                    isDrawing = false;
+                }
+            }
+
+            sigCanvas.addEventListener('mousedown', startDraw);
+            sigCanvas.addEventListener('mousemove', draw);
+            sigCanvas.addEventListener('mouseup', stopDraw);
+            sigCanvas.addEventListener('mouseleave', stopDraw);
+
+            sigCanvas.addEventListener('touchstart', startDraw, { passive: false });
+            sigCanvas.addEventListener('touchmove', draw, { passive: false });
+            sigCanvas.addEventListener('touchend', stopDraw, { passive: false });
+        }
+
+        function setSignatureMode(mode) {
+            signatureMode = mode === 'type' ? 'type' : 'draw';
+
+            document.getElementById('drawSignatureTab').classList.toggle('active', signatureMode === 'draw');
+            document.getElementById('typeSignatureTab').classList.toggle('active', signatureMode === 'type');
+            document.getElementById('drawSignaturePanel').classList.toggle('active', signatureMode === 'draw');
+            document.getElementById('typeSignaturePanel').classList.toggle('active', signatureMode === 'type');
+
+            if (signatureMode === 'draw') {
+                setTimeout(initSignaturePad, 30);
+            } else {
+                const input = document.getElementById('typedSignatureName');
+                updateTypedSignaturePreview();
+                setTimeout(() => input.focus(), 30);
+            }
+        }
+
+        const typedSignatureFonts = [
+            { css: '"Brush Script MT", "Segoe Script", cursive', canvas: '"Brush Script MT", "Segoe Script", cursive' },
+            { css: '"Segoe Script", "Lucida Handwriting", cursive', canvas: '"Segoe Script", "Lucida Handwriting", cursive' },
+            { css: '"Lucida Handwriting", "Segoe Print", cursive', canvas: '"Lucida Handwriting", "Segoe Print", cursive' },
+            { css: '"Monotype Corsiva", "Times New Roman", cursive', canvas: '"Monotype Corsiva", "Times New Roman", cursive' },
+            { css: '"Segoe Print", "Comic Sans MS", cursive', canvas: '"Segoe Print", "Comic Sans MS", cursive' }
+        ];
+        let selectedSignatureFont = 0;
+
+        function selectSignatureFont(index) {
+            selectedSignatureFont = Math.max(0, Math.min(typedSignatureFonts.length - 1, Number(index) || 0));
+            document.querySelectorAll('.signature-font-option').forEach((btn, i) => {
+                const active = i === selectedSignatureFont;
+                btn.classList.toggle('active', active);
+                btn.setAttribute('aria-checked', active ? 'true' : 'false');
+            });
+            updateTypedSignaturePreview();
+        }
+
+        function updateTypedSignaturePreview() {
+            const input = document.getElementById('typedSignatureName');
+            const preview = document.getElementById('typedSignaturePreview');
+            const name = input.value.trim();
+
+            if (name) {
+                preview.textContent = name;
+                preview.style.fontFamily = typedSignatureFonts[selectedSignatureFont].css;
+                preview.classList.remove('empty');
+            } else {
+                preview.style.fontFamily = '';
+                preview.textContent = 'Your signature preview will appear here';
+                preview.classList.add('empty');
+            }
+        }
+
+        function openSignatureModal(container) {
+            activeSignatureContainer = container || null;
+            const modal = document.getElementById('signatureModal');
+            const typedInput = document.getElementById('typedSignatureName');
+
+            // Start each signature field independently. If this field was previously
+            // typed, restore that name; otherwise leave it blank for the signer.
+            typedInput.value = activeSignatureContainer?.dataset.typedSignatureName || '';
+            const savedFontIndex = Number(activeSignatureContainer?.dataset.typedSignatureFont);
+            selectSignatureFont(Number.isInteger(savedFontIndex) && savedFontIndex >= 0 ? savedFontIndex : 0);
+            updateTypedSignaturePreview();
+            clearCanvas();
+            modal.style.display = 'flex';
+            setSignatureMode(signatureMode);
+        }
+
+        function closeSignatureModal() {
+            document.getElementById('signatureModal').style.display = 'none';
+            isDrawing = false;
+            activeSignatureContainer = null;
+        }
+
+        function clearCanvas() {
+            if (sigCtx && sigCanvas) {
+                sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+            }
+        }
+
+        function clearSignature() {
+            if (signatureMode === 'type') {
+                document.getElementById('typedSignatureName').value = '';
+                updateTypedSignaturePreview();
+                document.getElementById('typedSignatureName').focus();
+            } else {
+                clearCanvas();
+            }
+        }
+
+        function createTypedSignatureDataUrl(name, fontIndex = selectedSignatureFont) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1200;
+            canvas.height = 260;
+            const ctx = canvas.getContext('2d');
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#000080';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            let fontSize = 108;
+            const fontFamily = typedSignatureFonts[fontIndex]?.canvas || typedSignatureFonts[0].canvas;
+            do {
+                ctx.font = `italic ${fontSize}px ${fontFamily}`;
+                if (ctx.measureText(name).width <= canvas.width - 100) break;
+                fontSize -= 4;
+            } while (fontSize > 44);
+
+            ctx.fillText(name, canvas.width / 2, canvas.height / 2 + 4);
+            return canvas.toDataURL('image/png');
+        }
+
+        function saveSignature() {
+            let sigDataUrl = '';
+
+            if (signatureMode === 'type') {
+                const name = document.getElementById('typedSignatureName').value.trim();
+                if (!name) {
+                    alert('Please type your name before saving the signature.');
+                    document.getElementById('typedSignatureName').focus();
+                    return;
+                }
+                sigDataUrl = createTypedSignatureDataUrl(name, selectedSignatureFont);
+            } else {
+                if (!sigCanvas) initSignaturePad();
+                sigDataUrl = sigCanvas.toDataURL('image/png');
+            }
+
+            if (!activeSignatureContainer) {
+                alert('Please click the signature field you want to sign.');
+                return;
+            }
+
+            // Applicant/employee signature: signing once fills every place where the
+            // applicant's signature is required. Other signer fields remain independent.
+            const isApplicantSignature = activeSignatureContainer.dataset.signatureRole === 'applicant';
+            const targets = isApplicantSignature
+                ? Array.from(document.querySelectorAll('.sig-container[data-signature-role="applicant"]'))
+                : [activeSignatureContainer];
+
+            const typedName = signatureMode === 'type'
+                ? document.getElementById('typedSignatureName').value.trim()
+                : '';
+
+            targets.forEach(container => {
+                const img = container.querySelector('.sig-preview-img');
+                const placeholder = container.querySelector('.sig-placeholder-text');
+                if (img) {
+                    img.src = sigDataUrl;
+                    img.style.display = 'inline-block';
+                }
+                if (placeholder) placeholder.style.display = 'none';
+
+                if (signatureMode === 'type') {
+                    container.dataset.typedSignatureName = typedName;
+                    container.dataset.typedSignatureFont = String(selectedSignatureFont);
+                } else {
+                    delete container.dataset.typedSignatureName;
+                    delete container.dataset.typedSignatureFont;
+                }
+            });
+
+            closeSignatureModal();
+        }
+
+        function hideUnsignedSignaturePlaceholdersForCapture(root) {
+            const hidden = [];
+            root.querySelectorAll('.sig-container').forEach(container => {
+                const img = container.querySelector('.sig-preview-img');
+                const placeholder = container.querySelector('.sig-placeholder-text');
+                const isSigned = !!(img && img.src && img.style.display !== 'none');
+
+                if (!isSigned && placeholder) {
+                    hidden.push({ placeholder, visibility: placeholder.style.visibility });
+                    // Keep the signature area width, but export no "Click to Sign" text.
+                    placeholder.style.visibility = 'hidden';
+                }
+            });
+            return hidden;
+        }
+
+        function restoreSignaturePlaceholders(hidden) {
+            hidden.forEach(({ placeholder, visibility }) => {
+                placeholder.style.visibility = visibility;
+            });
+        }
+
+        /* Replace native date inputs with plain text spans before PDF capture.
+           html2canvas can't render the native "mm/dd/yyyy" placeholder reliably,
+           so we swap in real text: the formatted date if one was picked, or
+           nothing at all if the field was left empty. */
+        function swapDateInputsForCapture(root) {
+            const dateInputs = root.querySelectorAll('input[type="date"]');
+            const swapped = [];
+
+            dateInputs.forEach(input => {
+                let text = '';
+                if (input.value) {
+                    const [y, m, d] = input.value.split('-');
+                    text = `${m}/${d}/${y}`;
+                }
+
+                const span = document.createElement('span');
+                const cs = getComputedStyle(input);
+                span.textContent = text;
+                span.style.display = 'inline-block';
+                span.style.width = cs.width;
+                span.style.minHeight = cs.height;
+                span.style.font = cs.font;
+                span.style.borderBottom = cs.borderBottom;
+                span.style.padding = cs.padding;
+                span.style.boxSizing = cs.boxSizing;
+                span.style.verticalAlign = 'middle';
+
+                input.insertAdjacentElement('afterend', span);
+                input.style.display = 'none';
+                swapped.push({ input, span });
+            });
+
+            return swapped;
+        }
+
+        function restoreDateInputs(swapped) {
+            swapped.forEach(({ input, span }) => {
+                input.style.display = '';
+                span.remove();
+            });
+        }
+
+        /* Build an invisible real-text layer over the page image.
+           The page image preserves the exact visual appearance, while this text
+           layer makes downloaded PDFs searchable and allows text to be selected
+           and copied in standard PDF viewers. */
+        function addSelectableTextLayer(pdf, pageEl) {
+            const pageRect = pageEl.getBoundingClientRect();
+            if (!pageRect.width || !pageRect.height) return;
+
+            const pxToInX = 8.5 / pageRect.width;
+            const pxToInY = 11 / pageRect.height;
+
+            const isVisible = (el) => {
+                if (!el || el.nodeType !== 1) return true;
+                const cs = getComputedStyle(el);
+                return cs.display !== 'none' && cs.visibility !== 'hidden' && Number(cs.opacity || 1) !== 0;
+            };
+
+            const addText = (text, rect, sourceEl) => {
+                text = String(text || '').replace(/\s+/g, ' ').trim();
+                if (!text || !rect || rect.width <= 0 || rect.height <= 0) return;
+                if (!isVisible(sourceEl)) return;
+
+                const cs = sourceEl && sourceEl.nodeType === 1 ? getComputedStyle(sourceEl) : null;
+                const fontPx = cs ? parseFloat(cs.fontSize) || 10 : 10;
+                const fontPt = Math.max(5, Math.min(24, fontPx * 0.75));
+
+                const x = Math.max(0, (rect.left - pageRect.left) * pxToInX);
+                // jsPDF positions text by baseline, so place it near the DOM baseline.
+                const y = Math.max(0, (rect.top - pageRect.top + rect.height * 0.82) * pxToInY);
+
+                pdf.setFontSize(fontPt);
+                // Invisible rendering mode: text remains selectable/searchable/copyable
+                // without visually duplicating the rasterized page text.
+                pdf.text(text, x, y, { renderingMode: 'invisible' });
+            };
+
+            // Static page text.
+            const walker = document.createTreeWalker(pageEl, NodeFilter.SHOW_TEXT, {
+                acceptNode(node) {
+                    if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+                    const parent = node.parentElement;
+                    if (!parent || !isVisible(parent)) return NodeFilter.FILTER_REJECT;
+                    if (parent.closest('script, style, .action-bar, .modal, .page-nav')) return NodeFilter.FILTER_REJECT;
+                    return NodeFilter.FILTER_ACCEPT;
+                }
+            });
+
+            let node;
+            while ((node = walker.nextNode())) {
+                const range = document.createRange();
+                range.selectNodeContents(node);
+                const rects = Array.from(range.getClientRects());
+                if (rects.length <= 1) {
+                    addText(node.nodeValue, rects[0] || range.getBoundingClientRect(), node.parentElement);
+                } else {
+                    // Multi-line text is added line-by-line so copy/search positioning stays sensible.
+                    const words = node.nodeValue.trim().split(/\s+/);
+                    let wordIndex = 0;
+                    rects.forEach(rect => {
+                        if (wordIndex >= words.length) return;
+                        // Approximate how many words belong on this rendered line.
+                        const avgCharPx = Math.max(3, (parseFloat(getComputedStyle(node.parentElement).fontSize) || 10) * 0.52);
+                        const charsFit = Math.max(1, Math.round(rect.width / avgCharPx));
+                        let line = '';
+                        while (wordIndex < words.length && (line.length === 0 || line.length + 1 + words[wordIndex].length <= charsFit)) {
+                            line += (line ? ' ' : '') + words[wordIndex++];
+                        }
+                        addText(line, rect, node.parentElement);
+                    });
+                    if (wordIndex < words.length) addText(words.slice(wordIndex).join(' '), rects[rects.length - 1], node.parentElement);
+                }
+            }
+
+            // User-entered values in inputs/selects/textareas are not ordinary text nodes,
+            // so add them separately to the selectable layer.
+            pageEl.querySelectorAll('input, textarea, select').forEach(el => {
+                if (!isVisible(el)) return;
+                if (el.type === 'checkbox' || el.type === 'radio' || el.type === 'file' || el.type === 'button' || el.type === 'submit') return;
+                const value = el.tagName === 'SELECT'
+                    ? (el.options[el.selectedIndex]?.text || '')
+                    : (el.value || '');
+                if (!value.trim()) return;
+                addText(value, el.getBoundingClientRect(), el);
+            });
+        }
+
+        function initializePdfPageSelector() {
+            const options = document.getElementById('pdfPageOptions');
+            if (!options) return;
+
+            const pages = Array.from(document.querySelectorAll('.page-container > .page'));
+            options.innerHTML = '';
+
+            pages.forEach((page, index) => {
+                const pageNumber = index + 1;
+                const titleElement = page.querySelector('h1, h2, .section-title, .doc-box-title');
+                const formName = titleElement
+                    ? titleElement.textContent.replace(/\s+/g, ' ').trim()
+                    : 'Form';
+
+                const label = document.createElement('label');
+                label.className = 'pdf-page-option';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'pdf-page-checkbox';
+                checkbox.value = String(pageNumber);
+                checkbox.checked = true;
+                checkbox.setAttribute('aria-label', `Page ${pageNumber} — ${formName}`);
+                checkbox.addEventListener('change', updatePdfSelectionSummary);
+
+                const text = document.createElement('span');
+                text.textContent = `Page ${pageNumber} — ${formName}`;
+
+                label.appendChild(checkbox);
+                label.appendChild(text);
+                options.appendChild(label);
+            });
+
+            updatePdfSelectionSummary();
+        }
+
+        function setAllPdfPages(checked) {
+            document.querySelectorAll('.pdf-page-checkbox').forEach(cb => {
+                cb.checked = checked;
+            });
+            updatePdfSelectionSummary();
+        }
+
+        function updatePdfSelectionSummary() {
+            const summary = document.getElementById('pdfPageSummary');
+            const boxes = Array.from(document.querySelectorAll('.pdf-page-checkbox'));
+            const selected = boxes.filter(cb => cb.checked);
+            if (!summary) return;
+
+            if (selected.length === boxes.length && boxes.length) {
+                summary.textContent = `All ${boxes.length} Pages — Complete Application`;
+            } else if (selected.length === 0) {
+                summary.textContent = 'No Pages Selected';
+            } else if (selected.length <= 3) {
+                summary.textContent = 'Selected: ' + selected.map(cb => `Page ${cb.value}`).join(', ');
+            } else {
+                summary.textContent = `${selected.length} Pages Selected`;
+            }
+        }
+
+        function getPageFormNames(pages) {
+            const baseNames = pages.map(page => {
+                const titleElement = page.querySelector('h1, h2, .section-title, .doc-box-title');
+                return titleElement
+                    ? titleElement.textContent.replace(/\s+/g, ' ').trim()
+                    : 'Form';
+            });
+
+            // Make repeated form names easier to distinguish in navigation.
+            const totals = {};
+            baseNames.forEach(name => { totals[name] = (totals[name] || 0) + 1; });
+            const seen = {};
+            return baseNames.map(name => {
+                if (totals[name] <= 1) return name;
+                seen[name] = (seen[name] || 0) + 1;
+                return `${name} ${seen[name]}`;
+            });
+        }
+
+        function initializePageNavigation() {
+            const navList = document.getElementById('pageNavList');
+            if (!navList) return;
+
+            const pages = Array.from(document.querySelectorAll('.page-container > .page'));
+            const names = getPageFormNames(pages);
+            navList.innerHTML = '';
+
+            pages.forEach((page, index) => {
+                const pageNumber = index + 1;
+                page.id = `form-page-${pageNumber}`;
+                page.setAttribute('data-form-name', names[index]);
+
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'page-nav-item';
+                button.dataset.pageNumber = String(pageNumber);
+                button.setAttribute('aria-label', `Go to Page ${pageNumber} — ${names[index]}`);
+                button.innerHTML = `<span class="page-nav-number">${pageNumber}</span><span class="page-nav-name">${names[index]}</span>`;
+                button.addEventListener('click', () => {
+                    page.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    setActivePageNavigation(pageNumber);
+                    if (window.innerWidth <= 1100) {
+                        document.getElementById('pageNav')?.classList.remove('mobile-open');
+                    }
+                });
+                navList.appendChild(button);
+            });
+
+            setActivePageNavigation(1);
+
+            // Highlight whichever form page is most prominent in the viewport.
+            const observer = new IntersectionObserver(entries => {
+                const visible = entries
+                    .filter(entry => entry.isIntersecting)
+                    .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+                if (!visible.length) return;
+                const pageNumber = pages.indexOf(visible[0].target) + 1;
+                if (pageNumber > 0) setActivePageNavigation(pageNumber);
+            }, { threshold: [0.2, 0.4, 0.6, 0.8] });
+
+            pages.forEach(page => observer.observe(page));
+        }
+
+        function setActivePageNavigation(pageNumber) {
+            document.querySelectorAll('.page-nav-item').forEach(item => {
+                const active = Number(item.dataset.pageNumber) === Number(pageNumber);
+                item.classList.toggle('active', active);
+                if (active) item.scrollIntoView({ block: 'nearest' });
+            });
+        }
+
+        function togglePageNavigation() {
+            if (window.innerWidth <= 1100) {
+                toggleMobilePageNavigation();
+                return;
+            }
+            document.body.classList.toggle('page-nav-collapsed');
+            const collapsed = document.body.classList.contains('page-nav-collapsed');
+            const toggle = document.getElementById('pageNavToggle');
+            if (toggle) {
+                toggle.textContent = collapsed ? '›' : '‹';
+                toggle.setAttribute('aria-label', collapsed ? 'Expand page navigation' : 'Collapse page navigation');
+            }
+        }
+
+        function toggleMobilePageNavigation() {
+            document.getElementById('pageNav')?.classList.toggle('mobile-open');
+        }
+
+        initializePageNavigation();
+
+        initializePdfPageSelector();
+
+        async function downloadPDF(submitToDrive = false) {
+            const btn = submitToDrive ? document.getElementById('submitBtn') : document.getElementById('pdfBtn');
+            const submitLabel = document.getElementById('submitBtnLabel');
+            const status = document.getElementById('submitStatus');
+            const label = submitToDrive ? submitLabel : document.getElementById('pdfBtnLabel');
+            const picker = document.getElementById('pdfPagePicker');
+            const allPages = Array.from(document.querySelectorAll('.page-container > .page'));
+
+            if (!allPages.length) {
+                alert('No pages found to export.');
+                return;
+            }
+
+            const selectedNumbers = Array.from(document.querySelectorAll('.pdf-page-checkbox:checked'))
+                .map(cb => parseInt(cb.value, 10))
+                .filter(n => Number.isInteger(n) && n >= 1 && n <= allPages.length);
+
+            if (!selectedNumbers.length) {
+                alert('Please select at least one page to download.');
+                return;
+            }
+
+            const pages = selectedNumbers.map(n => allPages[n - 1]);
+            const exportingAll = selectedNumbers.length === allPages.length;
+
+            btn.disabled = true;
+            if (submitToDrive) {
+                if (status) { status.className = 'submit-status'; status.textContent = ''; }
+                showSubmitPopup('building');
+            }
+            if (picker) {
+                picker.classList.add('disabled');
+                picker.removeAttribute('open');
+                picker.style.pointerEvents = 'none';
+            }
+            btn.style.opacity = '0.6';
+            btn.style.cursor = 'wait';
+
+            // Temporarily drop the drop-shadow only on the page(s) being exported.
+            const originalShadows = pages.map(p => p.style.boxShadow);
+            pages.forEach(p => { p.style.boxShadow = 'none'; });
+
+            // Swap every date input for a plain-text version (blank if unset).
+            const swappedDates = swapDateInputsForCapture(document);
+            const hiddenSignaturePlaceholders = hideUnsignedSignaturePlaceholdersForCapture(document);
+
+            try {
+                const { jsPDF } = window.jspdf;
+                // US Letter in inches: 8.5 x 11 - matches the .page element size exactly.
+                const pdf = new jsPDF({ unit: 'in', format: 'letter', orientation: 'portrait' });
+
+                for (let i = 0; i < pages.length; i++) {
+                    const actualPageNumber = selectedNumbers[i];
+                    if (!submitToDrive) label.textContent = pages.length === 1
+                        ? `Generating Page ${actualPageNumber}...`
+                        : `Generating Page ${actualPageNumber}... (${i + 1}/${pages.length})`;
+
+                    const canvas = await html2canvas(pages[i], {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        windowWidth: pages[i].scrollWidth,
+                        windowHeight: pages[i].scrollHeight
+                    });
+
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+                    if (i > 0) pdf.addPage('letter', 'portrait');
+                    // Fill the full 8.5 x 11 letter page with this page's image.
+                    pdf.addImage(imgData, 'JPEG', 0, 0, 8.5, 11, undefined, 'FAST');
+                    // Add a real, invisible text layer so the PDF remains searchable
+                    // and its text can be selected/copied without changing appearance.
+                    addSelectableTextLayer(pdf, pages[i]);
+                }
+
+                let fileName;
+                if (exportingAll) {
+                    fileName = 'Application_Form_All_Pages.pdf';
+                } else if (selectedNumbers.length === 1) {
+                    fileName = `Application_Form_Page_${selectedNumbers[0]}.pdf`;
+                } else {
+                    const pageTag = selectedNumbers.length <= 6
+                        ? selectedNumbers.join('_')
+                        : `${selectedNumbers.length}_Selected_Pages`;
+                    fileName = `Application_Form_Pages_${pageTag}.pdf`;
+                }
+                if (submitToDrive) {
+                    const dataUri = pdf.output('datauristring');
+                    const base64 = dataUri.substring(dataUri.indexOf(',') + 1);
+                    const applicant = (document.getElementById('input-firstname')?.value || '').trim();
+                    const last = (document.getElementById('input-lastname')?.value || '').trim();
+                    const safeName = [applicant, last].filter(Boolean).join('_').replace(/[^a-z0-9_-]/gi, '_');
+                    const finalName = safeName ? `CHCS_Application_${safeName}.pdf` : fileName.replace(/\.pdf$/i, '') + '.pdf';
+                    showSubmitPopup('loading');
+                    await sendPdfToDrive(base64, finalName);
+                    showSubmitPopup('success');
+                } else {
+                    pdf.save(fileName);
+                }
+            } catch (err) {
+                if (submitToDrive) {
+                    showSubmitPopup('error', err.message);
+                } else {
+                    alert('PDF generation failed: ' + err.message);
+                }
+            } finally {
+                restoreSignaturePlaceholders(hiddenSignaturePlaceholders);
+                restoreDateInputs(swappedDates);
+                pages.forEach((p, idx) => { p.style.boxShadow = originalShadows[idx]; });
+                btn.disabled = false;
+                if (picker) {
+                    picker.classList.remove('disabled');
+                    picker.style.pointerEvents = '';
+                }
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                label.textContent = submitToDrive ? 'Submit' : 'Download PDF';
+            }
+        }
+
+        function showSubmitPopup(state, message) {
+            const popup = document.getElementById('submitPopup');
+            const icon = document.getElementById('submitPopupIcon');
+            const title = document.getElementById('submitPopupTitle');
+            const msg = document.getElementById('submitPopupMessage');
+            const ok = document.getElementById('submitPopupOk');
+            icon.className = 'submit-popup-icon ' + (state === 'building' ? 'loading' : state);
+            if (state === 'building') {
+                icon.textContent = '';
+                title.textContent = 'Building\u2026';
+                msg.textContent = "Preparing your application. Please don't close this page.";
+                ok.style.display = 'none';
+            } else if (state === 'loading') {
+                icon.textContent = '';
+                title.textContent = 'Submitting\u2026';
+                msg.textContent = "Please wait and don't close this page.";
+                ok.style.display = 'none';
+            } else if (state === 'success') {
+                icon.textContent = '\u2713';
+                title.textContent = 'Submitted successfully!';
+                msg.textContent = 'Your application has been received.';
+                ok.style.display = 'inline-block';
+            } else {
+                icon.textContent = '!';
+                title.textContent = 'Submission failed';
+                msg.textContent = message || 'Something went wrong. Please try again.';
+                ok.style.display = 'inline-block';
+            }
+            popup.style.display = 'flex';
+            if (state !== 'loading') ok.focus();
+        }
+
+        function closeSubmitPopup() {
+            document.getElementById('submitPopup').style.display = 'none';
+        }
+
+        // Apps Script web app deployment URL. The form posts here, so this HTML
+        // file works from any host (your website, GitHub Pages, a local file, etc.).
+        const SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbzhis3oM7RxWL6QBNTFqhYSDVH_W7SNUiFBODPXesA68x0A7JlVLYupLzvTCNOJhEgR/exec';
+
+        async function sendPdfToDrive(base64, fileName) {
+            // If served by Apps Script itself, use the native bridge.
+            if (window.google && google.script && google.script.run) {
+                return new Promise((resolve, reject) => {
+                    google.script.run
+                        .withSuccessHandler(resolve)
+                        .withFailureHandler(err => reject(new Error(err && err.message ? err.message : String(err))))
+                        .savePdfToDrive(base64, fileName);
+                });
+            }
+            // Otherwise POST to the deployed web app. text/plain avoids a CORS preflight,
+            // which Apps Script does not support.
+            const response = await fetch(SUBMIT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ base64: base64, fileName: fileName }),
+                redirect: 'follow'
+            });
+            if (!response.ok) throw new Error('Server responded with status ' + response.status);
+            let result;
+            try {
+                result = await response.json();
+            } catch (e) {
+                throw new Error('Unexpected response from server. Check that the web app is deployed with access set to "Anyone".');
+            }
+            if (!result || !result.success) throw new Error((result && result.error) || 'Submission failed.');
+            return result;
+        }
+
+        function submitFormToDrive() {
+            const status = document.getElementById('submitStatus');
+            if (status) {
+                status.className = 'submit-status';
+                status.textContent = '';
+            }
+            downloadPDF(true);
+        }
+    </script>
+</body>
+</html>
