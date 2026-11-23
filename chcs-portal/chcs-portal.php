@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CHCS_PORTAL_VERSION', '1.1.0' );
+define( 'CHCS_PORTAL_VERSION', '1.2.0' );
 define( 'CHCS_PORTAL_FILE', __FILE__ );
 define( 'CHCS_PORTAL_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CHCS_PORTAL_URL', plugin_dir_url( __FILE__ ) );
@@ -34,10 +34,17 @@ require CHCS_PORTAL_DIR . 'includes/rest-team.php';
 require CHCS_PORTAL_DIR . 'includes/rest-training.php';
 require CHCS_PORTAL_DIR . 'includes/rest-content.php';
 require CHCS_PORTAL_DIR . 'includes/rest-ops.php';
+require CHCS_PORTAL_DIR . 'includes/rest-tasks.php';
 require CHCS_PORTAL_DIR . 'includes/portal-page.php';
 
 register_activation_hook( __FILE__, 'chcs_portal_activate' );
-register_deactivation_hook( __FILE__, 'flush_rewrite_rules' );
+register_deactivation_hook(
+	__FILE__,
+	function () {
+		wp_clear_scheduled_hook( 'chcs_daily' );
+		flush_rewrite_rules();
+	}
+);
 
 /**
  * Activation: tables, role, defaults, rewrite rules.
@@ -47,13 +54,13 @@ function chcs_portal_activate() {
 	add_role( 'chcs_staff', 'CHCS Portal User', array( 'read' => true ) );
 
 	if ( ! get_option( 'chcs_designations' ) ) {
-		$o        = array( 'clock', 'leave', 'calls', 'chat', 'calendar' );
+		$o        = array( 'clock', 'leave', 'calls', 'chat', 'calendar', 'tasks' );
 		$defaults = array(
-			array( 'Office Manager', 'office', array_merge( $o, array( 'approvals', 'intake', 'calendar_manage', 'payroll', 'leave_manage', 'applications', 'news_manage', 'training_manage', 'forms' ) ) ),
+			array( 'Office Manager', 'office', array_merge( $o, array( 'approvals', 'intake', 'calendar_manage', 'tasks_manage', 'payroll', 'leave_manage', 'applications', 'news_manage', 'training_manage', 'forms' ) ) ),
 			array( 'Intake Coordinator', 'office', array_merge( $o, array( 'intake', 'forms' ) ) ),
 			array( 'Scheduler', 'office', array_merge( $o, array( 'intake', 'calendar_manage' ) ) ),
 			array( 'Payroll Specialist', 'office', array_merge( $o, array( 'approvals', 'payroll' ) ) ),
-			array( 'HR Coordinator', 'office', array_merge( $o, array( 'applications', 'training_manage', 'news_manage', 'leave_manage' ) ) ),
+			array( 'HR Coordinator', 'office', array_merge( $o, array( 'applications', 'training_manage', 'news_manage', 'leave_manage', 'tasks_manage' ) ) ),
 			array( 'Nursing Supervisor', 'office', array_merge( $o, array( 'intake', 'approvals', 'training_manage', 'inservices', 'forms' ) ) ),
 			array( 'PCA', 'field', array( 'chat', 'inservices', 'calendar', 'forms' ) ),
 			array( 'HHA', 'field', array( 'chat', 'inservices', 'calendar', 'forms' ) ),
@@ -110,6 +117,22 @@ function chcs_portal_upgrade_110() {
 	}
 }
 
+/** 1.2.0: office designations gain the task calendar; managers can assign tasks. */
+function chcs_portal_upgrade_120() {
+	$list = chcs_designations();
+	foreach ( $list as &$d ) {
+		if ( 'office' === $d['type'] ) {
+			$d['permissions'][] = 'tasks';
+			if ( in_array( $d['name'], array( 'Office Manager', 'HR Coordinator' ), true ) ) {
+				$d['permissions'][] = 'tasks_manage';
+			}
+			$d['permissions'] = array_values( array_unique( $d['permissions'] ) );
+		}
+	}
+	unset( $d );
+	update_option( 'chcs_designations', $list, false );
+}
+
 /* Run table upgrades when the plugin is updated without re-activation. */
 add_action(
 	'init',
@@ -119,6 +142,9 @@ add_action(
 			chcs_store_install();
 			if ( $was && version_compare( $was, '1.1.0', '<' ) ) {
 				chcs_portal_upgrade_110();
+			}
+			if ( $was && version_compare( $was, '1.2.0', '<' ) ) {
+				chcs_portal_upgrade_120();
 			}
 			update_option( 'chcs_portal_db', CHCS_PORTAL_VERSION ); // only after the upgrade finished.
 		}

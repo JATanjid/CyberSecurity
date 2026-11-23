@@ -41,6 +41,7 @@
     heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/>',
     lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
     pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>',
+    globe: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>',
     bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
     call: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
     sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
@@ -111,6 +112,7 @@
 
   async function render() {
     state.pollers.forEach(clearInterval); state.pollers = [];
+    $$('.modal').forEach(function (m) { m.parentNode.removeChild(m); }); // a page change closes any open dialog
     var hash = location.hash.replace(/^#\/?/, '') || 'dashboard';
     var path = hash.split('?')[0], query = {};
     if (hash.indexOf('?') !== -1) new URLSearchParams(hash.split('?')[1]).forEach(function (v, k) { query[k] = v; });
@@ -121,7 +123,7 @@
 
     if (!r.public && !state.user) { try { state.user = (await API.get('me')).user; } catch (e) { state.user = null; } }
     if (!r.public && !state.user) { sessionStorage.setItem('chcs_after_login', location.hash); go('#/login'); return; }
-    if (r.public) { var dr = $('.drawer'); if (dr) dr.parentNode.removeChild(dr); document.title = r.title + ' · CHCS Portal'; renderAuth(await r.render(params, query)); if (r.mount) r.mount($('#app'), params, query); return; }
+    if (r.public) { var dr = $('.drawer'); if (dr) dr.parentNode.removeChild(dr); document.title = r.title + ' · CHCS Portal'; renderAuth(await r.render(params, query)); fillAuthSocial(); if (r.mount) r.mount($('#app'), params, query); return; }
 
     if (state.user.status === 'pending' && path !== 'profile') { renderShell(); setContent(pendingView()); $('#pending-out').onclick = function () { $('#logout-link').click(); }; return; }
     if (isApplicant() && ['application', 'news', 'profile'].indexOf(path) === -1) { go('#/application'); return; }
@@ -161,13 +163,15 @@
     add('Home', 'chat', 'Chat', 'chat', '#/chat', can('chat'), state.counts.unread);
     add('Home', 'calls', 'Call dashboard', 'call', '#/calls', can('calls'), state.counts.myCalls);
     add('Time & pay', 'clock', 'Time clock', 'clock', '#/clock', can('clock') && office);
+    add('Time & pay', 'worked', 'Worked time', 'log', '#/worked', (can('clock') && office) || can('approvals') || can('payroll'));
     add('Time & pay', 'leave', 'Vacation & sick leave', 'sun', '#/leave', (can('leave') && office) || can('leave_manage'), state.counts.pendingLeave);
     add('Time & pay', 'timesheet', 'Timesheet', 'sheet', '#/timesheet', can('timesheet'));
     add('Time & pay', 'approvals', 'Approvals', 'checkc', '#/approvals', can('approvals'), state.counts.pendingApprovals);
     add('Time & pay', 'payroll', 'Payroll export', 'cash', '#/payroll', can('payroll'));
     add('Patients', 'cases', 'Intake & cases', 'folder', '#/cases', can('intake'), state.counts.newCases);
     add('Patients', 'forms', 'Forms', 'form', '#/forms', can('forms'));
-    add('Schedule', 'calendar', can('calendar_manage') ? 'Calendar' : 'My calendar', 'cal', '#/calendar', can('calendar') || can('calendar_manage'));
+    add('Schedule', 'calendar', can('calendar_manage') ? 'Office calendar' : 'My calendar', 'cal', '#/calendar', can('calendar') || can('calendar_manage'));
+    add('Schedule', 'tasks', 'Tasks & deadlines', 'sheet', '#/tasks', can('tasks') && office, state.counts.myTasks);
     add('Training', 'inservices', 'In-services', 'grad', '#/inservices', can('inservices'), state.counts.inservicesDue);
     add('Training', 'orientation', 'Orientation', 'compass', '#/orientation', can('orientation'));
     add('Admin', 'applications', 'Applications', 'brief', '#/applications', can('applications'), state.counts.pendingApplications);
@@ -175,6 +179,7 @@
     add('Admin', 'admin-designations', 'Designations', 'tag', '#/admin/designations', can('users'));
     add('Admin', 'admin-training', 'Training setup', 'nurse', '#/admin/training', can('training_manage'));
     add('Admin', 'admin-email', 'Email & API', 'mail', '#/admin/email', can('settings'));
+    add('Admin', 'admin-website', 'Website & social', 'globe', '#/admin/website', can('settings') || can('news_manage'));
     add('Admin', 'admin-audit', 'Audit log', 'log', '#/admin/audit', can('audit'));
     return items;
   }
@@ -204,6 +209,7 @@
     });
     side += '<div class="nav-group"><nav class="nav"><a href="#/profile" class="' + (active === 'profile' ? 'is-active' : '') + '">' + ico('user') + '<span>My profile</span></a><a href="#" id="install-link" class="' + (window.__installPrompt ? '' : 'hidden') + '">' + ico('phone') + '<span>Install app</span></a>' + (CFG.mode === 'demo' ? '<a href="#" id="inbox-link">' + ico('mail') + '<span>Demo inbox</span></a>' : '') + '<a href="#" id="logout-link">' + ico('out') + '<span>Sign out</span></a></nav></div>';
     side += '<div class="side__user">' + H.avatar(u.name) + '<div class="grow"><b>' + esc(u.name) + '</b><small>' + esc(u.designation || typeLabel(u)) + '</small></div></div>';
+    side += '<div class="side__social" id="side-social">' + socialIcons(state.social || {}, 'soc soc--side') + '</div>';
     $('#side').innerHTML = side;
     $('#side').onclick = function (e) { if (e.target.closest('a')) toggleSide(false); };
     $('#logout-link').onclick = async function (e) { e.preventDefault(); await API.post('auth/logout'); state.user = null; clearInterval(state.countTimer); clearInterval(state.pulseTimer); state.pulse = null; $('#app').innerHTML = ''; go('#/login'); };
@@ -212,8 +218,9 @@
     // bottom tab bar (phone)
     var keys = ['dashboard', 'clock', 'calls', 'timesheet', 'chat', 'inservices', 'calendar', 'cases', 'application', 'news'];
     var tabs = keys.map(function (k) { return items.find(function (i) { return i.key === k; }); }).filter(Boolean).slice(0, 4);
-    $('#tabbar').innerHTML = tabs.map(function (i) { return '<a href="' + i.href + '" class="' + (i.key === active ? 'is-active' : '') + '">' + ico(i.icon) + '<span>' + esc(i.label.replace('Time clock', 'Clock').replace('Intake & cases', 'Cases').replace('My calendar', 'Calendar').replace('News & posts', 'News').replace('Call dashboard', 'Calls')) + '</span>' + (i.count ? '<span class="count">' + i.count + '</span>' : '') + '</a>'; }).join('') + '<button type="button" id="tab-more">' + ico('more') + '<span>More</span></button>';
+    $('#tabbar').innerHTML = tabs.map(function (i) { return '<a href="' + i.href + '" class="' + (i.key === active ? 'is-active' : '') + '">' + ico(i.icon) + '<span>' + esc(i.label.replace('Time clock', 'Clock').replace('Intake & cases', 'Cases').replace('My calendar', 'Calendar').replace('Office calendar', 'Calendar').replace('Tasks & deadlines', 'Tasks').replace('News & posts', 'News').replace('Call dashboard', 'Calls')) + '</span>' + (i.count ? '<span class="count">' + i.count + '</span>' : '') + '</a>'; }).join('') + '<button type="button" id="tab-more">' + ico('more') + '<span>More</span></button>';
     $('#tab-more').onclick = function () { toggleSide(true); };
+    if (!state.social) loadSocial().then(function (s) { var el = $('#side-social'); if (el) el.innerHTML = socialIcons(s, 'soc soc--side'); });
   }
   function toggleSide(open) {
     var s = $('#side'); if (!s) return;
@@ -288,8 +295,9 @@
   function renderAuth(inner) {
     $('#app').innerHTML = '<div class="auth"><section class="auth__brand"><a class="auth__logo" href="#/login"><img src="' + ASSET + 'assets/logo.png" alt=""><span><b>Complete Home Care Services</b><small>Staff &amp; Employee Portal</small></span></a>' +
       '<div class="auth__pitch"><h2>Everything your care team needs, <em>in one place.</em></h2><ul class="auth__list"><li>' + ico('clock') + 'Clock in, timesheets &amp; schedules</li><li>' + ico('chat') + 'Secure chat with the office</li><li>' + ico('grad') + 'In-services &amp; orientation</li><li>' + ico('folder') + 'Intake &amp; case management</li></ul></div>' +
-      '<div class="auth__foot">117-03 203rd Street, St. Albans, NY 11412 · (718) 528-5493</div></section><main class="auth__main"><div class="auth__card">' + inner + '</div></main></div>';
+      '<div class="auth__foot"><div class="auth__social" id="auth-social"></div>117-03 203rd Street, St. Albans, NY 11412 · (718) 528-5493</div></section><main class="auth__main"><div class="auth__card">' + inner + '</div></main></div>';
   }
+  function fillAuthSocial() { loadSocial().then(function (s) { var el = $('#auth-social'); if (el) el.innerHTML = socialIcons(s, 'soc soc--light'); }); }
   function authTabs(active) { return '<div class="auth__tabs" role="tablist"><a href="#/login" class="' + (active === 'login' ? 'is-active' : '') + '">Sign in</a><a href="#/signup" class="' + (active === 'signup' ? 'is-active' : '') + '">Create account</a></div>'; }
 
   route('login', { public: true, title: 'Sign in', render: function () {
@@ -369,6 +377,7 @@
     var stats = [];
     if (d.inservicesDue != null && u.type === 'field') stats.push(['grad', 'In-services to do', d.inservicesDue, 'See due dates', '#/inservices']);
     if (d.myCalls != null) stats.push(['call', 'Calls for me', d.myCalls, 'Open call-backs', '#/calls?filter=mine']);
+    if (d.myTasks != null) stats.push(['sheet', 'Tasks due soon', d.myTasks, 'Next 7 days + overdue', '#/tasks']);
     if ((can('clock') && u.type !== 'field') || can('timesheet')) stats.push(['clock', 'Hours this week', H.hours(d.weekMinutes), 'Mon–Sun', can('clock') && u.type !== 'field' ? '#/clock' : '#/timesheet']);
     if (d.pendingLeave != null) stats.push(['sun', 'Leave to approve', d.pendingLeave, 'Pending requests', '#/leave?tab=manage']);
     if (d.pendingApprovals != null) stats.push(['checkc', 'Time to approve', d.pendingApprovals, 'Pending entries', '#/approvals']);
@@ -446,16 +455,23 @@
   }
 
   /* ================================================================ timesheet (field) */
+  function timesheetTabs(t) { return '<div class="tabs"><a href="#/timesheet" class="' + (t === 'hours' ? 'is-active' : '') + '">' + ico('clock') + ' Hours</a><a href="#/timesheet?tab=duty" class="' + (t === 'duty' ? 'is-active' : '') + '">' + ico('sheet') + ' HHA duty sheet</a></div>'; }
   route('timesheet', { title: 'Timesheet', perm: 'timesheet', render: async function (p, q) {
+    if (q.tab === 'duty') {
+      return '<div class="page-head"><div><h1>Timesheet</h1><p>Fill in your weekly HHA / PCA duty sheet, sign it with your client, and tap Submit. It goes straight to the office.</p></div></div>' + timesheetTabs('duty') +
+        '<div class="center-frame"><iframe id="duty-frame" title="HHA duty sheet" src="' + ASSET + 'forms/duty-sheet.html?portal=1"></iframe></div>';
+    }
     var ws = q.week || H.weekStart(), we = H.addDays(ws, 6);
     var list = await API.get('time/entries?from=' + ws + '&to=' + we);
     var total = list.filter(function (t) { return t.end; }).reduce(function (a, t) { return a + t.minutes; }, 0);
     var drafts = list.filter(function (t) { return t.status === 'draft' || t.status === 'rejected'; }).length;
-    return '<div class="page-head"><div><h1>Timesheet</h1><p>Add each visit, then submit the week for approval.</p></div><div class="row"><a class="btn btn--ghost btn--icon" href="#/timesheet?week=' + H.addDays(ws, -7) + '" aria-label="Previous week">' + ico('left') + '</a><b>' + esc(H.fmtDate(ws, { month: 'short', day: 'numeric' })) + ' – ' + esc(H.fmtDate(we)) + '</b><a class="btn btn--ghost btn--icon" href="#/timesheet?week=' + H.addDays(ws, 7) + '" aria-label="Next week">' + ico('right') + '</a></div></div>' +
+    return timesheetTabs('hours').replace('<div class="tabs">', '<div class="tabs" style="margin-top:6px">') + '<div class="page-head"><div><h1>Timesheet</h1><p>Add your hours, then submit the week for approval. Use the <a href="#/timesheet?tab=duty">HHA duty sheet</a> tab for the weekly duty sheet.</p></div><div class="row"><a class="btn btn--ghost btn--icon" href="#/timesheet?week=' + H.addDays(ws, -7) + '" aria-label="Previous week">' + ico('left') + '</a><b>' + esc(H.fmtDate(ws, { month: 'short', day: 'numeric' })) + ' – ' + esc(H.fmtDate(we)) + '</b><a class="btn btn--ghost btn--icon" href="#/timesheet?week=' + H.addDays(ws, 7) + '" aria-label="Next week">' + ico('right') + '</a></div></div>' +
       '<div class="stats"><div class="stat"><div class="stat__label">' + ico('clock') + 'Total hours</div><div class="stat__value">' + H.hours(total) + '</div></div><div class="stat"><div class="stat__label">' + ico('sheet') + 'Entries</div><div class="stat__value">' + list.length + '</div></div><div class="stat"><div class="stat__label">' + ico('note') + 'Not submitted</div><div class="stat__value">' + drafts + '</div></div><div class="stat"><div class="stat__label">' + ico('checkc') + 'Approved</div><div class="stat__value">' + list.filter(function (t) { return t.status === 'approved'; }).length + '</div></div></div>' +
       '<section class="card"><div class="card__head"><h2>Visits this week</h2><div class="row"><button class="btn btn--ghost btn--sm" id="add-entry">' + ico('plus') + 'Add visit</button><button class="btn btn--sm" id="submit-week"' + (drafts ? '' : ' disabled') + '>' + ico('send') + 'Submit week</button></div></div>' + timeTable(list, false) + '</section>' +
-      '<p class="small muted" style="margin-top:12px">Prefer paper-style? Use the <a href="#/forms">Duty Sheet</a> in Forms.</p>';
+''; 
   }, mount: function (root, p, q) {
+    var df = $('#duty-frame');
+    if (df) { df.addEventListener('load', function () { prefillForm(df); }); return; }
     var ws = q.week || H.weekStart();
     $('#add-entry').onclick = async function () {
       var cases = []; try { cases = await API.get('cases'); } catch (e) { /* none */ }
@@ -651,43 +667,67 @@
   }
 
   /* ================================================================ calendar */
-  // Shows shifts, approved/pending leave, in-service due dates and call-backs in one calendar.
+  // Month grid shared by the Calendar and Tasks tabs. On phones it scrolls left/right.
+  function monthGrid(month, ev, hrefBase, extraQ) {
+    var first = month + '-01', start = H.weekStart(first);
+    var prev = new Date(first + 'T12:00:00'); prev.setMonth(prev.getMonth() - 1); var next = new Date(first + 'T12:00:00'); next.setMonth(next.getMonth() + 1);
+    var nav = '<a class="btn btn--ghost btn--icon btn--sm" href="' + hrefBase + 'month=' + H.ymd(prev).slice(0, 7) + extraQ + '" aria-label="Previous month">' + ico('left') + '</a><b>' + esc(new Date(first + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', year: 'numeric' })) + '</b><a class="btn btn--ghost btn--icon btn--sm" href="' + hrefBase + 'month=' + H.ymd(next).slice(0, 7) + extraQ + '" aria-label="Next month">' + ico('right') + '</a><a class="btn btn--ghost btn--sm" href="' + hrefBase + extraQ.replace(/^&/, '') + '">Today</a>';
+    var html = '<div class="cal-scroll" tabindex="0" aria-label="Calendar — scroll sideways on small screens"><div class="cal">' + ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(function (d) { return '<div class="cal__dow">' + d + '</div>'; }).join('');
+    for (var i = 0; i < 42; i++) {
+      var d = H.addDays(start, i), items = ev[d] || [];
+      html += '<div class="cal__day' + (d.slice(0, 7) !== month ? ' is-out' : '') + (d === H.ymd() ? ' is-today' : '') + '" data-day="' + d + '"><span class="cal__num">' + (+d.slice(8)) + '</span>' + items.slice(0, 4).join('') + (items.length > 4 ? '<button class="ev ev--more" data-more="' + d + '">+' + (items.length - 4) + ' more</button>' : '') + '</div>';
+    }
+    return { nav: nav, grid: html + '</div></div><p class="cal-hint small muted">Swipe the calendar sideways to see the whole week.</p>', start: start, end: H.addDays(start, 41) };
+  }
+  function dayList(ev, d) { modal(H.fmtDate(d, { weekday: 'long', month: 'long', day: 'numeric' }), '<div class="modal__body stack day-list">' + (ev[d] || []).join('') + '</div>'); }
+  function taskEv(t, showName) { return '<a class="ev ev--task' + (t.status === 'done' ? ' ev--done' : '') + (t.overdue ? ' ev--late' : '') + '" href="#/tasks?id=' + t.id + '" title="' + esc(t.title + (t.assignedToName ? ' · ' + t.assignedToName : '')) + '">' + ico(t.status === 'done' ? 'check' : 'sheet') + esc((showName && t.assignedToName ? t.assignedToName.split(' ')[0] + ': ' : '') + t.title) + '</a>'; }
+
   route('calendar', { title: 'Calendar', perm: ['calendar', 'calendar_manage'], render: async function (p, q) {
-    var manage = can('calendar_manage');
-    var month = q.month || H.ymd().slice(0, 7), first = month + '-01', start = H.weekStart(first);
-    var end = H.addDays(start, 41), scope = manage && q.mine !== '1' ? 'all' : 'mine';
+    var month = q.month || H.ymd().slice(0, 7), ev = {};
+    function add(d, h) { (ev[d] = ev[d] || []).push(h); }
+    // ---- field staff: in-service due dates only
+    if (state.user.type === 'field') {
+      var mine = can('inservices') ? await API.get('inservices') : [];
+      mine.filter(function (i) { return i.dueDate; }).forEach(function (i) { var ok = i.myResult && i.myResult.passed; add(i.dueDate, '<a class="ev ' + (ok ? 'ev--leave' : 'ev--due') + (!ok && i.dueDate < H.ymd() ? ' ev--late' : '') + '" href="' + (i.kind === 'center' ? '#/inservices/center/' + i.centerId : '#/inservices') + '">' + ico(ok ? 'check' : 'grad') + (ok ? 'Done: ' : 'Due: ') + esc(i.title) + '</a>'); });
+      var g = monthGrid(month, ev, '#/calendar?', '');
+      var todo = mine.filter(function (i) { return !(i.myResult && i.myResult.passed) && i.dueDate; });
+      window.__calEv = ev;
+      return '<div class="page-head"><div><h1>My calendar</h1><p>Your in-service due dates. Tap one to start it.</p></div><a class="btn" href="#/inservices">' + ico('grad') + 'In-services</a></div>' +
+        (todo.length ? '<div class="chips" style="margin-bottom:14px">' + todo.map(function (i) { return '<a class="chip" href="' + (i.kind === 'center' ? '#/inservices/center/' + i.centerId : '#/inservices') + '">' + dueBadge(i) + ' ' + esc(i.title) + '</a>'; }).join('') + '</div>' : '') +
+        '<section class="card" style="overflow:hidden"><div class="cal-toolbar">' + g.nav + '<span class="grow"></span><span class="cal-legend"><i class="lg lg--due"></i>Due<i class="lg lg--leave"></i>Completed</span></div>' + g.grid + '</section>';
+    }
+    // ---- office staff: shifts, time off, tasks, call-backs (+ own in-services)
+    var manage = can('calendar_manage'), scope = manage && q.mine !== '1' ? 'all' : 'mine';
+    var g0 = monthGrid(month, {}, '', ''), start = g0.start, end = g0.end;
+    var staff = manage ? (await API.get('staff')).filter(function (s) { return s.type !== 'field'; }) : [];
     var shifts = await API.get('shifts?from=' + start + '&to=' + end + (scope === 'all' ? '&scope=all' : '') + (q.user ? '&userId=' + q.user : ''));
-    var staff = manage ? await API.get('staff') : [];
-    var leave = [], ins = [], calls = [];
+    var officeIds = {}; staff.forEach(function (s) { officeIds[s.id] = 1; }); officeIds[state.user.id] = 1;
+    if (scope === 'all') shifts = shifts.filter(function (s) { return officeIds[s.userId]; });
+    var leave = [], ins = [], calls = [], tasks = [];
     try { leave = await API.get('leave?scope=calendar&from=' + start + '&to=' + end); } catch (e) { /* no access */ }
     if (can('inservices')) try { ins = await API.get('inservices'); } catch (e) { /* none */ }
     if (can('calls')) try { calls = await API.get('calls?filter=mine'); } catch (e) { /* none */ }
+    if (can('tasks')) try { tasks = await API.get('tasks?filter=' + (can('tasks_manage') && scope === 'all' ? 'all' : 'mine') + '&from=' + start + '&to=' + end + (q.user ? '&userId=' + q.user : '')); } catch (e) { /* none */ }
     if (q.user) leave = leave.filter(function (l) { return l.userId === +q.user; });
     if (scope === 'mine') leave = leave.filter(function (l) { return l.userId === state.user.id; });
-    var ev = {};
-    function add(d, html) { (ev[d] = ev[d] || []).push(html); }
-    var types = {}; staff.forEach(function (s) { types[s.id] = s.type; });
-    shifts.forEach(function (s) { add(s.date, '<button class="ev' + (types[s.userId] === 'field' ? ' ev--field' : '') + '" data-shift="' + s.id + '" title="' + esc(s.userName + ' · ' + s.title) + '">' + H.fmtHM(s.start).replace(':00', '') + ' ' + esc(scope === 'all' ? s.userName.split(' ')[0] : s.title) + '</button>'); });
+    shifts.forEach(function (s) { add(s.date, '<button class="ev" data-shift="' + s.id + '" title="' + esc(s.userName + ' · ' + s.title) + '">' + H.fmtHM(s.start).replace(':00', '') + ' ' + esc(scope === 'all' ? s.userName.split(' ')[0] : s.title) + '</button>'); });
     leave.forEach(function (l) { for (var d = l.from < start ? start : l.from; d <= l.to && d <= end; d = H.addDays(d, 1)) add(d, '<button class="ev ev--leave' + (l.status === 'pending' ? ' ev--pending' : '') + '" data-leave="' + l.id + '" title="' + esc(l.userName + ' · ' + l.type + ' (' + l.status + ')') + '">' + ico('sun') + esc((scope === 'all' ? l.userName.split(' ')[0] + ' · ' : '') + l.type) + (l.status === 'pending' ? ' ?' : '') + '</button>'); });
-    ins.filter(function (i) { return i.dueDate && !(i.myResult && i.myResult.passed); }).forEach(function (i) { add(i.dueDate, '<a class="ev ev--due" href="' + (i.kind === 'center' ? '#/inservices/center/' + i.centerId : '#/inservices') + '" title="In-service due: ' + esc(i.title) + '">' + ico('grad') + 'Due: ' + esc(i.title) + '</a>'); });
-    calls.filter(function (c) { return c.callbackBy; }).forEach(function (c) { add(c.callbackBy.slice(0, 10), '<a class="ev ev--call" href="#/calls?id=' + c.id + '" title="Call back ' + esc(c.callerName) + '">' + ico('call') + 'Call ' + esc(c.callerName.split(' ')[0]) + '</a>'); });
-    var prev = new Date(first + 'T12:00:00'); prev.setMonth(prev.getMonth() - 1); var next = new Date(first + 'T12:00:00'); next.setMonth(next.getMonth() + 1);
-    var nav = '<a class="btn btn--ghost btn--icon btn--sm" href="#/calendar?month=' + H.ymd(prev).slice(0, 7) + (q.user ? '&user=' + q.user : '') + '" aria-label="Previous month">' + ico('left') + '</a><b>' + esc(new Date(first + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', year: 'numeric' })) + '</b><a class="btn btn--ghost btn--icon btn--sm" href="#/calendar?month=' + H.ymd(next).slice(0, 7) + (q.user ? '&user=' + q.user : '') + '" aria-label="Next month">' + ico('right') + '</a><a class="btn btn--ghost btn--sm" href="#/calendar' + (q.user ? '?user=' + q.user : '') + '">Today</a>';
-    var html = '<div class="page-head"><div><h1>' + (manage ? 'Calendar' : 'My calendar') + '</h1><p>Shifts, time off, in-service due dates and call-backs.</p></div><div class="row">' + (can('leave') && state.user.type !== 'field' ? '<a class="btn btn--ghost" href="#/leave">' + ico('sun') + 'Request time off</a>' : '') + (manage ? '<button class="btn" id="add-shift">' + ico('plus') + 'Add shift</button>' : '') + '</div></div>';
-    var toolbar = '<div class="cal-toolbar">' + nav + '<span class="grow"></span><span class="cal-legend"><i class="lg lg--shift"></i>Shift<i class="lg lg--leave"></i>Time off<i class="lg lg--due"></i>In-service due<i class="lg lg--call"></i>Call-back</span>' + (manage ? '<select class="input" id="cal-user" style="min-height:36px;max-width:220px" aria-label="Filter by employee"><option value="">Everyone</option>' + staff.map(function (s) { return '<option value="' + s.id + '"' + (+q.user === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select>' : '') + '</div>';
-    html += '<section class="card" style="overflow:hidden">' + toolbar + '<div class="cal">' + ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(function (d) { return '<div class="cal__dow">' + d + '</div>'; }).join('');
-    for (var i = 0; i < 42; i++) {
-      var d = H.addDays(start, i), items = ev[d] || [];
-      html += '<div class="cal__day' + (d.slice(0, 7) !== month ? ' is-out' : '') + (d === H.ymd() ? ' is-today' : '') + '" data-day="' + d + '"><span class="cal__num">' + (+d.slice(8)) + '</span>' + items.slice(0, 4).join('') + (items.length > 4 ? '<div class="small muted">+' + (items.length - 4) + ' more</div>' : '') + '</div>';
-    }
-    html += '</div></section><script type="application/json" id="cal-json">' + JSON.stringify({ shifts: shifts, leave: leave }).replace(/</g, '\\u003c') + '</script>';
-    return html;
+    tasks.forEach(function (t) { add(t.dueDate, taskEv(t, scope === 'all')); });
+    ins.filter(function (i) { return i.dueDate && !(i.myResult && i.myResult.passed); }).forEach(function (i) { add(i.dueDate, '<a class="ev ev--due" href="' + (i.kind === 'center' ? '#/inservices/center/' + i.centerId : '#/inservices') + '">' + ico('grad') + 'Due: ' + esc(i.title) + '</a>'); });
+    calls.filter(function (c) { return c.callbackBy; }).forEach(function (c) { add(c.callbackBy.slice(0, 10), '<a class="ev ev--call" href="#/calls?id=' + c.id + '">' + ico('call') + 'Call ' + esc(c.callerName.split(' ')[0]) + '</a>'); });
+    var g = monthGrid(month, ev, '#/calendar?', q.user ? '&user=' + q.user : '');
+    window.__calEv = ev;
+    return '<div class="page-head"><div><h1>' + (manage ? 'Office calendar' : 'My calendar') + '</h1><p>Shifts, time off, tasks &amp; deadlines and call-backs.</p></div><div class="row">' + (can('tasks') ? '<a class="btn btn--ghost" href="#/tasks">' + ico('sheet') + 'Tasks</a>' : '') + (can('leave') ? '<a class="btn btn--ghost" href="#/leave">' + ico('sun') + 'Time off</a>' : '') + (manage ? '<button class="btn" id="add-shift">' + ico('plus') + 'Add shift</button>' : '') + '</div></div>' +
+      '<section class="card" style="overflow:hidden"><div class="cal-toolbar">' + g.nav + '<span class="grow"></span><span class="cal-legend"><i class="lg lg--shift"></i>Shift<i class="lg lg--leave"></i>Time off<i class="lg lg--task"></i>Task<i class="lg lg--due"></i>In-service<i class="lg lg--call"></i>Call-back</span>' + (manage ? '<select class="input" id="cal-user" style="min-height:36px;max-width:220px" aria-label="Filter by employee"><option value="">Everyone</option>' + staff.map(function (s) { return '<option value="' + s.id + '"' + (+q.user === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select>' : '') + '</div>' + g.grid + '</section>' +
+      '<script type="application/json" id="cal-json">' + JSON.stringify({ shifts: shifts, leave: leave }).replace(/</g, '\\u003c') + '</script>';
   }, mount: function (root, p, q) {
+    on(root, 'click', '[data-more]', function (e, b) { e.stopPropagation(); dayList(window.__calEv || {}, b.dataset.more); });
+    if (!$('#cal-json')) return;
     var data = JSON.parse($('#cal-json').textContent), shifts = data.shifts, manage = can('calendar_manage');
     var u = $('#cal-user'); if (u) u.onchange = function () { go('#/calendar?month=' + (q.month || H.ymd().slice(0, 7)) + (u.value ? '&user=' + u.value : '')); };
     async function shiftForm(s) {
-      var staff = await API.get('staff'); s = s || { date: H.ymd(), start: '09:00', end: '17:00', userId: +q.user || '' };
-      modal(s.id ? 'Edit shift' : 'Add shift', '<form class="modal__body stack" id="shift-form"><label class="field"><span>Employee</span><select class="input" name="userId" required><option value="">Choose…</option>' + staff.map(function (x) { return '<option value="' + x.id + '"' + (x.id === s.userId ? ' selected' : '') + '>' + esc(x.name) + ' — ' + esc(x.designation || typeLabel(x)) + '</option>'; }).join('') + '</select></label><div class="grid-3"><label class="field"><span>Date</span><input class="input" type="date" name="date" value="' + s.date + '" required></label><label class="field"><span>Start</span><input class="input" type="time" name="start" value="' + s.start + '" required></label><label class="field"><span>End</span><input class="input" type="time" name="end" value="' + s.end + '" required></label></div><div class="grid-2"><label class="field"><span>Title</span><input class="input" name="title" value="' + esc(s.title || '') + '" placeholder="Office / Front desk"></label><label class="field"><span>Location</span><input class="input" name="location" value="' + esc(s.location || '') + '"></label></div><label class="field"><span>Notes</span><input class="input" name="notes" value="' + esc(s.notes || '') + '"></label>' + (!s.id ? '<label class="field"><span>Repeat weekly for</span><select class="input" name="repeatWeeks"><option value="0">Does not repeat</option>' + [1, 2, 3, 4, 8, 12].map(function (n) { return '<option value="' + n + '">' + n + ' more week' + (n > 1 ? 's' : '') + '</option>'; }).join('') + '</select></label>' : '') + '<p class="small muted">Shift emails include the title, so don\'t put patient names in it.</p></form><div class="modal__foot">' + (s.id ? '<button class="btn btn--ghost" id="shift-del" style="margin-right:auto">Delete</button>' : '') + '<button class="btn btn--ghost" data-close>Cancel</button><button class="btn" id="shift-save">Save</button></div>', {
+      var staff = (await API.get('staff')).filter(function (x) { return x.type !== 'field'; }); s = s || { date: H.ymd(), start: '09:00', end: '17:00', userId: +q.user || '' };
+      modal(s.id ? 'Edit shift' : 'Add shift', '<form class="modal__body stack" id="shift-form"><label class="field"><span>Office employee</span><select class="input" name="userId" required><option value="">Choose…</option>' + staff.map(function (x) { return '<option value="' + x.id + '"' + (x.id === s.userId ? ' selected' : '') + '>' + esc(x.name) + ' — ' + esc(x.designation || typeLabel(x)) + '</option>'; }).join('') + '</select></label><div class="grid-3"><label class="field"><span>Date</span><input class="input" type="date" name="date" value="' + s.date + '" required></label><label class="field"><span>Start</span><input class="input" type="time" name="start" value="' + s.start + '" required></label><label class="field"><span>End</span><input class="input" type="time" name="end" value="' + s.end + '" required></label></div><div class="grid-2"><label class="field"><span>Title</span><input class="input" name="title" value="' + esc(s.title || '') + '" placeholder="Office / Front desk"></label><label class="field"><span>Location</span><input class="input" name="location" value="' + esc(s.location || '') + '"></label></div><label class="field"><span>Notes</span><input class="input" name="notes" value="' + esc(s.notes || '') + '"></label>' + (!s.id ? '<label class="field"><span>Repeat weekly for</span><select class="input" name="repeatWeeks"><option value="0">Does not repeat</option>' + [1, 2, 3, 4, 8, 12].map(function (n) { return '<option value="' + n + '">' + n + ' more week' + (n > 1 ? 's' : '') + '</option>'; }).join('') + '</select></label>' : '') + '</form><div class="modal__foot">' + (s.id ? '<button class="btn btn--ghost" id="shift-del" style="margin-right:auto">Delete</button>' : '') + '<button class="btn btn--ghost" data-close>Cancel</button><button class="btn" id="shift-save">Save</button></div>', {
         mount: function (w, close) {
           $('#shift-save', w).onclick = async function () { try { var d = H.formData($('#shift-form', w)); if (s.id) await API.patch('shifts/' + s.id, d); else await API.post('shifts', d); close(); toast('Schedule saved. The employee was notified.', 'ok'); render(); } catch (e) { fail(e); } };
           var del = $('#shift-del', w); if (del) del.onclick = async function () { await API.del('shifts/' + s.id); close(); render(); };
@@ -696,7 +736,7 @@
     }
     var add = $('#add-shift'); if (add) add.onclick = function () { shiftForm(); };
     on(root, 'click', '[data-shift]', function (e, b) {
-      e.stopPropagation(); var s = shifts.find(function (x) { return x.id === +b.dataset.shift; });
+      e.stopPropagation(); var s = shifts.find(function (x) { return x.id === +b.dataset.shift; }); if (!s) return;
       if (manage) shiftForm(s);
       else modal(s.title, '<div class="modal__body stack"><div><b>' + esc(H.fmtDate(s.date, { weekday: 'long', month: 'long', day: 'numeric' })) + '</b><div>' + H.fmtHM(s.start) + ' – ' + H.fmtHM(s.end) + '</div></div>' + (s.location ? '<div>' + ico('pin') + ' ' + esc(s.location) + '</div>' : '') + (s.notes ? '<div class="doc">' + esc(s.notes) + '</div>' : '') + '</div>');
     });
@@ -704,7 +744,69 @@
       e.stopPropagation(); var l = data.leave.find(function (x) { return x.id === +b.dataset.leave; }); if (!l) return;
       modal('Time off — ' + l.userName, '<div class="modal__body stack"><div class="row">' + H.badge(l.status) + '<b style="text-transform:capitalize">' + esc(l.type) + '</b></div><div>' + esc(H.fmtDate(l.from)) + (l.to !== l.from ? ' → ' + esc(H.fmtDate(l.to)) : '') + ' · ' + l.totalHours + ' hours</div>' + (l.reason ? '<div class="doc">' + esc(l.reason) + '</div>' : '') + '</div>');
     });
-    if (manage) on(root, 'click', '[data-day]', function (e, d) { if (e.target.closest('[data-shift],[data-leave],a')) return; shiftForm({ date: d.dataset.day, start: '09:00', end: '17:00', userId: +q.user || '' }); });
+    if (manage) on(root, 'click', '[data-day]', function (e, d) { if (e.target.closest('[data-shift],[data-leave],a,[data-more]')) return; shiftForm({ date: d.dataset.day, start: '09:00', end: '17:00', userId: +q.user || '' }); });
+  } });
+
+  /* ================================================================ tasks & deadlines (office task calendar) */
+  var REPEAT_LABEL = {}; (window.CHCS_TASK_REPEAT || []).forEach(function (r) { REPEAT_LABEL[r[0]] = r[1]; });
+  route('tasks', { title: 'Tasks & deadlines', perm: 'tasks', render: async function (p, q) {
+    var mgr = can('tasks_manage'), f = q.filter || 'mine', view = q.view || 'list', month = q.month || H.ymd().slice(0, 7);
+    var list = await API.get('tasks?filter=' + f + (q.user ? '&userId=' + q.user : ''));
+    var staff = mgr ? (await API.get('staff')).filter(function (s) { return s.type !== 'field'; }) : [];
+    var open = list.filter(function (t) { return t.status === 'open'; });
+    var qs = function (o) { var x = Object.assign({ filter: f, view: view }, q.user ? { user: q.user } : {}, o); return '#/tasks?' + Object.keys(x).filter(function (k) { return x[k]; }).map(function (k) { return k + '=' + encodeURIComponent(x[k]); }).join('&'); };
+    var head = '<div class="page-head"><div><h1>Tasks &amp; deadlines</h1><p>Administrative work with due dates. Repeating tasks (monthly, yearly…) create the next one when you mark them done.</p></div><button class="btn" id="new-task">' + ico('plus') + 'New task</button></div>' +
+      '<div class="stats"><div class="stat"><div class="stat__label">' + ico('sheet') + 'Open</div><div class="stat__value">' + open.length + '</div></div><div class="stat"><div class="stat__label">' + ico('clock') + 'Overdue</div><div class="stat__value"' + (open.some(function (t) { return t.overdue; }) ? ' style="color:var(--red)"' : '') + '>' + open.filter(function (t) { return t.overdue; }).length + '</div></div><div class="stat"><div class="stat__label">' + ico('cal') + 'Due in 7 days</div><div class="stat__value">' + open.filter(function (t) { return !t.overdue && t.dueDate <= H.addDays(H.ymd(), 7); }).length + '</div></div><div class="stat"><div class="stat__label">' + ico('check') + 'Done</div><div class="stat__value">' + list.filter(function (t) { return t.status === 'done'; }).length + '</div></div></div>' +
+      '<div class="row row--between" style="margin-bottom:14px"><div class="tabs" style="margin:0;border:0">' + [['mine', 'My tasks'], ['created', 'Created by me']].concat(mgr ? [['all', 'Everyone']] : []).map(function (t) { return '<a href="' + qs({ filter: t[0] }) + '" class="' + (f === t[0] ? 'is-active' : '') + '">' + t[1] + '</a>'; }).join('') + '</div><div class="row">' + (mgr && f === 'all' ? '<select class="input" id="task-user" style="min-height:36px;max-width:220px"><option value="">Everyone</option>' + staff.map(function (s) { return '<option value="' + s.id + '"' + (+q.user === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select>' : '') + '<div class="seg"><a href="' + qs({ view: 'list' }) + '" class="' + (view === 'list' ? 'is-active' : '') + '">' + ico('log') + 'List</a><a href="' + qs({ view: 'calendar' }) + '" class="' + (view === 'calendar' ? 'is-active' : '') + '">' + ico('cal') + 'Calendar</a></div></div></div>';
+    var data = '<script type="application/json" id="tasks-json">' + JSON.stringify({ list: list, staff: staff }).replace(/</g, '\\u003c') + '</script>';
+    if (view === 'calendar') {
+      var ev = {}; list.forEach(function (t) { (ev[t.dueDate] = ev[t.dueDate] || []).push(taskEv(t, f !== 'mine')); });
+      var g = monthGrid(month, ev, qs({ month: '' }).replace(/&?month=/, '') + '&', ''); window.__calEv = ev;
+      return head + '<section class="card" style="overflow:hidden"><div class="cal-toolbar">' + g.nav + '</div>' + g.grid + '</section>' + data;
+    }
+    var row = function (t) { return '<tr class="is-click' + (t.overdue ? ' is-urgent' : '') + '" data-task="' + t.id + '"><td style="width:42px"><button class="tick-btn' + (t.status === 'done' ? ' is-done' : '') + '" data-done="' + t.id + '" aria-label="' + (t.status === 'done' ? 'Mark not done' : 'Mark done') + '">' + ico('check') + '</button></td><td data-label="Task"><b' + (t.status === 'done' ? ' class="muted strike"' : '') + '>' + esc(t.title) + '</b>' + (t.priority === 'high' ? ' <span class="badge badge--bad">High</span>' : '') + '<div class="small muted">' + esc(t.category) + (t.repeat !== 'none' ? ' · ' + ico('cal') + ' ' + esc(REPEAT_LABEL[t.repeat]) : '') + '</div></td><td data-label="Assigned to">' + esc(t.assignedToName) + '</td><td data-label="Due" class="nowrap' + (t.overdue ? ' late' : '') + '">' + esc(H.fmtDate(t.dueDate, { weekday: 'short', month: 'short', day: 'numeric' })) + (t.dueTime ? ' ' + H.fmtHM(t.dueTime) : '') + (t.overdue ? ' <span class="badge badge--bad">Overdue</span>' : '') + '</td><td data-label="Status">' + (t.status === 'done' ? '<span class="badge badge--ok">Done</span>' : '<span class="badge badge--warn">Open</span>') + '</td></tr>'; };
+    var openRows = open, doneRows = list.filter(function (t) { return t.status === 'done'; }).slice(0, 30);
+    return head + '<section class="card">' + (openRows.length ? '<div class="table-wrap"><table class="table table--cards"><thead><tr><th></th><th>Task</th><th>Assigned to</th><th>Due</th><th>Status</th></tr></thead><tbody>' + openRows.map(row).join('') + '</tbody></table></div>' : '<div class="empty">' + ico('check') + '<div>No open tasks.</div></div>') + '</section>' +
+      (doneRows.length ? '<section class="card" style="margin-top:18px"><div class="card__head"><h2>Recently done</h2></div><div class="table-wrap"><table class="table table--cards"><tbody>' + doneRows.map(row).join('') + '</tbody></table></div></section>' : '') + data;
+  }, mount: function (root, p, q) {
+    var d = JSON.parse($('#tasks-json').textContent), list = d.list, mgr = can('tasks_manage');
+    on(root, 'click', '[data-more]', function (e, b) { e.stopPropagation(); dayList(window.__calEv || {}, b.dataset.more); });
+    var tu = $('#task-user'); if (tu) tu.onchange = function () { go('#/tasks?filter=all&view=' + (q.view || 'list') + (tu.value ? '&user=' + tu.value : '')); };
+    async function form(t) {
+      var staff = mgr ? (d.staff.length ? d.staff : (await API.get('staff')).filter(function (s) { return s.type !== 'field'; })) : [];
+      t = t || { title: '', description: '', category: 'Administrative', assignedTo: state.user.id, dueDate: H.addDays(H.ymd(), 7), dueTime: '', priority: 'normal', repeat: 'none' };
+      modal(t.id ? 'Edit task' : 'New task', '<form class="modal__body stack" id="task-form"><label class="field"><span>Task</span><input class="input" name="title" value="' + esc(t.title) + '" required placeholder="e.g. Renew DOH license"></label><label class="field"><span>Details</span><textarea class="input" name="description" rows="3">' + esc(t.description) + '</textarea></label>' +
+        '<div class="grid-3"><label class="field"><span>Due date</span><input class="input" type="date" name="dueDate" value="' + t.dueDate + '" required></label><label class="field"><span>Time <span class="muted">(optional)</span></span><input class="input" type="time" name="dueTime" value="' + esc(t.dueTime || '') + '"></label><label class="field"><span>Repeat</span><select class="input" name="repeat">' + (window.CHCS_TASK_REPEAT || []).map(function (r) { return '<option value="' + r[0] + '"' + (t.repeat === r[0] ? ' selected' : '') + '>' + r[1] + '</option>'; }).join('') + '</select></label></div>' +
+        '<div class="grid-3"><label class="field"><span>Assigned to</span>' + (mgr ? '<select class="input" name="assignedTo">' + staff.map(function (s) { return '<option value="' + s.id + '"' + (s.id === t.assignedTo ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select>' : '<input class="input" value="' + esc(state.user.name) + '" disabled><input type="hidden" name="assignedTo" value="' + state.user.id + '">') + '</label><label class="field"><span>Category</span><select class="input" name="category">' + (window.CHCS_TASK_CATEGORIES || []).map(function (c) { return '<option' + (t.category === c ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') + '</select></label><label class="field"><span>Priority</span><select class="input" name="priority"><option value="normal">Normal</option><option value="high"' + (t.priority === 'high' ? ' selected' : '') + '>High</option></select></label></div>' +
+        (t.id ? '<p class="small muted">Created by ' + esc(t.createdByName) + (t.completedAt ? ' · done ' + esc(H.ago(t.completedAt)) + ' by ' + esc(t.completedByName) : '') + '</p>' : '<p class="small muted">The person gets an email and a notification. It shows on their calendar.</p>') + '</form><div class="modal__foot">' + (t.id ? '<button class="btn btn--ghost" id="task-del" style="margin-right:auto">Delete</button>' : '') + '<button class="btn btn--ghost" data-close>Cancel</button>' + (t.id && t.status === 'open' ? '<button class="btn btn--ok" id="task-done">' + ico('check') + 'Mark done</button>' : '') + '<button class="btn" id="task-save">Save</button></div>', {
+        wide: true, mount: function (w, close) {
+          $('#task-save', w).onclick = async function () { var b = H.formData($('#task-form', w)); try { if (t.id) await API.patch('tasks/' + t.id, b); else await API.post('tasks', b); close(); toast('Task saved.', 'ok'); render(); } catch (e) { fail(e); } };
+          var dn = $('#task-done', w); if (dn) dn.onclick = async function () { close(); await markDone(t); };
+          var del = $('#task-del', w); if (del) del.onclick = async function () { if (await confirmBox('Delete task?', 'This removes only this occurrence.', 'Delete', true)) { try { await API.del('tasks/' + t.id); close(); render(); } catch (e) { fail(e); } } };
+        }
+      });
+    }
+    async function markDone(t) {
+      try { var r = await API.patch('tasks/' + t.id, { status: t.status === 'done' ? 'open' : 'done' }); toast(r.next ? 'Done. Next one is due ' + H.fmtDate(r.next.dueDate) + '.' : (r.status === 'done' ? 'Task done.' : 'Task reopened.'), 'ok'); refreshCounts(); render(); } catch (e) { fail(e); }
+    }
+    $('#new-task').onclick = function () { form(); };
+    on(root, 'click', '[data-done]', function (e, b) { e.stopPropagation(); markDone(list.find(function (t) { return t.id === +b.dataset.done; })); });
+    on(root, 'click', '[data-task]', function (e, tr) { if (e.target.closest('[data-done]')) return; form(list.find(function (t) { return t.id === +tr.dataset.task; })); });
+    on(root, 'click', '.cal__day', function (e, dd) { if (e.target.closest('a,button')) return; form({ title: '', description: '', category: 'Administrative', assignedTo: state.user.id, dueDate: dd.dataset.day, dueTime: '', priority: 'normal', repeat: 'none' }); });
+    if (q.id) { var t0 = list.find(function (t) { return t.id === +q.id; }); if (t0) form(t0); }
+  } });
+
+  /* ================================================================ worked time (office) */
+  route('worked', { title: 'Worked time', perm: ['clock', 'approvals', 'payroll'], render: async function (p, q) {
+    var all = can('approvals') || can('payroll'), ws = q.week || H.weekStart(), we = H.addDays(ws, 6);
+    var list = (await API.get('time/entries?from=' + ws + '&to=' + we + (all ? '&scope=all' : ''))).filter(function (t) { return t.source === 'clock' && t.end; });
+    var days = [0, 1, 2, 3, 4, 5, 6].map(function (i) { return H.addDays(ws, i); }), people = {};
+    list.forEach(function (t) { var k = t.userId; people[k] = people[k] || { name: t.userName, designation: t.designation, days: {}, total: 0, pending: 0 }; people[k].days[t.date] = (people[k].days[t.date] || 0) + t.minutes; people[k].total += t.minutes; if (t.status !== 'approved') people[k].pending += t.minutes; });
+    var rows = Object.keys(people).map(function (k) { return people[k]; }).sort(function (a, b) { return a.name.localeCompare(b.name); });
+    var grand = rows.reduce(function (a, r) { return a + r.total; }, 0);
+    return '<div class="page-head"><div><h1>Worked time</h1><p>' + (all ? 'Weekly hours worked by office staff, from the time clock.' : 'Your weekly hours from the time clock.') + '</p></div><div class="row"><a class="btn btn--ghost btn--icon" href="#/worked?week=' + H.addDays(ws, -7) + '" aria-label="Previous week">' + ico('left') + '</a><b>' + esc(H.fmtDate(ws, { month: 'short', day: 'numeric' })) + ' – ' + esc(H.fmtDate(we)) + '</b><a class="btn btn--ghost btn--icon" href="#/worked?week=' + H.addDays(ws, 7) + '" aria-label="Next week">' + ico('right') + '</a>' + (can('clock') ? '<a class="btn" href="#/clock">' + ico('clock') + 'Time clock</a>' : '') + '</div></div>' +
+      '<div class="stats"><div class="stat"><div class="stat__label">' + ico('users') + 'People</div><div class="stat__value">' + rows.length + '</div></div><div class="stat"><div class="stat__label">' + ico('clock') + 'Total hours</div><div class="stat__value">' + H.hours(grand) + '</div></div><div class="stat"><div class="stat__label">' + ico('clock') + 'Over 40 h</div><div class="stat__value"' + (rows.some(function (r) { return r.total > 2400; }) ? ' style="color:var(--red)"' : '') + '>' + rows.filter(function (r) { return r.total > 2400; }).length + '</div></div><div class="stat"><div class="stat__label">' + ico('checkc') + 'Not approved yet</div><div class="stat__value">' + H.hours(rows.reduce(function (a, r) { return a + r.pending; }, 0)) + '</div></div></div>' +
+      '<section class="card">' + (rows.length ? '<div class="table-wrap"><table class="table worked"><thead><tr><th>Employee</th>' + days.map(function (d) { return '<th class="right' + (d === H.ymd() ? ' is-today' : '') + '">' + esc(H.fmtDate(d, { weekday: 'short' })) + '<div class="small muted">' + (+d.slice(8)) + '</div></th>'; }).join('') + '<th class="right">Total</th></tr></thead><tbody>' + rows.map(function (r) { return '<tr><td><b>' + esc(r.name) + '</b><div class="small muted">' + esc(r.designation) + '</div></td>' + days.map(function (d) { return '<td class="right">' + (r.days[d] ? H.hours(r.days[d]) : '<span class="muted">—</span>') + '</td>'; }).join('') + '<td class="right"><b' + (r.total > 2400 ? ' style="color:var(--red)"' : '') + '>' + H.hours(r.total) + '</b>' + (r.pending ? '<div class="small muted">' + H.hours(r.pending) + ' pending</div>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">' + ico('clock') + '<div>No clocked time this week.</div></div>') + '</section>';
   } });
 
   /* ================================================================ in-services */
@@ -939,7 +1041,7 @@
 
   /* ================================================================ forms hub */
   var FORMS = [
-    { file: 'forms/duty-sheet.html', title: 'HHA / PCA Duty Sheet', desc: 'Weekly duty sheet with client & aide signatures. Submits a signed PDF.', icon: 'sheet', show: function () { return can('forms') || can('timesheet'); } },
+    { file: 'forms/duty-sheet.html', title: 'HHA / PCA Duty Sheet', desc: 'Weekly duty sheet with client & aide signatures. Submits a signed PDF. Also in Timesheet → HHA duty sheet.', icon: 'sheet', show: function () { return can('forms') || can('timesheet'); } },
     { file: 'forms/patient-assessment.html', title: 'Patient Assessment', desc: 'RN / LPN patient assessment with offline drafts. Submits a signed PDF.', icon: 'heart', show: function () { return can('forms') && (state.user.type !== 'field' || /RN|LPN/.test(state.user.designation)); } },
     { file: 'forms/employment-application.html', title: 'Employment Application Packet', desc: 'Application, references, health assessment and competency checklist.', icon: 'brief', show: function () { return can('applications') || isApplicant(); } },
     { file: 'forms/workspace-app.html', title: 'CHCS Workspace App', desc: 'Agency Google Workspace tool (sign in with your @completehcs.com account).', icon: 'ext', show: function () { return state.user.type === 'office' || state.user.type === 'admin'; } }
@@ -948,18 +1050,19 @@
     var list = FORMS.filter(function (f) { return f.show(); });
     return '<div class="page-head"><div><h1>Forms</h1><p>Agency forms. Each one submits directly to the office when you tap Submit.</p></div></div>' + (CFG.mode === 'demo' ? '<div class="alert alert--warn" style="margin-bottom:16px">' + ico('shield') + '<span>Heads up: even in this demo, these forms are live. Submitting one sends it to the agency\'s real Google Apps Script. Only submit test data your office expects.</span></div>' : '') + '<div class="tiles">' + list.map(function (f) { return '<a class="tile" href="#" data-open-form="' + f.file + '" data-title="' + esc(f.title) + '"><div class="course__icon">' + ico(f.icon) + '</div><b>' + esc(f.title) + '</b><span class="small muted">' + esc(f.desc) + '</span></a>'; }).join('') + '</div>';
   }, mount: function (root) { on(root, 'click', '[data-open-form]', function (e, b) { e.preventDefault(); openForm(b.dataset.openForm, b.dataset.title); }); } });
+  function prefillForm(frame) {
+    try {
+      var doc = frame.contentDocument, fill = { employeeName: state.user.name, phone: state.user.phone || '' };
+      Object.keys(fill).forEach(function (id) { var el = doc.getElementById(id); if (el && !el.value && fill[id]) { el.value = fill[id]; el.dispatchEvent(new Event('input', { bubbles: true })); } });
+    } catch (e) { /* cross-site form: nothing to fill */ }
+  }
   function openForm(file, title) {
     var url = /^https?:/.test(file) ? file : ASSET + file;
     var w = document.createElement('div'); w.className = 'frame-wrap';
     w.innerHTML = '<div class="frame-wrap__bar"><button class="btn btn--ghost btn--sm" id="fw-close">' + ico('left') + 'Back to portal</button><b class="grow">' + esc(title || 'Form') + '</b></div><iframe src="' + esc(url) + '" title="' + esc(title || 'Form') + '" allow="geolocation; camera; microphone"></iframe>';
     document.body.appendChild(w); document.body.style.overflow = 'hidden';
     // Connect forms to the profile: fill the employee's name/phone if the form has those fields and they're empty.
-    $('iframe', w).addEventListener('load', function () {
-      try {
-        var doc = this.contentDocument, fill = { employeeName: state.user.name, phone: state.user.phone || '' };
-        Object.keys(fill).forEach(function (id) { var el = doc.getElementById(id); if (el && !el.value && fill[id]) { el.value = fill[id]; el.dispatchEvent(new Event('input', { bubbles: true })); } });
-      } catch (e) { /* cross-site form: nothing to fill */ }
-    });
+    var fr = $('iframe', w); fr.addEventListener('load', function () { prefillForm(fr); });
     $('#fw-close', w).onclick = function () { w.remove(); document.body.style.overflow = ''; };
   }
 
@@ -1049,7 +1152,7 @@
   } });
 
   /* ================================================================ admin: email & API */
-  var TEMPLATES = [['verify', 'Email verification', 'Sent when someone creates an account (required for sign-up to work)'], ['password_reset', 'Password reset', 'Forgot-password links and invitations'], ['signup_admin', 'New account alert (to admin)', 'When a verified account is waiting for approval'], ['account_decision', 'Account approved / rejected', 'Tells the user the outcome'], ['application_received', 'Application received', 'Confirmation to applicant + alert to admin'], ['application_decision', 'Application decision', 'Hire or reject message'], ['time_decision', 'Time approved / rejected', 'When a manager decides on hours'], ['shift_assigned', 'Shift scheduled', 'When a shift is added for an employee'], ['inservice_assigned', 'In-service assigned', 'When training is published or a nurse assigns it'], ['leave_request', 'Leave request (to managers)', 'When an office employee requests time off'], ['leave_decision', 'Leave approved / rejected', 'Tells the employee the outcome'], ['call_assigned', 'Call assigned', 'When a logged call is assigned to someone'], ['new_post', 'New staff post', 'Emails every staff member when a staff post is published']];
+  var TEMPLATES = [['verify', 'Email verification', 'Sent when someone creates an account (required for sign-up to work)'], ['password_reset', 'Password reset', 'Forgot-password links and invitations'], ['signup_admin', 'New account alert (to admin)', 'When a verified account is waiting for approval'], ['account_decision', 'Account approved / rejected', 'Tells the user the outcome'], ['application_received', 'Application received', 'Confirmation to applicant + alert to admin'], ['application_decision', 'Application decision', 'Hire or reject message'], ['time_decision', 'Time approved / rejected', 'When a manager decides on hours'], ['shift_assigned', 'Shift scheduled', 'When a shift is added for an employee'], ['inservice_assigned', 'In-service assigned', 'When training is published or a nurse assigns it'], ['leave_request', 'Leave request (to managers)', 'When an office employee requests time off'], ['leave_decision', 'Leave approved / rejected', 'Tells the employee the outcome'], ['call_assigned', 'Call assigned', 'When a logged call is assigned to someone'], ['task_assigned', 'Task assigned', 'When someone assigns you a task'], ['task_reminder', 'Task reminders', 'Daily reminder for tasks due tomorrow or overdue (WordPress)'], ['new_post', 'New staff post', 'Emails every staff member when a staff post is published']];
   route('admin/email', { title: 'Email & API', nav: 'admin-email', perm: 'settings', render: async function () {
     var s = await API.get('settings/email'), log = await API.get('emails');
     return '<div class="page-head"><div><h1>Email &amp; API</h1><p>Connect Resend to send automatic emails reliably, and choose which emails are sent.</p></div></div><form id="em" class="stack"><section class="card"><div class="card__head"><h2>Delivery</h2>' + (s.provider === 'resend' && s.resendKeySet ? '<span class="badge badge--ok">Resend connected</span>' : '') + '</div><div class="card__body stack">' +
@@ -1143,6 +1246,28 @@
       $('#new-mod').onclick = function () { med(); };
       on(root, 'click', '[data-mod]', function (e, b) { med(mods.find(function (x) { return x.id === +b.dataset.mod; })); });
     }
+  } });
+
+  /* ================================================================ website & social links */
+  var SOCIAL = [['facebook', 'Facebook', 'https://www.facebook.com/…'], ['instagram', 'Instagram', 'https://www.instagram.com/…'], ['youtube', 'YouTube', 'https://www.youtube.com/@…'], ['linkedin', 'LinkedIn', 'https://www.linkedin.com/company/…']];
+  var SOCIAL_SVG = {
+    facebook: '<path d="M14 9h3V5h-3c-2.8 0-4 1.8-4 4.3V11H7v4h3v8h4v-8h3l1-4h-4V9.5c0-.3.2-.5.5-.5z"/>',
+    instagram: '<path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zM17.3 5.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM12 2c-2.7 0-3 0-4.1.1C4.3 2.2 2.2 4.3 2.1 7.9 2 9 2 9.3 2 12s0 3 .1 4.1c.1 3.6 2.2 5.7 5.8 5.8 1.1.1 1.4.1 4.1.1s3 0 4.1-.1c3.6-.1 5.7-2.2 5.8-5.8.1-1.1.1-1.4.1-4.1s0-3-.1-4.1c-.1-3.6-2.2-5.7-5.8-5.8C15 2 14.7 2 12 2z"/>',
+    youtube: '<path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.8 15.1V8.9l5.4 3.1-5.4 3.1z"/>',
+    linkedin: '<path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.2c0-1.3 0-2.9-1.8-2.9s-2 1.4-2 2.8V21h-4z"/>'
+  };
+  function socialIcons(links, cls) { return SOCIAL.filter(function (s) { return links && links[s[0]]; }).map(function (s) { return '<a class="' + cls + '" href="' + esc(links[s[0]]) + '" target="_blank" rel="noopener" aria-label="CHCS on ' + s[1] + '"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' + SOCIAL_SVG[s[0]] + '</svg></a>'; }).join(''); }
+  async function loadSocial() { if (state.social) return state.social; try { state.social = await API.get('settings/social'); } catch (e) { state.social = {}; } return state.social; }
+  route('admin/website', { title: 'Website & social', nav: 'admin-website', perm: ['settings', 'news_manage'], render: async function () {
+    var s = await API.get('settings/social');
+    return '<div class="page-head"><div><h1>Website &amp; social media</h1><p>These links show as icons on the website (top bar and footer) and in the portal. Leave one blank to hide it.</p></div></div>' +
+      '<form id="soc-form" class="card"><div class="card__body stack">' + SOCIAL.map(function (x) { return '<label class="field soc-field"><span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' + SOCIAL_SVG[x[0]] + '</svg>' + x[1] + '</span><input class="input" type="url" name="' + x[0] + '" value="' + esc(s[x[0]] || '') + '" placeholder="' + esc(x[2]) + '" inputmode="url"></label>'; }).join('') +
+      '<div class="row"><button class="btn btn--lg">Save links</button><span class="small muted">Preview: </span><span class="row" id="soc-preview">' + socialIcons(s, 'soc') + '</span></div></div></form>' +
+      '<section class="card" style="margin-top:18px"><div class="card__body small muted">Links must start with <code>https://</code>. On WordPress, these replace the social links in <i>Appearance → Customize → CHCS Settings</i>, so you only need to manage them here.</div></section>';
+  }, mount: function () {
+    var f = $('#soc-form');
+    f.oninput = function () { $('#soc-preview').innerHTML = socialIcons(H.formData(f), 'soc'); };
+    f.onsubmit = async function (e) { e.preventDefault(); try { state.social = await API.put('settings/social', H.formData(f)); toast('Links saved. The website shows them now.', 'ok'); renderShell('admin-website'); } catch (err) { fail(err); } };
   } });
 
   /* ================================================================ admin: audit */

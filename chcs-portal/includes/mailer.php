@@ -33,6 +33,8 @@ function chcs_email_defaults() {
 			'leave_request'        => true,
 			'leave_decision'       => true,
 			'call_assigned'        => true,
+			'task_assigned'        => true,
+			'task_reminder'        => true,
 			'new_post'             => false,
 		),
 	);

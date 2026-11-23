@@ -366,3 +366,9 @@ p { margin: 0 0 1em; }
   .card, .form-card { padding: 24px; }
   .stat strong { font-size: 1.9rem; }
 }
+
+/* Social icons in the top bar */
+.topbar__social { display: inline-flex; gap: 4px; }
+.topbar__soc { width: 26px; height: 26px; border-radius: 50%; display: inline-grid; place-items: center; background: rgba(255,255,255,.08); }
+.topbar__soc:hover { background: rgba(255,255,255,.2); text-decoration: none; }
+.topbar__soc svg { width: 14px; height: 14px; fill: #fff; opacity: 1; }

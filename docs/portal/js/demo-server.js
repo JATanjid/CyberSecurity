@@ -33,12 +33,12 @@
     var pw = await hash('demo1234');
     db = { seq: 1000, users: [], designations: [], records: {}, settings: {}, session: null };
     var D = function (name, type, perms) { db.designations.push({ id: nextId(), name: name, type: type, permissions: perms }); };
-    var OFFICE = ['clock', 'leave', 'calls', 'chat', 'calendar'];
-    D('Office Manager', 'office', OFFICE.concat(['approvals', 'intake', 'calendar_manage', 'payroll', 'leave_manage', 'applications', 'news_manage', 'training_manage', 'forms']));
+    var OFFICE = ['clock', 'leave', 'calls', 'chat', 'calendar', 'tasks'];
+    D('Office Manager', 'office', OFFICE.concat(['approvals', 'intake', 'calendar_manage', 'tasks_manage', 'payroll', 'leave_manage', 'applications', 'news_manage', 'training_manage', 'forms']));
     D('Intake Coordinator', 'office', OFFICE.concat(['intake', 'forms']));
     D('Scheduler', 'office', OFFICE.concat(['intake', 'calendar_manage']));
     D('Payroll Specialist', 'office', OFFICE.concat(['approvals', 'payroll']));
-    D('HR Coordinator', 'office', OFFICE.concat(['applications', 'training_manage', 'news_manage', 'leave_manage']));
+    D('HR Coordinator', 'office', OFFICE.concat(['applications', 'training_manage', 'news_manage', 'leave_manage', 'tasks_manage']));
     D('Nursing Supervisor', 'office', OFFICE.concat(['intake', 'approvals', 'training_manage', 'inservices', 'forms']));
     D('PCA', 'field', ['chat', 'inservices', 'calendar', 'forms']);
     D('HHA', 'field', ['chat', 'inservices', 'calendar', 'forms']);
@@ -60,9 +60,10 @@
 
     db.settings.email = {
       provider: 'wordpress', resendKey: '', fromName: 'Complete Home Care Services', fromEmail: 'no-reply@chcsny.com', replyTo: 'info@chcsny.com', adminEmail: 'admin@chcs.demo',
-      templates: { verify: true, password_reset: true, signup_admin: true, account_decision: true, application_received: true, application_decision: true, time_decision: true, shift_assigned: true, inservice_assigned: true, leave_request: true, leave_decision: true, call_assigned: true, new_post: false }
+      templates: { verify: true, password_reset: true, signup_admin: true, account_decision: true, application_received: true, application_decision: true, time_decision: true, shift_assigned: true, inservice_assigned: true, leave_request: true, leave_decision: true, call_assigned: true, task_assigned: true, task_reminder: true, new_post: false }
     };
     db.settings.leave = { vacation: 80, sick: 40, personal: 16, hoursPerDay: 8 };
+    db.settings.social = { facebook: 'https://www.facebook.com/CHCSNY/', instagram: 'https://www.instagram.com/chcsny/', youtube: '', linkedin: '' };
 
     // Cases
     var c1 = insert('cases', { patientName: 'Dorothy Williams', dob: '1941-03-12', phone: '(718) 555-0190', address: '110-20 Farmers Blvd', borough: 'Queens', referralSource: 'Hospital discharge', referrerName: 'Jamaica Hospital — D. Shah', insurance: 'Medicare', physician: 'Dr. A. Mensah', services: ['Skilled Nursing', 'Physical Therapy'], status: 'active', priority: 'normal', assigned: [nadia.id, grace.id], createdBy: james.id, socDate: today(-12) });
@@ -84,9 +85,7 @@
     [0, 1, 2, 3, 4].forEach(function (o) {
       insert('shifts', { userId: maria.id, date: today(o), start: '09:00', end: '17:30', title: 'Office', location: 'St. Albans office', notes: '' });
       insert('shifts', { userId: james.id, date: today(o), start: '08:30', end: '17:00', title: 'Intake desk', location: 'St. Albans office', notes: '' });
-      insert('shifts', { userId: grace.id, date: today(o), start: '09:00', end: '13:00', title: 'HHA visit — D. Williams', location: 'Queens', notes: 'Personal care, meal prep' });
     });
-    insert('shifts', { userId: nadia.id, date: today(1), start: '10:00', end: '11:00', title: 'RN supervisory visit — D. Williams', location: 'Queens', notes: '' });
 
     // In-services
     insert('inservices', { title: 'Infection Control & Hand Hygiene', description: 'Standard precautions, hand hygiene and PPE in the home.', body: 'Hand hygiene is the single most important way to prevent infection.\n\n• Wash hands with soap and water for at least 20 seconds before and after patient contact.\n• Use alcohol-based hand rub when hands are not visibly soiled.\n• Wear gloves for contact with blood or body fluids, and change them between tasks.\n• Dispose of sharps and soiled supplies according to agency policy.\n• Report any signs of infection (fever, redness, drainage) to the RN right away.', hours: 1, dueDate: today(14), audience: ['field'], passScore: 80, externalUrl: '', active: true,
@@ -130,6 +129,11 @@
     insert('notifications', { userId: grace.id, kind: 'inservice', title: 'In-service assigned: Home Care Overview', body: 'Due ' + today(5), link: '#/inservices', read: false });
     var nurseChat = insert('conversations', { type: 'direct', name: null, members: [grace.id, rita.id], lastMessageAt: now(), reads: {}, delivered: {} });
     insert('messages', { convId: nurseChat.id, userId: rita.id, body: 'Hi Grace, I assigned you two in-services. Message me here if you have questions during the test.' });
+    // Office tasks & deadlines (some repeat)
+    insert('tasks', { title: 'Renew NYS DOH home care license', description: 'Submit renewal packet and fee.', category: 'Compliance / licensing', assignedTo: maria.id, createdBy: admin.id, dueDate: today(20), priority: 'high', repeat: 'yearly', status: 'open' });
+    insert('tasks', { title: 'Monthly payroll reconciliation', description: 'Match approved hours with HHAeXchange export.', category: 'Billing / payroll', assignedTo: maria.id, createdBy: admin.id, dueDate: today(3), priority: 'normal', repeat: 'monthly', status: 'open' });
+    insert('tasks', { title: 'Review expiring staff certifications', description: 'Pull list of certificates expiring in the next 60 days.', category: 'HR / personnel files', assignedTo: james.id, createdBy: maria.id, dueDate: today(-1), priority: 'normal', repeat: 'monthly', status: 'open' });
+    insert('tasks', { title: 'Quarterly chart audit (10 charts)', description: '', category: 'Audit / survey', assignedTo: rita.id, createdBy: maria.id, dueDate: today(8), priority: 'normal', repeat: 'quarterly', status: 'open' });
     audit(admin.id, 'demo.seed', 'Demo data created');
     save();
   }
@@ -253,6 +257,7 @@
     out.upcomingShifts = col('shifts').filter(function (s) { return s.userId === u.id && s.date >= today(); }).sort(function (a, b) { return (a.date + a.start).localeCompare(b.date + b.start); }).slice(0, 4);
     if (can(u, 'inservices')) out.inservicesDue = visibleInservices(u).filter(function (i) { return !i.myResult || !i.myResult.passed; }).length;
     out.unread = can(u, 'chat') ? conversationsFor(u).reduce(function (a, c) { return a + c.unread; }, 0) : 0;
+    if (can(u, 'tasks')) out.myTasks = col('tasks').filter(function (t) { return t.assignedTo === u.id && t.status === 'open' && t.dueDate <= today(7); }).length;
     if (can(u, 'calls')) out.myCalls = col('calls').filter(function (c) { return c.assignedTo === u.id && (c.status === 'open' || c.status === 'in_progress'); }).length;
     if (can(u, 'leave_manage')) out.pendingLeave = col('leave').filter(function (l) { return l.status === 'pending' && l.userId !== u.id; }).length;
     out.unreadNotifications = col('notifications').filter(function (n) { return n.userId === u.id && !n.read; }).length;
@@ -846,6 +851,66 @@
   });
   route('GET', 'nurse', function () { requireUser(); var n = defaultNurse(); return n ? pub(n) : null; });
 
+
+  // ---- tasks & deadlines (office task calendar, repeating)
+  function nextDue(d, rep) {
+    var x = new Date(d + 'T12:00:00'), day = x.getDate();
+    if (rep === 'weekly') x.setDate(x.getDate() + 7);
+    else if (rep === 'monthly' || rep === 'quarterly') { x.setDate(1); x.setMonth(x.getMonth() + (rep === 'monthly' ? 1 : 3)); x.setDate(Math.min(day, new Date(x.getFullYear(), x.getMonth() + 1, 0).getDate())); }
+    else if (rep === 'yearly') { x.setDate(1); x.setFullYear(x.getFullYear() + 1); x.setDate(Math.min(day, new Date(x.getFullYear(), x.getMonth() + 1, 0).getDate())); }
+    return ymd(x);
+  }
+  function decorateTask(t) { var a = user(t.assignedTo), c = user(t.createdBy), d = user(t.completedBy); return Object.assign({}, t, { assignedToName: a ? a.name : '', createdByName: c ? c.name : '', completedByName: d ? d.name : '', overdue: t.status === 'open' && t.dueDate < today() }); }
+  function taskInput(b, u) {
+    if (!str(b.title)) throw err(400, 'Give the task a title.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(b.dueDate || '')) throw err(400, 'Choose a due date.');
+    var to = Number(b.assignedTo) || u.id;
+    if (to !== u.id && !can(u, 'tasks_manage')) throw err(403, 'Only managers can assign tasks to other people.');
+    var a = user(to); if (!a || a.status !== 'active') throw err(400, 'Choose an active staff member.');
+    return { title: str(b.title, 160), description: str(b.description, 2000), category: str(b.category, 60) || 'Administrative', assignedTo: to, dueDate: b.dueDate, dueTime: /^\d{2}:\d{2}$/.test(b.dueTime || '') ? b.dueTime : '', priority: b.priority === 'high' ? 'high' : 'normal', repeat: ['none', 'weekly', 'monthly', 'quarterly', 'yearly'].indexOf(b.repeat) !== -1 ? b.repeat : 'none' };
+  }
+  function taskAssigned(t, by) {
+    if (t.assignedTo === by.id) return; var a = user(t.assignedTo); if (!a) return;
+    notify(a.id, 'task', 'Task for you: ' + t.title, 'Due ' + t.dueDate + (t.repeat !== 'none' ? ' · repeats ' + t.repeat : ''), '#/tasks?id=' + t.id);
+    sendEmail('task_assigned', a.email, 'New task: ' + t.title, 'Hi ' + a.name + ',\n\n' + by.name + ' assigned you a task.\n\nTask: ' + t.title + (t.description ? '\nDetails: ' + t.description : '') + '\nDue: ' + t.dueDate + (t.repeat !== 'none' ? '\nRepeats: ' + t.repeat : '') + '\n\n' + base() + '#/tasks?id=' + t.id);
+  }
+  route('GET', 'tasks', function (p, b, q) {
+    var u = requirePerm('tasks'), list = col('tasks'), f = q.filter || 'mine';
+    if (f === 'all' || f === 'team') { if (!can(u, 'tasks_manage')) throw err(403, 'No access.'); }
+    else if (f === 'created') list = list.filter(function (t) { return t.createdBy === u.id; });
+    else list = list.filter(function (t) { return t.assignedTo === u.id; });
+    if (q.userId) list = list.filter(function (t) { return t.assignedTo === Number(q.userId); });
+    if (q.status) list = list.filter(function (t) { return t.status === q.status; });
+    if (q.from) list = list.filter(function (t) { return t.dueDate >= q.from; });
+    if (q.to) list = list.filter(function (t) { return t.dueDate <= q.to; });
+    return list.slice().sort(function (a, b2) { return (a.status === 'done') - (b2.status === 'done') || (a.dueDate + (a.dueTime || '')).localeCompare(b2.dueDate + (b2.dueTime || '')); }).map(decorateTask);
+  });
+  route('POST', 'tasks', function (p, b) { var u = requirePerm('tasks'), t = insert('tasks', Object.assign(taskInput(b, u), { createdBy: u.id, status: 'open' })); taskAssigned(t, u); audit(u.id, 'tasks.create', t.title); save(); return decorateTask(t); });
+  route('PATCH', 'tasks/:id', function (p, b) {
+    var u = requirePerm('tasks'), t = find('tasks', p.id); if (!t) throw err(404, 'Not found.');
+    var mine = t.assignedTo === u.id || t.createdBy === u.id; if (!mine && !can(u, 'tasks_manage')) throw err(403, 'No access.');
+    var next = null;
+    if (b.status === 'done' && t.status !== 'done') {
+      t.status = 'done'; t.completedAt = now(); t.completedBy = u.id; t.completionNote = str(b.note, 500);
+      if (t.repeat !== 'none') { next = insert('tasks', { title: t.title, description: t.description, category: t.category, assignedTo: t.assignedTo, createdBy: t.createdBy, dueDate: nextDue(t.dueDate, t.repeat), dueTime: t.dueTime, priority: t.priority, repeat: t.repeat, status: 'open', seriesId: t.seriesId || t.id }); }
+      if (t.createdBy !== u.id) notify(t.createdBy, 'task', 'Task done: ' + t.title, u.name + (t.completionNote ? ': ' + t.completionNote : ''), '#/tasks?filter=created');
+    } else if (b.status === 'open' && t.status === 'done') { t.status = 'open'; t.completedAt = null; }
+    else if (b.title !== undefined || b.dueDate !== undefined || b.assignedTo !== undefined) {
+      var before = t.assignedTo; Object.assign(t, taskInput(Object.assign({}, t, b), u)); if (t.assignedTo !== before) taskAssigned(t, u);
+    }
+    audit(u.id, 'tasks.update', t.title + ' ' + t.status); save();
+    var out = decorateTask(t); if (next) out.next = decorateTask(next); return out;
+  });
+  route('DELETE', 'tasks/:id', function (p) { var u = requirePerm('tasks'), t = find('tasks', p.id); if (!t) throw err(404, 'Not found.'); if (t.createdBy !== u.id && !can(u, 'tasks_manage')) throw err(403, 'Only the person who created it (or a manager) can delete it.'); col('tasks').splice(col('tasks').indexOf(t), 1); audit(u.id, 'tasks.delete', t.title); save(); return { ok: true }; });
+
+  // ---- website social links (shown on the website and in the portal)
+  route('GET', 'settings/social', function () { return clone(db.settings.social || {}); });
+  route('PUT', 'settings/social', function (p, b) {
+    var u = requireUser(); if (!can(u, 'settings') && !can(u, 'news_manage')) throw err(403, 'No access.');
+    var out = {}; ['facebook', 'instagram', 'youtube', 'linkedin'].forEach(function (k) { var v = str(b[k], 300); if (v && !/^https:\/\//i.test(v)) throw err(400, 'Links must start with https://'); out[k] = v; });
+    db.settings.social = out; audit(u.id, 'settings.social', ''); save(); return out;
+  });
+
   /* ------------------------------------------------------------- dispatcher */
   var ready = (async function () { load(); if (!db || !db.users) await seed(); })();
 
@@ -858,7 +923,7 @@
       for (var i = 0; i < routes.length; i++) {
         var r = routes[i]; if (r.m !== method) continue;
         var mm = clean.match(r.re); if (!mm) continue;
-        load();
+        load(); if (!db || !db.users) await seed(); // storage was cleared while the page was open
         var res = await r.fn(mm.groups || {}, body || {}, qs);
         return clone(res);
       }

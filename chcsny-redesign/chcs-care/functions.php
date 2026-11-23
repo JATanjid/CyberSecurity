@@ -105,9 +105,28 @@ add_filter( 'excerpt_more', function () { return '…'; } );
  * @return string
  */
 function chcs_opt( $key ) {
+	// Social links are managed in the CHCS Staff Portal (Admin → Website & social) when the plugin is active.
+	if ( in_array( $key, array( 'facebook', 'instagram', 'youtube', 'linkedin' ), true ) && function_exists( 'chcs_social_links' ) ) {
+		$portal = chcs_social_links();
+		return isset( $portal[ $key ] ) ? $portal[ $key ] : '';
+	}
 	$defaults = chcs_defaults();
 	$default  = isset( $defaults[ $key ] ) ? $defaults[ $key ] : '';
 	return get_theme_mod( 'chcs_' . $key, $default );
+}
+
+/** Social media icon links (Facebook, Instagram, YouTube, LinkedIn) that have a URL. */
+function chcs_social_icons( $class = '' ) {
+	$labels = array( 'facebook' => 'Facebook', 'instagram' => 'Instagram', 'youtube' => 'YouTube', 'linkedin' => 'LinkedIn' );
+	$out    = '';
+	foreach ( $labels as $net => $label ) {
+		$url = chcs_opt( $net );
+		if ( $url ) {
+			/* translators: %s social network */
+			$out .= sprintf( '<a class="%s" href="%s" target="_blank" rel="noopener" aria-label="%s">%s</a>', esc_attr( $class ), esc_url( $url ), esc_attr( sprintf( __( 'Complete Home Care Services on %s', 'chcs-care' ), $label ) ), chcs_icon( $net ) );
+		}
+	}
+	return $out;
 }
 
 /** Staff & employee portal URL (the CHCS Staff Portal plugin serves it at /portal/). */

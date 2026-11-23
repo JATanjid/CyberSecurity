@@ -322,6 +322,9 @@ add_action(
 					);
 				}
 				$out['unread'] = chcs_can( $me, 'chat' ) ? array_sum( wp_list_pluck( chcs_conversations_for( $me ), 'unread' ) ) : 0;
+				if ( chcs_can( $me, 'tasks' ) ) {
+					$out['myTasks'] = count( chcs_rec_query( 'tasks', array( 'owner' => $me, 'status' => 'open', 'to' => chcs_today( 7 ) ), 500 ) );
+				}
 				if ( chcs_can( $me, 'calls' ) ) {
 					$out['myCalls'] = count( chcs_rec_query( 'calls', array( 'owner' => $me, 'status' => array( 'open', 'in_progress' ) ), 500 ) );
 				}

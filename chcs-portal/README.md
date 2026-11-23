@@ -8,8 +8,8 @@ A staff and employee portal for **Complete Home Care Services**. It runs inside 
 | For | Features |
 |---|---|
 | **Everyone** | Sign up and sign in, **email verification**, forgot password, profile, dashboard, news and posts, a **notification bell** (with phone notifications when allowed), and the phone app |
-| **Office staff** | **Time clock** (office staff only), **vacation and sick leave** requests with yearly balances, **Call dashboard**, calendar, chat with **✓ sent / ✓✓ delivered / blue ✓✓ seen** ticks, intake and cases (list view), forms |
-| **Field staff (PCA / HHA / LPN / RN)** | Chat with the office, **In-services tab** (due dates, the Training Center inside the tab with their profile name filled in, **"Ask the nurse" chat while taking a test**), calendar with due dates, **timesheet (if allowed)**, **orientation (if allowed)**, forms. Field staff clock in and out of visits in **HHAeXchange**, so the portal has no clock or visit notes for them |
+| **Office staff** | **Time clock** (office staff only) and **Worked time** (weekly hours per office employee), **vacation and sick leave** requests with yearly balances, **Call dashboard**, **Tasks & deadlines** (task calendar with repeating tasks), **office calendar**, chat with **✓ sent / ✓✓ delivered / blue ✓✓ seen** ticks, intake and cases (list view), forms |
+| **Field staff (PCA / HHA / LPN / RN)** | Chat with the office, **In-services tab** (due dates, the Training Center inside the tab with their profile name filled in, **"Ask the nurse" chat while taking a test**), **calendar showing only their in-service due dates**, **timesheet with the HHA duty sheet inside (if allowed)**, **orientation (if allowed)**, forms. Field staff clock in and out of visits in **HHAeXchange**, so the portal has no clock or visit notes for them |
 | **Nurse (Nursing Supervisor)** | **Assign in-services** (Training Center courses or portal quizzes) to employees with due dates, track who's done or overdue, and answer employees' questions in chat |
 | **Job applicants** | Must **verify their email** before they can apply. Then they fill in the application, and HR approves (hires) or rejects them |
 | **Admin panel** | Approve accounts; set **designations** and per-person **access**; approve time and **leave**; **payroll Excel export** (regular, overtime and leave hours); training setup; publish **news and posts** to the portal and/or the website; **connect Resend** for automatic emails; audit log |
@@ -21,6 +21,25 @@ A staff and employee portal for **Complete Home Care Services**. It runs inside 
 - Each call has a **call-back-by** time. Overdue call-backs are shown in red, and they appear on the assignee's calendar.
 - Filters: Open, Assigned to me, Taken by me, Today, All. Follow-up notes, **Mark returned**, reassign, and close.
 - This is a call log. It doesn't connect to your phone system. If you use RingCentral, 8x8 or similar, the calls can later be logged automatically through their API.
+
+### Tasks & deadlines (office task calendar)
+Use it for administrative work with a due date: license renewals, audits, payroll reconciliation, personnel-file reviews and so on.
+- Each task has a title, details, category, due date and optional time, priority, and who it's for.
+- **Repeat:** every week, month, 3 months or year. Marking a repeating task **done** creates the next one automatically. A task due on the 31st moves to the last day of shorter months.
+- Everyone with *Tasks & deadlines* can create their own tasks. People with **Assign tasks** (Office Manager and HR by default) can assign tasks to anyone and see everyone's.
+- When a task is assigned, the person gets an **email and a notification**. On WordPress, a **daily reminder email** also goes out for tasks due tomorrow or overdue.
+- Views: **List** (open / overdue / done) and **Calendar**. Tasks also appear on the office calendar.
+
+### Calendars
+- **Office calendar:** shifts, time off, tasks, call-backs and in-service due dates. Managers can filter by employee and add office shifts. Field staff are left out.
+- **Field staff calendar:** only their **in-service due dates** (and completions), with no patient visits.
+- **On phones**, every calendar scrolls left and right.
+
+### Worked time
+Weekly hours from the office time clock, per employee and per day, with totals. Anyone over 40 hours is shown in red, and "not approved yet" hours are listed separately. Employees see their own hours; people with *Approve time* or *Payroll export* see the whole office.
+
+### Website & social media
+In **Admin → Website & social**, enter the Facebook, Instagram, YouTube and LinkedIn links. They show as icons on the website (top bar and footer), in the portal sidebar and on the sign-in page. Leave a link blank to hide its icon.
 
 ### Vacation and sick leave (office staff)
 Employees request vacation, sick, personal, bereavement, jury duty, unpaid or other leave, for full or partial days; weekends aren't counted. Managers with **Manage leave** approve or reject, and the employee gets an email and a notification. Yearly allowances are editable per person (defaults: 80h vacation, 40h sick, 16h personal). New York requires paid sick leave: 40h for employers with 5–99 employees, 56h for 100 or more. Approved leave shows on the calendar and in the payroll export (*Leave / PTO hours* column and a *Leave* sheet).
@@ -86,6 +105,7 @@ Apple and Google developer accounts.)*
   Discharged, Declined), search, case notes and the care team.
 - **News and posts:** *Website + all staff* posts are normal WordPress posts, so they also appear on the website's News section.
   *All staff / Office / Field* posts stay inside the portal (a private "Staff announcements" post type).
+- **Employment application:** on screen it has a header showing which page you're on, a *filled-in* progress bar and Previous / Next page buttons, plus tinted fields and a highlighted current page. **Its PDF is still exactly the same.**
 - **Forms:** your existing duty sheet, patient assessment, employment application packet and Workspace app open inside
   the portal, with the employee's name filled in. They submit to your Google Apps Script backends, and each one shows
   *Building… → Submitting… → Submitted successfully*. The forms use the website's design, and on phones the paper forms
@@ -94,6 +114,9 @@ Apple and Google developer accounts.)*
   (`app/forms/chcs-form-theme.css` and `.js`). This was verified by comparing the PDF page images against the original forms on desktop and phone.
 - **In-services:** the In-Service Training Center is part of the **In-services** tab, not a form. It shows the employee's profile name,
   due dates come from the nurse's assignments, and finishing a course is recorded automatically and tells the nurse.
+
+## Updating from version 1.1
+Upload the new zip the same way. The update runs once by itself: office designations gain **Tasks & deadlines**, and Office Manager and HR Coordinator gain **Assign tasks**.
 
 ## Updating from version 1.0
 Upload the new `chcs-portal.zip` (Plugins → Add New → Upload, then choose **Replace current with uploaded**). The update runs once by itself:
@@ -130,6 +153,7 @@ chcs-portal/
 │   ├── rest-training.php    in-services, quizzes, orientation
 │   ├── rest-content.php     applications, news & posts
 │   ├── rest-ops.php         notifications, vacation & sick leave, call dashboard
+│   ├── rest-tasks.php       tasks & deadlines (repeating), daily reminders, social links
 │   └── portal-page.php      serves /portal/, manifest, service worker; wp-admin menu
 └── app/                     the portal app (HTML/CSS/JS, no build step)
     ├── js/core.js, js/app.js

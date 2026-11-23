@@ -30,6 +30,7 @@ function chcs_defaults() {
 		'portal_url'    => '',
 		'facebook'      => 'https://www.facebook.com/CHCSNY/',
 		'instagram'     => 'https://www.instagram.com/chcsny/',
+		'youtube'       => '',
 		'linkedin'      => '',
 		'hero_title'    => 'Skilled, compassionate care — <em>right at home.</em>',
 		'hero_text'     => 'Since 1993, Complete Home Care Services has brought licensed nurses and therapists to patients across New York City and Nassau County, helping them recover, stay independent, and remain where they feel most comfortable.',

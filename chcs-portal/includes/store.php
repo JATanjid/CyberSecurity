@@ -63,6 +63,7 @@ function chcs_rec_index_map() {
 		'leave'               => array( 'owner' => 'userId', 'status' => 'status', 'date' => 'from' ),
 		'calls'               => array( 'owner' => 'assignedTo', 'ref' => 'takenBy', 'status' => 'status', 'date' => 'day' ),
 		'inserviceAssignments' => array( 'owner' => 'userId', 'ref' => 'inserviceId', 'status' => 'status' ),
+		'tasks'               => array( 'owner' => 'assignedTo', 'ref' => 'createdBy', 'status' => 'status', 'date' => 'dueDate' ),
 	);
 }
 

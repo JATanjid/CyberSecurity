@@ -15,14 +15,16 @@
     ['news_manage', 'Manage news & posts', 'Communication', 'Publish posts to the portal and the website'],
     ['intake', 'Intake & cases', 'Patients', 'Create referrals and manage patient cases'],
     ['forms', 'Forms', 'Patients', 'Duty sheet, patient assessment and other agency forms'],
-    ['calendar', 'My schedule', 'Scheduling', 'See own shifts, leave and due dates'],
-    ['calendar_manage', 'Manage schedules', 'Scheduling', 'Create and edit shifts for everyone'],
+    ['calendar', 'My calendar', 'Scheduling', 'Office: own shifts, leave, tasks and call-backs. Field: in-service due dates'],
+    ['calendar_manage', 'Manage schedules', 'Scheduling', 'Create and edit office shifts for everyone'],
+    ['tasks', 'Tasks & deadlines', 'Scheduling', 'Office task calendar: own administrative tasks with due dates'],
+    ['tasks_manage', 'Assign tasks', 'Scheduling', 'Assign tasks to anyone and see all tasks (repeating monthly / yearly)'],
     ['inservices', 'In-services', 'Training', 'Complete assigned in-service trainings'],
     ['orientation', 'Orientation', 'Training', 'Allowed to complete new-hire orientation'],
     ['training_manage', 'Manage training', 'Training', 'Create and assign in-services, orientation, completion reports'],
     ['applications', 'Review applications', 'Admin', 'Approve or reject job applicants'],
     ['users', 'Users & access', 'Admin', 'Approve accounts, set designations and permissions'],
-    ['settings', 'Email & API settings', 'Admin', 'Connect Resend and control automatic emails'],
+    ['settings', 'Email, API & website', 'Admin', 'Connect Resend, automatic emails, and the website\'s social media links'],
     ['audit', 'Audit log', 'Admin', 'See who did what']
   ];
 
@@ -37,6 +39,8 @@
   ];
   window.CHCS_LEAVE_TYPES = [['vacation', 'Vacation'], ['sick', 'Sick leave'], ['personal', 'Personal day'], ['bereavement', 'Bereavement'], ['jury', 'Jury duty'], ['unpaid', 'Unpaid leave'], ['other', 'Other']];
   window.CHCS_CALLER_TYPES = [['patient', 'Patient'], ['family', 'Family member'], ['referral', 'Referral source'], ['physician', 'Physician / hospital'], ['employee', 'Employee'], ['applicant', 'Job applicant'], ['insurance', 'Insurance / MLTC'], ['vendor', 'Vendor'], ['other', 'Other']];
+  window.CHCS_TASK_REPEAT = [['none', 'Does not repeat'], ['weekly', 'Every week'], ['monthly', 'Every month'], ['quarterly', 'Every 3 months'], ['yearly', 'Every year']];
+  window.CHCS_TASK_CATEGORIES = ['Administrative', 'Compliance / licensing', 'HR / personnel files', 'Billing / payroll', 'Patient records', 'Training', 'Audit / survey', 'Facilities', 'Other'];
   window.CHCS_CALL_REASONS = ['New referral / services', 'Scheduling', 'Billing / insurance', 'Complaint', 'Clinical question', 'Employment / HR', 'Payroll', 'Message for staff', 'Other'];
 
 

@@ -112,3 +112,59 @@
   /* Inside the CHCS Portal the "Ask the nurse" chat replaces the built-in RN contact button. */
   html.chcs-in-portal[data-chcs-form="inservice"] #chcs-ist .ist-askbtn { display: none !important; }
 }
+
+/* ===================================================================== employment application — on-screen redesign
+   Only colors, backgrounds, rounded corners and shadows change. No sizes, padding or
+   margins inside the pages change, and everything switches off during PDF capture,
+   so the PDF is pixel-for-pixel the same. */
+@media screen {
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page { border-radius: 14px; transition: box-shadow .2s ease; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page.chcs-current { box-shadow: 0 0 0 3px rgba(90,98,181,.35), 0 18px 48px rgba(21,26,59,.16); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page h1,
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page h2 { color: #161b45; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page .section-title { background-color: #eceefb; border-color: #d3d6f0; color: #2f3684; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page input[type="text"],
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page input[type="date"],
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page input[type="tel"],
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page input[type="email"],
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page input[type="number"],
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page input:not([type]),
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page textarea {
+    background-color: #f5f6fd; border-color: #b9bde6; border-radius: 4px 4px 0 0; color: #151a3b; transition: background-color .15s, box-shadow .15s;
+  }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page textarea { border-radius: 6px; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page input:hover,
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page textarea:hover { background-color: #eceefb; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page input:focus,
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page textarea:focus { background-color: #fff; border-color: #5a62b5; box-shadow: 0 2px 0 #5a62b5, 0 0 0 4px rgba(90,98,181,.12); outline: none; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page .chcs-filled:not(:focus) { background-color: transparent; border-color: #5a62b5; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page input[type="checkbox"],
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page input[type="radio"] { accent-color: #5a62b5; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page .sig-placeholder-text { color: #2f3684; border-bottom-color: #5a62b5; background: #eceefb; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page .sig-container:hover .sig-placeholder-text { background: #dfe2f8; }
+
+  /* header with progress (outside the pages) */
+  .chcs-apphead { display: none; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .chcs-apphead {
+    display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 40; align-self: stretch;
+    margin: -20px 0 22px; padding: 12px 22px; background: rgba(255,255,255,.95); backdrop-filter: blur(10px);
+    border-bottom: 1px solid #e4e6f1; box-shadow: 0 6px 20px rgba(21,26,59,.06); font-family: var(--chcs-font);
+  }
+  .chcs-apphead img { width: 38px; height: auto; flex-shrink: 0; }
+  .chcs-apphead__t { min-width: 0; flex: 1; }
+  .chcs-apphead__t b { display: block; font-size: 15px; color: #151a3b; }
+  .chcs-apphead__t span { display: block; font-size: 12.5px; color: #6b7194; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chcs-apphead__prog { width: 220px; flex-shrink: 0; }
+  .chcs-apphead__prog small { display: flex; justify-content: space-between; font-size: 12px; color: #6b7194; margin-bottom: 5px; }
+  .chcs-apphead__bar { height: 8px; border-radius: 99px; background: #eceefb; overflow: hidden; }
+  .chcs-apphead__bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #5a62b5, #1f8a5b); border-radius: 99px; transition: width .3s ease; }
+  .chcs-apphead__nav { display: flex; gap: 6px; }
+  .chcs-apphead__nav button { min-height: 38px; padding: 0 14px; border-radius: 10px; border: 1px solid #e4e6f1; background: #fff; color: #151a3b; font: 600 13px var(--chcs-font); cursor: pointer; }
+  .chcs-apphead__nav button:hover { background: #eceefb; }
+  .chcs-apphead__nav button.primary { background: #5a62b5; border-color: #5a62b5; color: #fff; }
+  @media (max-width: 760px) { .chcs-apphead__prog { width: 110px; } .chcs-apphead img { display: none; } html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .chcs-apphead { padding: 10px 12px; gap: 10px; } }
+}
+
+/* During PDF capture the original look must apply instantly (the PDF tool copies the
+   live styles at that moment), so no fades or animations while capturing. */
+html.chcs-capturing *, html.chcs-capturing *::before, html.chcs-capturing *::after { transition: none !important; animation: none !important; }

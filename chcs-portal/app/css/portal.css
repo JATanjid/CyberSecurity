@@ -233,7 +233,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: .92rem; }
 .chat__compose textarea { min-height: 44px; height: 44px; resize: none; }
 
 /* ---------- calendar ---------- */
-.cal { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
 .cal__dow { padding: 8px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #fbfbfe; }
 .cal__day { min-height: 116px; padding: 6px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #fff; }
 .cal__day.is-out { background: #fafafd; color: #b0b4cf; }
@@ -412,3 +412,49 @@ td.late { color: var(--red); font-weight: 600; }
   .clamp2 { max-width: none; }
 }
 @media (max-width: 900px) { [data-route="chat"] .inbox-fab, [data-route="inservices"] .inbox-fab, [data-route="calls"] .inbox-fab { display: none; } }
+
+/* ---------- calendar: sideways scrolling on phones ---------- */
+.cal-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; overscroll-behavior-x: contain; }
+.cal-scroll:focus-visible { outline: 3px solid rgba(90,98,181,.4); outline-offset: -3px; }
+.cal-hint { display: none; margin: 8px 14px 12px; }
+.ev--task { border-left-color: #7c3aed; background: #f1eafe; color: #4c1d95; }
+.ev--done { opacity: .6; text-decoration: line-through; }
+.ev--late { box-shadow: inset 0 0 0 1px var(--red); }
+.ev--more { border-left-color: var(--line); background: var(--line-2); color: var(--muted); }
+.lg--task { background: #7c3aed; }
+.day-list .ev { font-size: .9rem; padding: 8px 10px; }
+
+/* ---------- tasks ---------- */
+.seg { display: inline-flex; padding: 4px; background: var(--line-2); border-radius: 12px; gap: 2px; }
+.seg a { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 9px; color: var(--muted); font-weight: 600; text-decoration: none; font-size: .88rem; }
+.seg a.is-active { background: #fff; color: var(--ink); box-shadow: var(--shadow); }
+.tick-btn { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #c9ccee; background: #fff; color: transparent; display: grid; place-items: center; cursor: pointer; padding: 0; }
+.tick-btn:hover { border-color: var(--ok); color: var(--ok); }
+.tick-btn.is-done { background: var(--ok); border-color: var(--ok); color: #fff; }
+.tick-btn .ico { width: 15px; height: 15px; }
+.strike { text-decoration: line-through; }
+
+/* ---------- worked time ---------- */
+.table.worked th.is-today { color: var(--brand); }
+.table.worked td, .table.worked th { white-space: nowrap; }
+
+/* ---------- social icons ---------- */
+.soc { width: 34px; height: 34px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--brand-soft); color: var(--brand-ink); transition: background .15s, color .15s; }
+.soc svg { width: 17px; height: 17px; }
+.soc:hover { background: var(--brand); color: #fff; }
+.soc--side { background: rgba(255,255,255,.08); color: #c4c8ee; }
+.soc--side:hover { background: rgba(255,255,255,.18); color: #fff; }
+.soc--light { background: rgba(255,255,255,.1); color: #fff; }
+.side__social { display: flex; gap: 8px; padding: 12px 10px 0; }
+.side__social:empty { display: none; }
+.auth__social { display: flex; gap: 8px; margin-bottom: 12px; }
+.soc-field > span { display: inline-flex; align-items: center; gap: 8px; }
+.soc-field > span svg { width: 18px; height: 18px; color: var(--brand); }
+
+@media (max-width: 900px) {
+  .cal { min-width: 720px; }
+  .cal-hint { display: block; }
+  .cal__day { scroll-snap-align: start; }
+  .seg a { padding: 7px 10px; }
+}
+@media (max-width: 900px) { .cal__day { min-height: 92px; } .ev { font-size: .7rem; } }

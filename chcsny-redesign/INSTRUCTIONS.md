@@ -4,8 +4,8 @@ This package has two parts. Both install from the normal WordPress dashboard:
 
 | File | What it is | Install from |
 |---|---|---|
-| **`chcs-care.zip`** | The redesigned website **theme** (with your logo and colors) | Appearance → Themes → Add New → Upload |
-| **`chcs-portal.zip`** | The **Staff & Employee Portal** plugin: sign-up with email verification, admin approvals, designations and access, office clock in/out, **vacation and sick leave**, **Call dashboard**, timesheets, payroll Excel export, intake and cases, chat with read receipts and notifications, calendar, **in-services assigned by the nurse with due dates and an "Ask the nurse" chat**, orientation, job applications, news and posts, Resend emails, and a phone app. Your agency forms are restyled to match, fit phone screens, and produce the same PDFs as before | Plugins → Add New → Upload |
+| **`chcs-care.zip`** | The redesigned website **theme** (with your logo and colors, plus Facebook, Instagram and YouTube icons managed from the portal) | Appearance → Themes → Add New → Upload |
+| **`chcs-portal.zip`** | The **Staff & Employee Portal** plugin: sign-up with email verification, admin approvals, designations and access, office clock in/out and **Worked time**, **vacation and sick leave**, **Call dashboard**, **Tasks & deadlines** (repeating monthly or yearly), office and field calendars, timesheets, payroll Excel export, intake and cases, chat with read receipts and notifications, calendar, **in-services assigned by the nurse with due dates and an "Ask the nurse" chat**, orientation, job applications, news and posts, Resend emails, and a phone app. Your agency forms are restyled to match, fit phone screens, and produce the same PDFs as before | Plugins → Add New → Upload |
 
 **Quick start:** install and activate the theme, then install and activate the plugin. Go to **Settings → Permalinks → Save**, then open
 **`https://your-site/portal/`** and sign in with your WordPress admin account. Full portal documentation is in

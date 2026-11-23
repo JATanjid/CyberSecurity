@@ -51,6 +51,7 @@ function chcs_customize_register( $wp_customize ) {
 				'form_shortcode' => array( __( 'Optional: replace built-in form with a plugin shortcode (e.g. [contact-form-7 id="1"])', 'chcs-care' ), 'text' ),
 				'facebook'       => array( __( 'Facebook URL', 'chcs-care' ), 'url' ),
 				'instagram'      => array( __( 'Instagram URL', 'chcs-care' ), 'url' ),
+				'youtube'        => array( __( 'YouTube URL', 'chcs-care' ), 'url' ),
 				'linkedin'       => array( __( 'LinkedIn URL', 'chcs-care' ), 'url' ),
 			),
 		),

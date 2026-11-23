@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** All grantable modules (keys must match app/js/core.js). */
 function chcs_modules() {
-	return array( 'clock', 'timesheet', 'approvals', 'payroll', 'leave', 'leave_manage', 'calls', 'chat', 'news_manage', 'intake', 'forms', 'calendar', 'calendar_manage', 'inservices', 'orientation', 'training_manage', 'applications', 'users', 'settings', 'audit' );
+	return array( 'clock', 'timesheet', 'approvals', 'payroll', 'leave', 'leave_manage', 'calls', 'chat', 'news_manage', 'intake', 'forms', 'calendar', 'calendar_manage', 'tasks', 'tasks_manage', 'inservices', 'orientation', 'training_manage', 'applications', 'users', 'settings', 'audit' );
 }
 
 /** Trainings inside the In-Service Training Center (app/forms/inservice-training.html): id => [title, minutes]. */

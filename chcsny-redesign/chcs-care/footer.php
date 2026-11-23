@@ -14,13 +14,7 @@ $phone = chcs_opt( 'phone' );
 			<div>
 				<?php get_template_part( 'template-parts/brand' ); ?>
 				<p><?php echo esc_html( sprintf( /* translators: %s year */ __( 'Licensed by the New York State Department of Health and accredited by The Joint Commission. Caring for New Yorkers at home since %s.', 'chcs-care' ), chcs_opt( 'founded' ) ) ); ?></p>
-				<div class="social">
-					<?php foreach ( array( 'facebook', 'instagram', 'linkedin' ) as $net ) : ?>
-						<?php if ( chcs_opt( $net ) ) : ?>
-							<a href="<?php echo esc_url( chcs_opt( $net ) ); ?>" target="_blank" rel="noopener"><span class="screen-reader-text"><?php echo esc_html( ucfirst( $net ) ); ?></span><?php echo chcs_icon( $net ); // phpcs:ignore ?></a>
-						<?php endif; ?>
-					<?php endforeach; ?>
-				</div>
+				<div class="social"><?php echo chcs_social_icons(); // phpcs:ignore -- escaped inside ?></div>
 			</div>
 
 			<div>
