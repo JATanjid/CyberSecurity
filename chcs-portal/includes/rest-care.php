@@ -1,6 +1,7 @@
 <?php
 /**
- * Intake & case management, case notes, visit notes.
+ * Intake & case management and case notes.
+ * (Visit notes were removed: field staff document visits in HHAeXchange.)
  *
  * @package chcs-portal
  */
@@ -36,14 +37,6 @@ function chcs_decorate_case( $c, $full ) {
 	return $o;
 }
 
-function chcs_decorate_note( $n ) {
-	$c                = chcs_rec_get( 'cases', $n['caseId'] );
-	$n['userName']    = chcs_user_name( $n['userId'] );
-	$n['designation'] = (string) get_user_meta( $n['userId'], 'chcs_designation', true );
-	$n['patientName'] = $c ? $c['patientName'] : '—';
-	return $n;
-}
-
 add_action(
 	'rest_api_init',
 	function () {
@@ -51,7 +44,7 @@ add_action(
 		chcs_route(
 			'GET',
 			'/cases',
-			array( 'intake', 'notes', 'timesheet' ),
+			array( 'intake', 'timesheet' ),
 			function ( $req, $me ) {
 				$full = chcs_can( $me, 'intake' );
 				if ( $full ) {
@@ -93,7 +86,7 @@ add_action(
 		chcs_route(
 			'GET',
 			'/cases/(?P<id>\d+)',
-			array( 'intake', 'notes', 'timesheet' ),
+			array( 'intake', 'timesheet' ),
 			function ( $req, $me ) {
 				$id = (int) $req['id'];
 				if ( ! in_array( $id, wp_list_pluck( chcs_cases_for( $me ), 'id' ), true ) ) {
@@ -162,70 +155,5 @@ add_action(
 			}
 		);
 
-		/* ---- visit notes */
-		chcs_route(
-			'GET',
-			'/notes',
-			array( 'notes', 'intake', 'approvals' ),
-			function ( $req, $me ) {
-				$reviewer = chcs_can( $me, 'intake' ) || chcs_can( $me, 'approvals' );
-				$where    = ( 'all' === $req['scope'] && $reviewer ) ? array() : array( 'owner' => $me );
-				return array_map( 'chcs_decorate_note', chcs_rec_query( 'notes', $where, 500 ) );
-			}
-		);
-
-		chcs_route(
-			'POST',
-			'/notes',
-			'notes',
-			function ( $req, $me ) {
-				$case_id = (int) $req['caseId'];
-				if ( ! in_array( $case_id, wp_list_pluck( chcs_cases_for( $me ), 'id' ), true ) ) {
-					return chcs_err( 400, 'Choose one of your assigned patients.' );
-				}
-				$tasks = array_slice( array_map( function ( $t ) { return chcs_str( $t, 80 ); }, (array) $req['tasks'] ), 0, 40 );
-				if ( ! chcs_text( $req['narrative'] ) && ! $tasks ) {
-					return chcs_err( 400, 'Add the tasks you completed or a note.' );
-				}
-				if ( ! chcs_str( $req['signature'] ) ) {
-					return chcs_err( 400, 'Sign the note.' );
-				}
-				$date = preg_match( '/^\d{4}-\d{2}-\d{2}$/', (string) $req['date'] ) ? $req['date'] : chcs_today();
-				$n    = chcs_rec_insert(
-					'notes',
-					array(
-						'userId'    => $me,
-						'caseId'    => $case_id,
-						'date'      => $date,
-						'timeIn'    => chcs_str( $req['timeIn'], 5 ),
-						'timeOut'   => chcs_str( $req['timeOut'], 5 ),
-						'tasks'     => $tasks,
-						'condition' => chcs_str( $req['condition'], 60 ),
-						'narrative' => chcs_text( $req['narrative'], 4000 ),
-						'signature' => chcs_str( $req['signature'], 100 ),
-						'status'    => 'submitted',
-					)
-				);
-				chcs_audit( $me, 'notes.create', '#' . $n['id'] );
-				return chcs_decorate_note( $n );
-			}
-		);
-
-		chcs_route(
-			'PATCH',
-			'/notes/(?P<id>\d+)',
-			array( 'intake', 'approvals' ),
-			function ( $req, $me ) {
-				$n = chcs_rec_get( 'notes', (int) $req['id'] );
-				if ( ! $n ) {
-					return chcs_err( 404, 'Not found.' );
-				}
-				if ( 'reviewed' === $req['status'] ) {
-					$n = chcs_rec_update( 'notes', $n['id'], array( 'status' => 'reviewed', 'reviewedBy' => $me, 'reviewedAt' => chcs_now_iso(), 'reviewNote' => chcs_str( $req['reviewNote'], 500 ) ) );
-					chcs_audit( $me, 'notes.review', '#' . $n['id'] );
-				}
-				return chcs_decorate_note( $n );
-			}
-		);
 	}
 );

@@ -26,7 +26,28 @@ function chcs_chat_directory( $me ) {
 	return $out;
 }
 
-function chcs_conversations_for( $me ) {
+/** Lowest read / delivered message id across the other members (for ✓ / ✓✓ / blue ✓✓). */
+function chcs_chat_receipts( $c, $me ) {
+	$others = array_diff( array_map( 'intval', (array) $c['members'] ), array( $me ) );
+	$min    = function ( $m ) use ( $others ) {
+		if ( ! $others ) {
+			return 0;
+		}
+		$vals = array();
+		foreach ( $others as $id ) {
+			$vals[] = (int) ( ( (array) $m )[ $id ] ?? 0 );
+		}
+		return min( $vals );
+	};
+	$read = $min( $c['reads'] ?? array() );
+	return array( 'readUpTo' => $read, 'deliveredUpTo' => max( $read, $min( $c['delivered'] ?? array() ) ) );
+}
+
+/**
+ * Conversations for a user. When $mark_delivered is true, every message the user's app
+ * has now received is marked delivered (the sender sees ✓✓).
+ */
+function chcs_conversations_for( $me, $mark_delivered = false ) {
 	$out = array();
 	foreach ( chcs_rec_query( 'conversations' ) as $c ) {
 		$members = array_map( 'intval', (array) $c['members'] );
@@ -34,6 +55,13 @@ function chcs_conversations_for( $me ) {
 			continue;
 		}
 		$last      = chcs_rec_query( 'messages', array( 'ref' => $c['id'] ), 1 );
+		if ( $mark_delivered && $last ) {
+			$del = (array) ( $c['delivered'] ?? array() );
+			if ( (int) ( $del[ $me ] ?? 0 ) < $last[0]['id'] ) {
+				$del[ $me ] = $last[0]['id'];
+				chcs_rec_update( 'conversations', $c['id'], array( 'delivered' => $del ) );
+			}
+		}
 		$last_read = (int) ( $c['reads'][ $me ] ?? 0 );
 		$unread    = 0;
 		foreach ( chcs_rec_query( 'messages', array( 'ref' => $c['id'], 'after_id' => $last_read ), 100 ) as $m ) {
@@ -104,7 +132,7 @@ add_action(
 			'/chat/conversations',
 			'chat',
 			function ( $req, $me ) {
-				return chcs_conversations_for( $me );
+				return chcs_conversations_for( $me, true );
 			}
 		);
 
@@ -149,12 +177,18 @@ add_action(
 				foreach ( $msgs as &$m ) {
 					$m['userName'] = chcs_user_name( $m['userId'] );
 				}
-				if ( $msgs ) {
-					$reads        = (array) ( $c['reads'] ?? array() );
-					$reads[ $me ] = end( $msgs )['id'];
-					chcs_rec_update( 'conversations', $c['id'], array( 'reads' => $reads ) );
+				unset( $m );
+				$last = chcs_rec_query( 'messages', array( 'ref' => $c['id'] ), 1 );
+				if ( $last ) {
+					$reads = (array) ( $c['reads'] ?? array() );
+					$del   = (array) ( $c['delivered'] ?? array() );
+					if ( (int) ( $reads[ $me ] ?? 0 ) < $last[0]['id'] ) {
+						$reads[ $me ] = $last[0]['id'];
+						$del[ $me ]   = $last[0]['id'];
+						$c            = chcs_rec_update( 'conversations', $c['id'], array( 'reads' => $reads, 'delivered' => $del ) );
+					}
 				}
-				return $msgs;
+				return array_merge( array( 'messages' => $msgs ), chcs_chat_receipts( $c, $me ) );
 			}
 		);
 
@@ -174,7 +208,9 @@ add_action(
 				$m            = chcs_rec_insert( 'messages', array( 'convId' => $c['id'], 'userId' => $me, 'body' => $body ) );
 				$reads        = (array) ( $c['reads'] ?? array() );
 				$reads[ $me ] = $m['id'];
-				chcs_rec_update( 'conversations', $c['id'], array( 'reads' => $reads, 'lastMessageAt' => $m['createdAt'] ) );
+				$del          = (array) ( $c['delivered'] ?? array() );
+				$del[ $me ]   = $m['id'];
+				chcs_rec_update( 'conversations', $c['id'], array( 'reads' => $reads, 'delivered' => $del, 'lastMessageAt' => $m['createdAt'] ) );
 				$m['userName'] = chcs_user_name( $me );
 				return $m;
 			}
@@ -229,6 +265,7 @@ add_action(
 					$out[] = chcs_decorate_shift( chcs_rec_insert( 'shifts', array_merge( $s0, array( 'date' => $d, 'createdBy' => $me ) ) ) );
 				}
 				$u = get_userdata( $s0['userId'] );
+				chcs_notify( $s0['userId'], 'shift', 'New shift: ' . $s0['title'], "{$s0['date']} {$s0['start']}–{$s0['end']}" . ( count( $out ) > 1 ? ' (' . count( $out ) . ' shifts)' : '' ), '#/calendar' );
 				chcs_mail( 'shift_assigned', $u->user_email, 'New shift scheduled', "Hi {$u->display_name},\n\nYou have " . count( $out ) . " new shift(s) starting {$s0['date']} {$s0['start']}–{$s0['end']} ({$s0['title']}).\n\n" . chcs_portal_url( 'calendar' ) );
 				chcs_audit( $me, 'shifts.create', count( $out ) . ' for ' . $u->user_email );
 				return $out;

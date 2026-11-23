@@ -162,6 +162,9 @@ add_action(
 				$a = $a ? chcs_rec_update( 'applications', $a['id'], $fields ) : chcs_rec_insert( 'applications', $fields );
 				if ( $submit ) {
 					$u = get_userdata( $me );
+					foreach ( chcs_users_with( 'applications' ) as $a ) {
+						chcs_notify( $a, 'application', 'New application: ' . $u->display_name, $data['position'], '#/applications' );
+					}
 					chcs_notify_admins( 'application_received', 'New employment application: ' . $u->display_name, "{$u->display_name} applied for {$data['position']}.\n\nReview it here:\n" . chcs_portal_url( 'applications' ) );
 					chcs_mail( 'application_received', $u->user_email, 'We received your application', "Hi {$u->display_name},\n\nThank you for applying to Complete Home Care Services. Our HR team will review your application and contact you." );
 					chcs_audit( $me, 'application.submit', $data['position'] );

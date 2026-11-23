@@ -1,0 +1,114 @@
+/* CHCS form theme — matches the website & portal (logo navy / periwinkle / red, Inter).
+ *
+ * SAFE FOR PDFs: every rule below is screen-only and is switched off while a form
+ * builds its PDF. chcs-form-theme.js adds class "chcs-capturing" to <html> whenever
+ * html2canvas runs, so captured pages render with the form's original styles and the
+ * PDF output stays exactly the same. Printing is untouched (@media screen only).
+ */
+@media screen {
+  html.chcs-themed:not(.chcs-capturing) {
+    --chcs-ink: #151a3b; --chcs-muted: #6b7194; --chcs-line: #e4e6f1; --chcs-bg: #f4f5fb;
+    --chcs-brand: #5a62b5; --chcs-brand-ink: #2f3684; --chcs-brand-soft: #eceefb;
+    --chcs-navy: #161b45; --chcs-navy-2: #1e2459; --chcs-red: #d6333c; --chcs-ok: #1f8a5b;
+    --chcs-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  /* ---------------------------------------------------------------- shared */
+  html.chcs-themed:not(.chcs-capturing) body { background: var(--chcs-bg); }
+  .chcs-fit-toggle { position: fixed; right: 10px; top: 10px; z-index: 9000; display: none; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--chcs-line, #e4e6f1); background: #fff; color: #2f3684; font: 600 13px/1 "Inter", system-ui, sans-serif; box-shadow: 0 6px 20px rgba(21,26,59,.15); cursor: pointer; }
+  html.chcs-narrow:not(.chcs-capturing) .chcs-fit-toggle { display: inline-flex; }
+  html.chcs-capturing .chcs-fit-toggle { display: none !important; }
+  html.chcs-themed.chcs-narrow:not(.chcs-capturing) body { padding-top: 58px !important; }
+  .chcs-fit-toggle { font-size: 12px; padding: 8px 12px; }
+
+  /* Fit fixed-size paper pages to the phone screen (scales the page; its real size —
+     and therefore the PDF — is unchanged). */
+  html.chcs-fit:not(.chcs-capturing) [data-chcs-page] {
+    transform: scale(var(--chcs-fit, 1));
+    transform-origin: top left;
+    margin-right: calc((var(--chcs-fit, 1) - 1) * var(--chcs-page-w, 816px)) !important;
+    margin-bottom: calc((var(--chcs-fit, 1) - 1) * var(--chcs-page-h, 1056px) + 14px) !important;
+  }
+
+  /* ---------------------------------------------------------------- HHA duty sheet */
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) body { padding: 18px 12px 24px; }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .sheet { box-shadow: 0 1px 2px rgba(21,26,59,.04), 0 12px 36px rgba(21,26,59,.12); border-radius: 4px; }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .actions { position: sticky; bottom: 0; z-index: 50; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border: 1px solid var(--chcs-line); border-radius: 18px; padding: 12px; box-shadow: 0 10px 30px rgba(21,26,59,.12); font-family: var(--chcs-font); }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .actions .btn { font-family: var(--chcs-font); border-radius: 12px; min-height: 46px; padding: 0 20px; font-weight: 600; box-shadow: none; }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .actions .btn-primary { background: var(--chcs-brand); }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .actions .btn-primary:hover { background: var(--chcs-brand-ink); }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .actions .btn-secondary { background: #fff; color: var(--chcs-ink); border: 1px solid var(--chcs-line); }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .actions .btn-secondary:hover { background: var(--chcs-brand-soft); }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .status { font-family: var(--chcs-font); }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .loading-overlay { background: rgba(15,18,45,.55); }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .loading-card { border-radius: 20px; font-family: var(--chcs-font); padding: 28px 36px; }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .spinner-large { border-top-color: var(--chcs-brand); }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .loading-text { color: var(--chcs-ink); }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .loading-text.success { color: var(--chcs-ok); }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .signature-panel { border-radius: 22px; font-family: var(--chcs-font); }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .signature-panel-header h2 { font-family: var(--chcs-font); color: var(--chcs-ink); }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .sig-tab { font-family: var(--chcs-font); color: var(--chcs-muted); }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .sig-tab.active,
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .mini-btn.primary { background: var(--chcs-brand); border-color: var(--chcs-brand); color: #fff; }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .mini-btn { font-family: var(--chcs-font); border-radius: 10px; }
+  html.chcs-themed[data-chcs-form="duty"]:not(.chcs-capturing) .type-sign-input:focus { border-color: var(--chcs-brand); box-shadow: 0 0 0 4px rgba(90,98,181,.14); }
+
+  /* ---------------------------------------------------------------- employment application */
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) body { background: #e9ebf5; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page { box-shadow: 0 1px 2px rgba(21,26,59,.05), 0 14px 40px rgba(21,26,59,.14); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page-nav { background: linear-gradient(180deg, var(--chcs-navy) 0%, var(--chcs-navy-2) 100%); font-family: var(--chcs-font); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page-nav-item.active { background: rgba(255,255,255,.12); box-shadow: inset 4px 0 0 #ff8a91; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page-nav-item.active .page-nav-number { background: var(--chcs-brand); color: #fff; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page-nav-title { font-family: Georgia, "Times New Roman", serif; letter-spacing: .01em; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .page-nav-mobile-open { background: var(--chcs-navy); border-radius: 999px; font-family: var(--chcs-font); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .action-bar { background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border-top: 1px solid var(--chcs-line); box-shadow: 0 -10px 30px rgba(21,26,59,.08); font-family: var(--chcs-font); color: var(--chcs-ink); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .action-bar .pdf-export-controls span { color: var(--chcs-muted); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .action-bar .btn { font-family: var(--chcs-font); border-radius: 12px; font-weight: 600; background: #fff; color: var(--chcs-ink); border: 1px solid var(--chcs-line); box-shadow: none; min-height: 42px; }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .action-bar .btn:hover { background: var(--chcs-brand-soft); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .action-bar #submitBtn { background: var(--chcs-brand); color: #fff; border-color: var(--chcs-brand); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .action-bar #submitBtn:hover { background: var(--chcs-brand-ink); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .pdf-page-picker > summary { border-radius: 12px; border-color: var(--chcs-line); font-family: var(--chcs-font); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .modal-content { border-radius: 22px; font-family: var(--chcs-font); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .modal-content .btn { border-radius: 10px; font-family: var(--chcs-font); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .modal-content .btn-secondary { background: var(--chcs-brand); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .submit-popup-icon.loading { border-color: var(--chcs-brand-soft); border-top-color: var(--chcs-brand); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .submit-popup-icon.success { background: var(--chcs-ok); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .submit-popup-title { color: var(--chcs-ink); }
+  html.chcs-themed[data-chcs-form="application"]:not(.chcs-capturing) .submit-popup-ok { background: var(--chcs-brand); border-radius: 12px; }
+
+  /* ---------------------------------------------------------------- patient assessment (screen colors only) */
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) {
+    --app-navy: #161b45; --app-blue: #5a62b5; --app-sky: #eceefb; --app-bg: #f4f5fb; --app-text: #151a3b; --app-muted: #6b7194; --app-border: #e4e6f1;
+    --app-success: #1f8a5b; --app-danger: #d6333c; --app-shadow: 0 10px 30px rgba(22,27,69,.10);
+    --pro-ink: #151a3b; --pro-navy: #1e2459; --pro-blue: #5a62b5; --pro-cyan: #7078c8; --pro-soft: #f6f7fc; --pro-line: #d9dcef;
+  }
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) body { background: radial-gradient(circle at 12% 0%, rgba(112,120,200,.12), transparent 26rem), linear-gradient(180deg, #f8f8fd 0, #f1f2fa 340px, #eef0f8 100%); }
+
+
+  /* patient assessment: brand colors for the app chrome and on-screen section headers (PDF keeps the original) */
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) .app-brand-mark, html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) .m-brand-mark { background: linear-gradient(145deg, #161b45, #5a62b5 72%, #7078c8) !important; box-shadow: 0 8px 22px rgba(22,27,69,.24) !important; }
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) .app-progress-bar { background: linear-gradient(90deg, #5a62b5 0%, #7078c8 54%, #1f8a5b 100%) !important; }
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) .page-nav button.active { background: linear-gradient(90deg, #eceefb, #f6f7fd) !important; border-color: #d3d6f0 !important; box-shadow: inset 3px 0 0 #5a62b5 !important; color: #2f3684 !important; }
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) .page-nav button.active::before { background: #5a62b5 !important; }
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) .modal-save-btn, html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) .sheet-primary, html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) .m-bar-main:not(.submit) { background: linear-gradient(135deg, #161b45, #5a62b5) !important; box-shadow: 0 6px 16px rgba(90,98,181,.28) !important; }
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) .busy-spinner { border-color: #e4e6f1 !important; border-top-color: #5a62b5 !important; }
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) .submission-success-done { background: #5a62b5 !important; }
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) .m-step.active { background: #5a62b5 !important; border-color: #5a62b5 !important; }
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) .m-step.active .n { color: #5a62b5 !important; }
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) #form-container .section-head:not([style*="#e7f1fa"]) { background: linear-gradient(90deg, #161b45 0%, #2f3684 60%, #5a62b5 100%) !important; border-color: #161b45 !important; }
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) .title-header { color: #161b45 !important; }
+  html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) #form-container input:focus, html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) #form-container select:focus, html.chcs-themed[data-chcs-form="assessment"]:not(.chcs-capturing) #form-container textarea:focus { border-color: #5a62b5 !important; box-shadow: 0 0 0 3px rgba(90,98,181,.16) !important; }
+
+  /* ---------------------------------------------------------------- in-service training center */
+  html.chcs-themed[data-chcs-form="inservice"] #chcs-ist {
+    --ist-bg: #f4f5fb; --ist-surface: #ffffff; --ist-ink: #151a3b; --ist-muted: #6b7194; --ist-line: #e4e6f1; --ist-soft: #f7f8fd;
+    --ist-brand: #2f3684; --ist-brand-2: #5a62b5; --ist-ok: #1f8a5b; --ist-okbg: #e3f5ec; --ist-bad: #d6333c; --ist-badbg: #fde9ea;
+    --ist-shadow: 0 1px 2px rgba(21,26,59,.04), 0 6px 20px rgba(21,26,59,.06);
+    font-family: var(--chcs-font, "Inter", system-ui, sans-serif);
+  }
+  html.chcs-themed[data-chcs-form="inservice"] body { background: #f4f5fb; }
+  html.chcs-themed[data-chcs-form="inservice"] #chcs-ist .ist-hero { background: radial-gradient(700px 300px at 100% 0%, rgba(214,51,60,.32), transparent 60%), linear-gradient(120deg, #161b45 0%, #3a4196 100%); }
+  html.chcs-themed[data-chcs-form="inservice"] #chcs-ist .ist-askbtn { background: #5a62b5; box-shadow: 0 10px 30px rgba(22,27,69,.25); }
+  /* Inside the CHCS Portal the "Ask the nurse" chat replaces the built-in RN contact button. */
+  html.chcs-in-portal[data-chcs-form="inservice"] #chcs-ist .ist-askbtn { display: none !important; }
+}

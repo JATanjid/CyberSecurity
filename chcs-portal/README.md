@@ -7,17 +7,30 @@ A staff and employee portal for **Complete Home Care Services**. It runs inside 
 
 | For | Features |
 |---|---|
-| **Everyone** | Sign up and sign in, **email verification**, forgot password, profile, dashboard, news and posts, phone app |
-| **Office staff** | Time clock (in/out, optional location), work calendar, chat with coworkers and field staff, intake and case management, visit-note review, forms |
-| **Field staff (PCA / HHA / LPN / RN)** | Chat with the office, in-services with quizzes, visit notes for assigned patients, schedule, **timesheet (if allowed)**, **orientation (if allowed)**, forms |
+| **Everyone** | Sign up and sign in, **email verification**, forgot password, profile, dashboard, news and posts, a **notification bell** (with phone notifications when allowed), and the phone app |
+| **Office staff** | **Time clock** (office staff only), **vacation and sick leave** requests with yearly balances, **Call dashboard**, calendar, chat with **✓ sent / ✓✓ delivered / blue ✓✓ seen** ticks, intake and cases (list view), forms |
+| **Field staff (PCA / HHA / LPN / RN)** | Chat with the office, **In-services tab** (due dates, the Training Center inside the tab with their profile name filled in, **"Ask the nurse" chat while taking a test**), calendar with due dates, **timesheet (if allowed)**, **orientation (if allowed)**, forms. Field staff clock in and out of visits in **HHAeXchange**, so the portal has no clock or visit notes for them |
+| **Nurse (Nursing Supervisor)** | **Assign in-services** (Training Center courses or portal quizzes) to employees with due dates, track who's done or overdue, and answer employees' questions in chat |
 | **Job applicants** | Must **verify their email** before they can apply. Then they fill in the application, and HR approves (hires) or rejects them |
-| **Admin panel** | Approve accounts; set **designations** and per-person **access**; approve time; **payroll Excel export**; manage in-services and orientation; publish **news and posts** to the portal and/or the website; **connect Resend** for automatic emails; audit log |
+| **Admin panel** | Approve accounts; set **designations** and per-person **access**; approve time and **leave**; **payroll Excel export** (regular, overtime and leave hours); training setup; publish **news and posts** to the portal and/or the website; **connect Resend** for automatic emails; audit log |
+
+### Call dashboard (incoming call management)
+- **Take a call** starts a call timer and a quick form: caller phone and name, caller type, reason, message, priority, and who it's for.
+- As you type the phone number, the portal looks it up. It shows a **patient on file**, an **employee**, or **earlier calls** from that number, and fills in the name.
+- **Assigning a call** sends the person an **email and a notification** right away. Urgent calls are flagged.
+- Each call has a **call-back-by** time. Overdue call-backs are shown in red, and they appear on the assignee's calendar.
+- Filters: Open, Assigned to me, Taken by me, Today, All. Follow-up notes, **Mark returned**, reassign, and close.
+- This is a call log. It doesn't connect to your phone system. If you use RingCentral, 8x8 or similar, the calls can later be logged automatically through their API.
+
+### Vacation and sick leave (office staff)
+Employees request vacation, sick, personal, bereavement, jury duty, unpaid or other leave, for full or partial days; weekends aren't counted. Managers with **Manage leave** approve or reject, and the employee gets an email and a notification. Yearly allowances are editable per person (defaults: 80h vacation, 40h sick, 16h personal). New York requires paid sick leave: 40h for employers with 5–99 employees, 56h for 100 or more. Approved leave shows on the calendar and in the payroll export (*Leave / PTO hours* column and a *Leave* sheet).
 
 The access control is by module. Each designation (Office Manager, Intake Coordinator, Scheduler, Payroll Specialist,
 HR Coordinator, Nursing Supervisor, PCA, HHA, LPN, RN — all editable) has default modules, and an admin can
 customize any single person. The modules are: Time clock, Timesheet, Approve time, Payroll export,
-Intake & cases, Visit notes, Forms, My schedule, Manage schedules, Chat, Manage news & posts,
-In-services, Orientation, Manage training, Review applications, Users & access, Email & API settings, and Audit log.
+Vacation & sick leave, Manage leave, Call dashboard, Chat, Manage news & posts, Intake & cases, Forms,
+My schedule, Manage schedules, In-services, Orientation, Manage training, Review applications,
+Users & access, Email & API settings, and Audit log.
 WordPress administrators are always portal admins.
 
 ## Install
@@ -46,6 +59,11 @@ define( 'CHCS_RESEND_API_KEY', 're_xxxxxxxxx' );
 ```
 If you don't use Resend, the portal uses normal WordPress mail. In that case install **WP Mail SMTP** so mail is delivered.
 
+## Notifications
+The bell in the top bar lists everything addressed to you: calls assigned to you, leave decisions, in-service assignments, time approvals, new shifts and new accounts to approve. Tap **Turn on notifications** (bell, Chat or Profile) to also get **phone and desktop notifications** for these and for new chat messages.
+- These notifications arrive while the portal is open or running in the background. On iPhone, install the app to the Home Screen first, because Safari only allows notifications from installed apps.
+- Alerts when the app is fully closed would need *Web Push* (VAPID keys plus a push service). That isn't set up yet, but it can be added later. Emails still go out for calls, leave and assignments.
+
 ## Install the phone app
 
 The portal is a Progressive Web App (PWA), so nobody needs an app store:
@@ -62,19 +80,32 @@ Apple and Google developer accounts.)*
 - **Office sign-up:** create account, verify email, admin approves (Admin → Users & access → Approve), user signs in.
 - **Job applicant:** create account ("Apply for a job"), verify email, fill in the application, HR approves and picks the designation,
   and ticks **Allow orientation** and/or **Allow timesheet**. The person becomes field staff.
-- **Time:** office staff clock in and out, and field staff add visits to a weekly timesheet and submit it. Both go to **Approvals**.
+- **Time:** office staff clock in and out (field staff use HHAeXchange), and field staff allowed a timesheet add hours and submit the week. Both go to **Approvals**.
   **Payroll export** then downloads an Excel file with a *Summary* sheet (regular / overtime over 40 hours per Mon–Sun week / total) and a *Detail* sheet.
-- **Intake:** a referral board (New → Verifying insurance → Assessment → Active → On hold / Discharged). Assign the care team.
-  Assigned field staff see the patient under **My patients** and can write visit notes.
+- **Intake:** one list of every referral and case, with status tabs (New, Verifying insurance, Assessment, Active, On hold,
+  Discharged, Declined), search, case notes and the care team.
 - **News and posts:** *Website + all staff* posts are normal WordPress posts, so they also appear on the website's News section.
   *All staff / Office / Field* posts stay inside the portal (a private "Staff announcements" post type).
-- **Forms:** your existing duty sheet, patient assessment, in-service training center, employment application packet
-  and Workspace app open inside the portal. They submit to your Google Apps Script backends, and each one shows
-  *Building… → Submitting… → Submitted successfully*.
+- **Forms:** your existing duty sheet, patient assessment, employment application packet and Workspace app open inside
+  the portal, with the employee's name filled in. They submit to your Google Apps Script backends, and each one shows
+  *Building… → Submitting… → Submitted successfully*. The forms use the website's design, and on phones the paper forms
+  shrink to fit the screen, with a **Fit to screen / Actual size** switch.
+  **The PDFs are exactly the same as before.** The new styling switches itself off while a PDF is being made
+  (`app/forms/chcs-form-theme.css` and `.js`). This was verified by comparing the PDF page images against the original forms on desktop and phone.
+- **In-services:** the In-Service Training Center is part of the **In-services** tab, not a form. It shows the employee's profile name,
+  due dates come from the nurse's assignments, and finishing a course is recorded automatically and tells the nurse.
+
+## Updating from version 1.0
+Upload the new `chcs-portal.zip` (Plugins → Add New → Upload, then choose **Replace current with uploaded**). The update runs once by itself:
+- **Visit notes are removed**, because field staff document visits in HHAeXchange. Existing visit-note records stay in the database but no longer show.
+- **Office designations gain** *Vacation & sick leave* and *Call dashboard*.
+- **Office Manager and HR Coordinator gain** *Manage leave*.
+- **Nursing Supervisor gains** *In-services*.
+Review the result in **Designations**.
 
 ## Security and HIPAA notes
 
-- Intake/cases, visit notes and chat can contain **protected health information (PHI)**. Host WordPress with a provider
+- Intake/cases, call notes and chat can contain **protected health information (PHI)**. Host WordPress with a provider
   that will sign a **BAA** (Business Associate Agreement), always use HTTPS, keep WordPress and plugins updated, and back up the database.
 - Use **2-factor authentication** for admin accounts (e.g. the Wordfence or WP 2FA plugin).
 - Emails never include case details. **Don't put patient names in shift titles**, because shift emails include the title.
@@ -94,10 +125,11 @@ chcs-portal/
 │   ├── rest-auth.php        sign-up, verify, login, reset, profile, dashboard
 │   ├── rest-admin.php       users & access, designations, email settings, audit
 │   ├── rest-time.php        clock, timesheets, approvals, payroll
-│   ├── rest-care.php        intake / cases / visit notes
+│   ├── rest-care.php        intake / cases
 │   ├── rest-team.php        chat, schedules
 │   ├── rest-training.php    in-services, quizzes, orientation
 │   ├── rest-content.php     applications, news & posts
+│   ├── rest-ops.php         notifications, vacation & sick leave, call dashboard
 │   └── portal-page.php      serves /portal/, manifest, service worker; wp-admin menu
 └── app/                     the portal app (HTML/CSS/JS, no build step)
     ├── js/core.js, js/app.js
@@ -111,5 +143,5 @@ REST API: `/wp-json/chcs/v1/…`. The demo backend in `app/js/demo-server.js` im
 ## Try the demo (no WordPress)
 
 `app/index.html` runs in **demo mode**, and all data stays in that browser. Demo accounts (password `demo1234`):
-`admin@chcs.demo`, `manager@chcs.demo`, `intake@chcs.demo`, `hha@chcs.demo`, `rn@chcs.demo`,
+`admin@chcs.demo`, `manager@chcs.demo`, `intake@chcs.demo`, `nurse@chcs.demo` (Nursing Supervisor), `hha@chcs.demo`, `rn@chcs.demo`,
 `applicant@chcs.demo`, `pending@chcs.demo`. Emails appear in the **Demo inbox** button.

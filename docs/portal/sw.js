@@ -18,3 +18,13 @@ self.addEventListener('fetch', function (e) {
     return res;
   }).catch(function () { return caches.match(req).then(function (r) { return r || caches.match('./'); }); }));
 });
+
+/* Tapping a notification opens (or focuses) the portal on the right page. */
+self.addEventListener('notificationclick', function (e) {
+  e.notification.close();
+  var link = (e.notification.data && e.notification.data.link) || '#/dashboard';
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
+    for (var i = 0; i < list.length; i++) { if (list[i].url.indexOf(self.registration.scope) === 0) { list[i].postMessage({ type: 'chcs-open', link: link }); return list[i].focus(); } }
+    return self.clients.openWindow(self.registration.scope + link);
+  }));
+});

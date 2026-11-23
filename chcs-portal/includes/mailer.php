@@ -30,6 +30,9 @@ function chcs_email_defaults() {
 			'time_decision'        => true,
 			'shift_assigned'       => true,
 			'inservice_assigned'   => true,
+			'leave_request'        => true,
+			'leave_decision'       => true,
+			'call_assigned'        => true,
 			'new_post'             => false,
 		),
 	);

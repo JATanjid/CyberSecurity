@@ -4,25 +4,41 @@
 
   /* Every permission an admin can grant. [key, label, group, description] */
   window.CHCS_MODULES = [
-    ['clock', 'Time clock', 'Time & pay', 'Clock in / clock out'],
-    ['timesheet', 'Timesheet', 'Time & pay', 'Enter visit hours and submit weekly timesheets'],
-    ['approvals', 'Approve time', 'Time & pay', 'Approve or reject submitted hours and review notes'],
-    ['payroll', 'Payroll export', 'Time & pay', 'Download approved hours as an Excel file'],
-    ['intake', 'Intake & cases', 'Patients', 'Create referrals and manage patient cases'],
-    ['notes', 'Visit notes', 'Patients', 'Write visit notes for assigned patients'],
-    ['forms', 'Forms', 'Patients', 'Duty sheet, patient assessment and other agency forms'],
-    ['calendar', 'My schedule', 'Scheduling', 'See own shifts'],
-    ['calendar_manage', 'Manage schedules', 'Scheduling', 'Create and edit shifts for everyone'],
+    ['clock', 'Time clock', 'Time & pay', 'Clock in / clock out (office staff only)'],
+    ['timesheet', 'Timesheet', 'Time & pay', 'Enter hours and submit weekly timesheets'],
+    ['approvals', 'Approve time', 'Time & pay', 'Approve or reject submitted hours'],
+    ['payroll', 'Payroll export', 'Time & pay', 'Download approved hours and leave as an Excel file'],
+    ['leave', 'Vacation & sick leave', 'Time & pay', 'Request vacation, sick and other leave'],
+    ['leave_manage', 'Manage leave', 'Time & pay', 'Approve leave requests and set yearly allowances'],
+    ['calls', 'Call dashboard', 'Communication', 'Log incoming calls and assign follow-ups'],
     ['chat', 'Chat', 'Communication', 'Message coworkers (field staff can message the office only)'],
     ['news_manage', 'Manage news & posts', 'Communication', 'Publish posts to the portal and the website'],
+    ['intake', 'Intake & cases', 'Patients', 'Create referrals and manage patient cases'],
+    ['forms', 'Forms', 'Patients', 'Duty sheet, patient assessment and other agency forms'],
+    ['calendar', 'My schedule', 'Scheduling', 'See own shifts, leave and due dates'],
+    ['calendar_manage', 'Manage schedules', 'Scheduling', 'Create and edit shifts for everyone'],
     ['inservices', 'In-services', 'Training', 'Complete assigned in-service trainings'],
     ['orientation', 'Orientation', 'Training', 'Allowed to complete new-hire orientation'],
-    ['training_manage', 'Manage training', 'Training', 'Create in-services and orientation, see completion reports'],
+    ['training_manage', 'Manage training', 'Training', 'Create and assign in-services, orientation, completion reports'],
     ['applications', 'Review applications', 'Admin', 'Approve or reject job applicants'],
     ['users', 'Users & access', 'Admin', 'Approve accounts, set designations and permissions'],
     ['settings', 'Email & API settings', 'Admin', 'Connect Resend and control automatic emails'],
     ['audit', 'Audit log', 'Admin', 'See who did what']
   ];
+
+  /* Trainings inside the CHCS In-Service Training Center (forms/inservice-training.html). */
+  window.CHCS_CENTER = [
+    ['homecare', 'Home Care Overview', 60], ['osha', 'OSHA Standards: Infection and Safety', 60],
+    ['disaster', 'Disaster and Emergency Preparedness', 45], ['oxygen', 'Oxygen Safety', 30],
+    ['rnlpn', 'RN/LPN Training / Competency Checklist', 60], ['violence', 'Workplace Violence Prevention & Safety', 45],
+    ['measles', 'Measles & Hantavirus Infection Control', 45], ['lithium', 'Lithium Battery Safety & Fire Prevention', 30],
+    ['lgbtqia', 'LGBTQIA+ Cultural Competency Training', 45], ['maid', 'Medical Aid in Dying Clinical Protocols', 45],
+    ['cyclo', 'Cyclosporiasis: Prevention, Identification, and Reporting', 30], ['harassment', 'Sexual Harassment Prevention Training', 60]
+  ];
+  window.CHCS_LEAVE_TYPES = [['vacation', 'Vacation'], ['sick', 'Sick leave'], ['personal', 'Personal day'], ['bereavement', 'Bereavement'], ['jury', 'Jury duty'], ['unpaid', 'Unpaid leave'], ['other', 'Other']];
+  window.CHCS_CALLER_TYPES = [['patient', 'Patient'], ['family', 'Family member'], ['referral', 'Referral source'], ['physician', 'Physician / hospital'], ['employee', 'Employee'], ['applicant', 'Job applicant'], ['insurance', 'Insurance / MLTC'], ['vendor', 'Vendor'], ['other', 'Other']];
+  window.CHCS_CALL_REASONS = ['New referral / services', 'Scheduling', 'Billing / insurance', 'Complaint', 'Clinical question', 'Employment / HR', 'Payroll', 'Message for staff', 'Other'];
+
 
   var cfg = window.CHCS_CONFIG || { mode: 'demo' };
   cfg.mode = cfg.mode || 'demo';

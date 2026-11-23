@@ -41,6 +41,10 @@
     heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/>',
     lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
     pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>',
+    bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+    call: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    nurse: '<path d="M12 2l7 3v6c0 5-3 8.5-7 11-4-2.5-7-6-7-11V5l7-3z"/><path d="M12 8v6M9 11h6"/>',
     ext: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>'
   };
   function ico(n) { return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (IP[n] || IP.home) + '</svg>'; }
@@ -113,10 +117,11 @@
     var r = routes.find(function (x) { return x.re.test(path); });
     if (!r) { go('#/dashboard'); return; }
     var params = path.match(r.re).groups || {};
+    document.body.setAttribute('data-route', path.split('/')[0]);
 
     if (!r.public && !state.user) { try { state.user = (await API.get('me')).user; } catch (e) { state.user = null; } }
     if (!r.public && !state.user) { sessionStorage.setItem('chcs_after_login', location.hash); go('#/login'); return; }
-    if (r.public) { document.title = r.title + ' · CHCS Portal'; renderAuth(await r.render(params, query)); if (r.mount) r.mount($('#app'), params, query); return; }
+    if (r.public) { var dr = $('.drawer'); if (dr) dr.parentNode.removeChild(dr); document.title = r.title + ' · CHCS Portal'; renderAuth(await r.render(params, query)); if (r.mount) r.mount($('#app'), params, query); return; }
 
     if (state.user.status === 'pending' && path !== 'profile') { renderShell(); setContent(pendingView()); $('#pending-out').onclick = function () { $('#logout-link').click(); }; return; }
     if (isApplicant() && ['application', 'news', 'profile'].indexOf(path) === -1) { go('#/application'); return; }
@@ -150,24 +155,25 @@
       return items;
     }
     if (u.status === 'pending') return items;
+    var office = u.type !== 'field';
     add('Home', 'dashboard', 'Dashboard', 'home', '#/dashboard', true);
     add('Home', 'news', 'News & posts', 'news', '#/news', true);
     add('Home', 'chat', 'Chat', 'chat', '#/chat', can('chat'), state.counts.unread);
-    add('Time & pay', 'clock', 'Time clock', 'clock', '#/clock', can('clock'));
+    add('Home', 'calls', 'Call dashboard', 'call', '#/calls', can('calls'), state.counts.myCalls);
+    add('Time & pay', 'clock', 'Time clock', 'clock', '#/clock', can('clock') && office);
+    add('Time & pay', 'leave', 'Vacation & sick leave', 'sun', '#/leave', (can('leave') && office) || can('leave_manage'), state.counts.pendingLeave);
     add('Time & pay', 'timesheet', 'Timesheet', 'sheet', '#/timesheet', can('timesheet'));
     add('Time & pay', 'approvals', 'Approvals', 'checkc', '#/approvals', can('approvals'), state.counts.pendingApprovals);
     add('Time & pay', 'payroll', 'Payroll export', 'cash', '#/payroll', can('payroll'));
     add('Patients', 'cases', 'Intake & cases', 'folder', '#/cases', can('intake'), state.counts.newCases);
-    add('Patients', 'cases', 'My patients', 'heart', '#/cases', !can('intake') && can('notes'));
-    add('Patients', 'notes', 'Visit notes', 'note', '#/notes', can('notes') || can('intake'));
-    add('Patients', 'forms', 'Forms', 'form', '#/forms', can('forms') || can('inservices'));
-    add('Schedule', 'calendar', can('calendar_manage') ? 'Schedules' : 'My schedule', 'cal', '#/calendar', can('calendar') || can('calendar_manage'));
+    add('Patients', 'forms', 'Forms', 'form', '#/forms', can('forms'));
+    add('Schedule', 'calendar', can('calendar_manage') ? 'Calendar' : 'My calendar', 'cal', '#/calendar', can('calendar') || can('calendar_manage'));
     add('Training', 'inservices', 'In-services', 'grad', '#/inservices', can('inservices'), state.counts.inservicesDue);
     add('Training', 'orientation', 'Orientation', 'compass', '#/orientation', can('orientation'));
     add('Admin', 'applications', 'Applications', 'brief', '#/applications', can('applications'), state.counts.pendingApplications);
     add('Admin', 'admin-users', 'Users & access', 'users', '#/admin/users', can('users'), state.counts.pendingUsers);
     add('Admin', 'admin-designations', 'Designations', 'tag', '#/admin/designations', can('users'));
-    add('Admin', 'admin-training', 'Training setup', 'grad', '#/admin/training', can('training_manage'));
+    add('Admin', 'admin-training', 'Training setup', 'nurse', '#/admin/training', can('training_manage'));
     add('Admin', 'admin-email', 'Email & API', 'mail', '#/admin/email', can('settings'));
     add('Admin', 'admin-audit', 'Audit log', 'log', '#/admin/audit', can('audit'));
     return items;
@@ -177,14 +183,16 @@
     if (!$('.shell')) {
       $('#app').innerHTML =
         (CFG.mode === 'demo' ? '<div class="demo-banner">Demo mode — data is saved only in this browser. Don\'t enter real patient or employee information. <button id="demo-reset">Reset demo data</button></div>' : '') +
-        '<div class="shell"><aside class="side" id="side" aria-label="Main navigation"></aside><div class="main"><header class="topbar"><button class="btn btn--ghost btn--icon menu-btn" id="menu-btn" aria-label="Open menu" aria-controls="side" aria-expanded="false">' + ico('menu') + '</button><div class="topbar__title grow"></div><a class="btn btn--ghost btn--icon" href="#/profile" aria-label="My profile">' + H.avatar(u.name, 'sm') + '</a></header><main id="content" class="content" tabindex="-1"></main></div></div><nav class="tabbar" id="tabbar" aria-label="Quick navigation"></nav>' +
+        '<div class="shell"><aside class="side" id="side" aria-label="Main navigation"></aside><div class="main"><header class="topbar"><button class="btn btn--ghost btn--icon menu-btn" id="menu-btn" aria-label="Open menu" aria-controls="side" aria-expanded="false">' + ico('menu') + '</button><div class="topbar__title grow"></div><button class="btn btn--ghost btn--icon bell" id="bell" aria-label="Notifications">' + ico('bell') + '<span class="bell__count hidden" id="bell-count"></span></button><a class="btn btn--ghost btn--icon" href="#/profile" aria-label="My profile">' + H.avatar(u.name, 'sm') + '</a></header><main id="content" class="content" tabindex="-1"></main></div></div><nav class="tabbar" id="tabbar" aria-label="Quick navigation"></nav>' +
         (CFG.mode === 'demo' ? '<button class="btn inbox-fab" id="inbox-fab" aria-label="Demo inbox">' + ico('mail') + '<span>Demo inbox</span></button>' : '');
       $('#menu-btn').onclick = function () { toggleSide(true); };
       window.addEventListener('scroll', function () { var t = $('.topbar'); if (t) t.classList.toggle('is-scrolled', window.scrollY > 4); }, { passive: true });
       if ($('#demo-reset')) $('#demo-reset').onclick = async function () { if (await confirmBox('Reset demo data?', 'All demo changes in this browser will be erased and the sample data restored.', 'Reset')) { await API.post('demo/reset'); state.user = null; go('#/login'); location.reload(); } };
       if ($('#inbox-fab')) $('#inbox-fab').onclick = demoInbox;
+      $('#bell').onclick = openNotifications;
       refreshCounts();
       state.countTimer = setInterval(refreshCounts, 30000);
+      startPulse();
     }
     var items = navItems(), groups = {};
     items.forEach(function (i) { (groups[i.group] = groups[i.group] || []).push(i); });
@@ -194,16 +202,17 @@
         return '<a href="' + i.href + '" class="' + (i.key === active ? 'is-active' : '') + '"' + (i.key === active ? ' aria-current="page"' : '') + '>' + ico(i.icon) + '<span>' + esc(i.label) + '</span>' + (i.count ? '<span class="count">' + i.count + '</span>' : '') + '</a>';
       }).join('') + '</nav></div>';
     });
-    side += '<div class="nav-group"><nav class="nav"><a href="#/profile" class="' + (active === 'profile' ? 'is-active' : '') + '">' + ico('user') + '<span>My profile</span></a><a href="#" id="install-link" class="' + (window.__installPrompt ? '' : 'hidden') + '">' + ico('phone') + '<span>Install app</span></a><a href="#" id="logout-link">' + ico('out') + '<span>Sign out</span></a></nav></div>';
+    side += '<div class="nav-group"><nav class="nav"><a href="#/profile" class="' + (active === 'profile' ? 'is-active' : '') + '">' + ico('user') + '<span>My profile</span></a><a href="#" id="install-link" class="' + (window.__installPrompt ? '' : 'hidden') + '">' + ico('phone') + '<span>Install app</span></a>' + (CFG.mode === 'demo' ? '<a href="#" id="inbox-link">' + ico('mail') + '<span>Demo inbox</span></a>' : '') + '<a href="#" id="logout-link">' + ico('out') + '<span>Sign out</span></a></nav></div>';
     side += '<div class="side__user">' + H.avatar(u.name) + '<div class="grow"><b>' + esc(u.name) + '</b><small>' + esc(u.designation || typeLabel(u)) + '</small></div></div>';
     $('#side').innerHTML = side;
     $('#side').onclick = function (e) { if (e.target.closest('a')) toggleSide(false); };
-    $('#logout-link').onclick = async function (e) { e.preventDefault(); await API.post('auth/logout'); state.user = null; clearInterval(state.countTimer); $('#app').innerHTML = ''; go('#/login'); };
+    $('#logout-link').onclick = async function (e) { e.preventDefault(); await API.post('auth/logout'); state.user = null; clearInterval(state.countTimer); clearInterval(state.pulseTimer); state.pulse = null; $('#app').innerHTML = ''; go('#/login'); };
     $('#install-link').onclick = function (e) { e.preventDefault(); installApp(); };
+    if ($('#inbox-link')) $('#inbox-link').onclick = function (e) { e.preventDefault(); demoInbox(); };
     // bottom tab bar (phone)
-    var keys = ['dashboard', 'clock', 'timesheet', 'chat', 'calendar', 'cases', 'inservices', 'application', 'news'];
+    var keys = ['dashboard', 'clock', 'calls', 'timesheet', 'chat', 'inservices', 'calendar', 'cases', 'application', 'news'];
     var tabs = keys.map(function (k) { return items.find(function (i) { return i.key === k; }); }).filter(Boolean).slice(0, 4);
-    $('#tabbar').innerHTML = tabs.map(function (i) { return '<a href="' + i.href + '" class="' + (i.key === active ? 'is-active' : '') + '">' + ico(i.icon) + '<span>' + esc(i.label.replace('Time clock', 'Clock').replace('Intake & cases', 'Cases').replace('My schedule', 'Schedule').replace('News & posts', 'News')) + '</span>' + (i.count ? '<span class="count">' + i.count + '</span>' : '') + '</a>'; }).join('') + '<button type="button" id="tab-more">' + ico('more') + '<span>More</span></button>';
+    $('#tabbar').innerHTML = tabs.map(function (i) { return '<a href="' + i.href + '" class="' + (i.key === active ? 'is-active' : '') + '">' + ico(i.icon) + '<span>' + esc(i.label.replace('Time clock', 'Clock').replace('Intake & cases', 'Cases').replace('My calendar', 'Calendar').replace('News & posts', 'News').replace('Call dashboard', 'Calls')) + '</span>' + (i.count ? '<span class="count">' + i.count + '</span>' : '') + '</a>'; }).join('') + '<button type="button" id="tab-more">' + ico('more') + '<span>More</span></button>';
     $('#tab-more').onclick = function () { toggleSide(true); };
   }
   function toggleSide(open) {
@@ -223,6 +232,58 @@
     } catch (e) { /* offline */ }
   }
 
+  /* ================================================================ notifications */
+  // One light request every 12s: new notifications, new chat messages, unread counts.
+  // Also marks chat messages as "delivered" (✓✓) for the sender.
+  function startPulse() {
+    clearInterval(state.pulseTimer);
+    state.pulse = { since: null, msgSince: null };
+    pulse(); state.pulseTimer = setInterval(pulse, 12000);
+  }
+  async function pulse() {
+    if (!state.user || state.user.status !== 'active' || isApplicant()) return;
+    var first = state.pulse.since === null;
+    try {
+      var d = await API.get('pulse?since=' + (state.pulse.since || 0) + '&msgSince=' + (state.pulse.msgSince || 0));
+      setBell(d.unreadNotifications);
+      if (state.counts.unread !== d.unreadChat) { state.counts.unread = d.unreadChat; var a = $('.nav a[href="#/chat"] .count'); if (a || d.unreadChat) refreshCounts(); }
+      if (!first) {
+        d.notifications.forEach(function (n) { systemNotify(n.title, n.body, n.link, 'n' + n.id); });
+        var inChat = location.hash.indexOf('#/chat/') === 0 && !document.hidden;
+        d.messages.forEach(function (m) { if (!(inChat && location.hash === '#/chat/' + m.convId)) systemNotify(m.userName + (m.title && m.title !== m.userName ? ' · ' + m.title : ''), m.body, '#/chat/' + m.convId, 'm' + m.id); });
+        if (d.notifications.length) d.notifications.slice(0, 2).forEach(function (n) { if (!document.hidden) toast(n.title); });
+      }
+      state.pulse.since = d.lastNotifId; state.pulse.msgSince = d.lastMsgId;
+    } catch (e) { /* offline */ }
+  }
+  function setBell(n) { var c = $('#bell-count'); if (!c) return; c.textContent = n > 99 ? '99+' : n; c.classList.toggle('hidden', !n); }
+  function notifyPermission() { return 'Notification' in window ? Notification.permission : 'unsupported'; }
+  async function enableNotifications() {
+    if (!('Notification' in window)) { toast('This browser does not support notifications. On iPhone, install the app to your Home Screen first.'); return; }
+    var r = await Notification.requestPermission();
+    toast(r === 'granted' ? 'Notifications are on.' : 'Notifications are blocked. Allow them in your browser settings.', r === 'granted' ? 'ok' : 'bad');
+    if (r === 'granted') systemNotify('Notifications are on', 'You will be alerted about new messages, calls and assignments.', '#/dashboard', 'test');
+  }
+  function systemNotify(title, body, link, tag) {
+    if (notifyPermission() !== 'granted') return;
+    var opts = { body: body || '', tag: 'chcs-' + tag, icon: ASSET + 'assets/icon-192.png', badge: ASSET + 'assets/favicon.png', data: { link: link || '#/dashboard' } };
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.ready.then(function (reg) { reg.showNotification(title, opts); }).catch(function () {});
+    else try { var n = new Notification(title, opts); n.onclick = function () { window.focus(); location.hash = link || '#/dashboard'; n.close(); }; } catch (e) { /* ignore */ }
+  }
+  if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('message', function (e) { if (e.data && e.data.type === 'chcs-open') location.hash = e.data.link; });
+  async function openNotifications() {
+    var list = await API.get('notifications');
+    var perm = notifyPermission();
+    modal('Notifications', '<div class="modal__body">' + (perm !== 'granted' ? '<div class="alert alert--info" style="margin-bottom:14px">' + ico('bell') + '<span>Get alerts on this device for messages, calls and assignments. <button class="link" id="notif-enable">Turn on notifications</button></span></div>' : '') +
+      (list.length ? '<ul class="list notif-list">' + list.map(function (n) { return '<li class="' + (n.read ? '' : 'is-unread') + '"><a class="item-link" href="' + esc(n.link || '#/dashboard') + '" data-notif="' + n.id + '"><div class="course__icon">' + ico({ call: 'call', leave: 'sun', inservice: 'grad', time: 'clock', shift: 'cal', account: 'users', application: 'brief' }[n.kind] || 'bell') + '</div><div class="grow"><b>' + esc(n.title) + '</b>' + (n.body ? '<div class="small muted">' + esc(n.body) + '</div>' : '') + '<div class="small muted">' + esc(H.ago(n.createdAt)) + '</div></div>' + (n.read ? '' : '<span class="dot" aria-label="Unread"></span>') + '</a></li>'; }).join('') + '</ul>' : '<div class="empty">' + ico('bell') + '<div>You\'re all caught up.</div></div>') + '</div><div class="modal__foot"><button class="btn btn--ghost" id="notif-all">Mark all as read</button><button class="btn" data-close>Close</button></div>', {
+      mount: function (w, close) {
+        var en = $('#notif-enable', w); if (en) en.onclick = function () { enableNotifications(); close(); };
+        $('#notif-all', w).onclick = async function () { await API.post('notifications/read', { all: true }); setBell(0); close(); };
+        on(w, 'click', '[data-notif]', function (e, a) { API.post('notifications/read', { ids: [+a.dataset.notif] }); close(); });
+      }
+    });
+  }
+
   /* ================================================================ auth views */
   function renderAuth(inner) {
     $('#app').innerHTML = '<div class="auth"><section class="auth__brand"><a class="auth__logo" href="#/login"><img src="' + ASSET + 'assets/logo.png" alt=""><span><b>Complete Home Care Services</b><small>Staff &amp; Employee Portal</small></span></a>' +
@@ -235,7 +296,7 @@
     return authTabs('login') + '<h1>Welcome back</h1><p class="muted">Sign in to the CHCS staff portal.</p><div id="auth-msg"></div>' +
       '<form id="login-form" class="stack" novalidate><label class="field"><span>Email</span><input class="input" name="email" type="email" autocomplete="email" required></label><label class="field"><span>Password</span><input class="input" name="password" type="password" autocomplete="current-password" required></label><div class="row row--between"><span></span><a href="#/forgot" class="small">Forgot password?</a></div><button class="btn btn--lg btn--block" type="submit">Sign in</button></form>' +
       (CFG.mode === 'demo' ? '<div class="demo-box"><b class="small">Demo accounts</b> <span class="small muted">(password <code>demo1234</code>)</span><div class="chips" style="margin-top:10px">' +
-        [['admin@chcs.demo', 'Admin'], ['manager@chcs.demo', 'Office manager'], ['intake@chcs.demo', 'Intake coordinator'], ['hha@chcs.demo', 'HHA (field)'], ['rn@chcs.demo', 'RN (field)'], ['applicant@chcs.demo', 'Job applicant'], ['pending@chcs.demo', 'Awaiting approval']].map(function (a) { return '<button type="button" class="chip" data-demo="' + a[0] + '">' + a[1] + '</button>'; }).join('') + '</div></div>' : '');
+        [['admin@chcs.demo', 'Admin'], ['manager@chcs.demo', 'Office manager'], ['intake@chcs.demo', 'Intake coordinator'], ['nurse@chcs.demo', 'Nursing supervisor'], ['hha@chcs.demo', 'HHA (field)'], ['rn@chcs.demo', 'RN (field)'], ['applicant@chcs.demo', 'Job applicant'], ['pending@chcs.demo', 'Awaiting approval']].map(function (a) { return '<button type="button" class="chip" data-demo="' + a[0] + '">' + a[1] + '</button>'; }).join('') + '</div></div>' : '');
   }, mount: function (root) {
     var f = $('#login-form');
     f.onsubmit = async function (e) {
@@ -303,15 +364,18 @@
     var d = await API.get('dashboard'); state.counts = d; var u = state.user;
     var hr = new Date().getHours(), greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
     var html = '<div class="hero-card"><div class="row row--between"><div><div class="small" style="opacity:.8">' + esc(new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })) + '</div><h1>' + greet + ', ' + esc(u.name.split(' ')[0]) + '</h1><div style="opacity:.85">' + esc(u.designation || typeLabel(u)) + '</div></div><div class="row">' +
-      (can('clock') ? '<a class="btn ' + (d.openEntry ? 'btn--red' : '') + '" href="#/clock">' + ico('clock') + (d.openEntry ? 'Clocked in · ' + H.fmtTime(d.openEntry.start) : 'Clock in') + '</a>' : '') +
+      (can('clock') && u.type !== 'field' ? '<a class="btn ' + (d.openEntry ? 'btn--red' : '') + '" href="#/clock">' + ico('clock') + (d.openEntry ? 'Clocked in · ' + H.fmtTime(d.openEntry.start) : 'Clock in') + '</a>' : '') +
       (can('chat') ? '<a class="btn btn--ghost" href="#/chat">' + ico('chat') + 'Messages' + (d.unread ? ' (' + d.unread + ')' : '') + '</a>' : '') + '</div></div></div>';
     var stats = [];
-    if (can('clock') || can('timesheet')) stats.push(['clock', 'Hours this week', H.hours(d.weekMinutes), 'Mon–Sun', can('clock') ? '#/clock' : '#/timesheet']);
+    if (d.inservicesDue != null && u.type === 'field') stats.push(['grad', 'In-services to do', d.inservicesDue, 'See due dates', '#/inservices']);
+    if (d.myCalls != null) stats.push(['call', 'Calls for me', d.myCalls, 'Open call-backs', '#/calls?filter=mine']);
+    if ((can('clock') && u.type !== 'field') || can('timesheet')) stats.push(['clock', 'Hours this week', H.hours(d.weekMinutes), 'Mon–Sun', can('clock') && u.type !== 'field' ? '#/clock' : '#/timesheet']);
+    if (d.pendingLeave != null) stats.push(['sun', 'Leave to approve', d.pendingLeave, 'Pending requests', '#/leave?tab=manage']);
     if (d.pendingApprovals != null) stats.push(['checkc', 'Time to approve', d.pendingApprovals, 'Pending entries', '#/approvals']);
     if (d.newCases != null) stats.push(['folder', 'New referrals', d.newCases, 'New + verifying', '#/cases']);
     if (d.pendingApplications != null) stats.push(['brief', 'Applications', d.pendingApplications, 'Waiting for review', '#/applications']);
     if (d.pendingUsers != null) stats.push(['users', 'Accounts to approve', d.pendingUsers, 'Verified, waiting', '#/admin/users']);
-    if (d.inservicesDue != null) stats.push(['grad', 'In-services to do', d.inservicesDue, 'Assigned to you', '#/inservices']);
+    if (d.inservicesDue != null && u.type !== 'field') stats.push(['grad', 'In-services to do', d.inservicesDue, 'Assigned to you', '#/inservices']);
     if (can('chat')) stats.push(['chat', 'Unread messages', d.unread, 'All conversations', '#/chat']);
     html += '<div class="stats">' + stats.slice(0, 4).map(function (s) { return '<a class="stat" href="' + s[4] + '"><div class="stat__label">' + ico(s[0]) + esc(s[1]) + '</div><div class="stat__value">' + esc(s[2]) + '</div><div class="stat__hint">' + esc(s[3]) + '</div></a>'; }).join('') + '</div>';
     html += '<div class="cards cards--2"><section class="card"><div class="card__head"><h2>News &amp; announcements</h2><a href="#/news" class="small">All posts</a></div>' + (d.posts.length ? d.posts.map(postHtml).join('') : '<div class="empty">No posts yet.</div>') + '</section>';
@@ -344,6 +408,7 @@
 
   /* ================================================================ time clock */
   route('clock', { title: 'Time clock', perm: 'clock', render: async function () {
+    if (state.user.type === 'field') return '<div class="card"><div class="empty">' + ico('clock') + '<h2>Clock in with HHAeXchange</h2><p>Field staff clock in and out of visits in the HHAeXchange app.</p></div></div>';
     var list = await API.get('time/entries?from=' + H.addDays(H.ymd(), -13));
     var open = list.find(function (t) { return t.status === 'open'; });
     var week = list.filter(function (t) { return t.date >= H.weekStart() && t.end; }).reduce(function (a, t) { return a + t.minutes; }, 0);
@@ -403,12 +468,9 @@
   } });
 
   /* ================================================================ approvals */
-  route('approvals', { title: 'Approvals', perm: 'approvals', render: async function (p, q) {
-    var tab = q.tab || 'time';
-    var head = '<div class="page-head"><div><h1>Approvals</h1><p>Review hours before they go to payroll.</p></div></div><div class="tabs"><a href="#/approvals" class="' + (tab === 'time' ? 'is-active' : '') + '">Time entries</a><a href="#/approvals?tab=notes" class="' + (tab === 'notes' ? 'is-active' : '') + '">Visit notes</a></div>';
-    if (tab === 'notes') { var notes = await API.get('notes?scope=all'); return head + notesTable(notes, true); }
+  route('approvals', { title: 'Approvals', perm: 'approvals', render: async function () {
     var list = await API.get('time/entries?scope=all&status=pending');
-    return head + '<section class="card"><div class="card__head"><h2>' + list.length + ' pending</h2><div class="row"><input class="input" id="dec-note" placeholder="Note to employee (optional)" style="min-height:34px;max-width:240px"><button class="btn btn--ghost btn--sm" data-decide="reject">Reject selected</button><button class="btn btn--ok btn--sm" data-decide="approve">' + ico('check') + 'Approve selected</button></div></div>' + timeTable(list, true, true) + '</section>';
+    return '<div class="page-head"><div><h1>Approvals</h1><p>Review hours before they go to payroll. Leave requests are under <a href="#/leave?tab=manage">Vacation &amp; sick leave</a>.</p></div></div><section class="card"><div class="card__head"><h2>' + list.length + ' pending</h2><div class="row"><input class="input" id="dec-note" placeholder="Note to employee (optional)" style="min-height:34px;max-width:240px"><button class="btn btn--ghost btn--sm" data-decide="reject">Reject selected</button><button class="btn btn--ok btn--sm" data-decide="approve">' + ico('check') + 'Approve selected</button></div></div>' + timeTable(list, true, true) + '</section>';
   }, mount: function (root) {
     var all = $('#sel-all'); if (all) all.onchange = function () { $$('.sel', root).forEach(function (c) { c.checked = all.checked; }); };
     on(root, 'click', '[data-decide]', async function (e, b) {
@@ -416,13 +478,12 @@
       if (!ids.length) { toast('Select at least one entry.'); return; }
       try { await API.post('time/decide', { ids: ids, action: b.dataset.decide, note: $('#dec-note').value }); toast(ids.length + ' entr' + (ids.length > 1 ? 'ies ' : 'y ') + (b.dataset.decide === 'approve' ? 'approved' : 'rejected') + '.', 'ok'); refreshCounts(); render(); } catch (err) { fail(err); }
     });
-    bindNoteReview(root);
   } });
 
   /* ================================================================ payroll */
   route('payroll', { title: 'Payroll export', perm: 'payroll', render: function (p, q) {
     var to = q.to || H.addDays(H.weekStart(), -1), from = q.from || H.addDays(to, -13);
-    return '<div class="page-head"><div><h1>Payroll export</h1><p>Approved hours, with overtime over 40 hours per week (Mon–Sun).</p></div></div>' +
+    return '<div class="page-head"><div><h1>Payroll export</h1><p>Approved hours (overtime over 40 hours per Mon–Sun week) plus approved vacation and sick leave.</p></div></div>' +
       '<section class="card"><div class="card__body"><form class="row" id="pay-form" style="align-items:flex-end"><label class="field"><span>From</span><input class="input" type="date" name="from" value="' + from + '"></label><label class="field"><span>To</span><input class="input" type="date" name="to" value="' + to + '"></label><label class="check" style="margin-bottom:10px"><input type="checkbox" name="includePending" value="1"' + (q.includePending ? ' checked' : '') + '> Include pending</label><button class="btn">Preview</button><button type="button" class="btn btn--ok" id="xlsx">' + ico('dl') + 'Download Excel</button></form></div><div id="pay-out"></div></section>';
   }, mount: async function (root, p, q) {
     var f = $('#pay-form'), data = null;
@@ -430,7 +491,7 @@
       var d = H.formData(f);
       data = await API.get('payroll?from=' + d.from + '&to=' + d.to + (d.includePending ? '&includePending=1' : ''));
       var tot = data.summary.reduce(function (a, s) { return a + s.totalHours; }, 0);
-      $('#pay-out').innerHTML = data.summary.length ? '<div class="table-wrap"><table class="table table--cards"><thead><tr><th>Employee</th><th>Designation</th><th class="right">Regular</th><th class="right">Overtime</th><th class="right">Total</th><th class="right">Entries</th></tr></thead><tbody>' + data.summary.map(function (s) { return '<tr><td data-label="Employee"><b>' + esc(s.name) + '</b></td><td data-label="Designation">' + esc(s.designation) + '</td><td data-label="Regular" class="right">' + s.regularHours.toFixed(2) + '</td><td data-label="Overtime" class="right">' + s.overtimeHours.toFixed(2) + '</td><td data-label="Total" class="right"><b>' + s.totalHours.toFixed(2) + '</b></td><td data-label="Entries" class="right">' + s.entries + '</td></tr>'; }).join('') + '<tr><td colspan="4"><b>Total</b></td><td class="right"><b>' + tot.toFixed(2) + '</b></td><td></td></tr></tbody></table></div>' : '<div class="empty">' + ico('cash') + '<div>No approved hours in this period.</div></div>';
+      $('#pay-out').innerHTML = data.summary.length ? '<div class="table-wrap"><table class="table table--cards"><thead><tr><th>Employee</th><th>Designation</th><th class="right">Regular</th><th class="right">Overtime</th><th class="right">Leave / PTO</th><th class="right">Total worked</th><th class="right">Entries</th></tr></thead><tbody>' + data.summary.map(function (s) { return '<tr><td data-label="Employee"><b>' + esc(s.name) + '</b></td><td data-label="Designation">' + esc(s.designation) + '</td><td data-label="Regular" class="right">' + s.regularHours.toFixed(2) + '</td><td data-label="Overtime" class="right">' + s.overtimeHours.toFixed(2) + '</td><td data-label="Leave / PTO" class="right">' + (s.leaveHours || 0).toFixed(2) + '</td><td data-label="Total worked" class="right"><b>' + s.totalHours.toFixed(2) + '</b></td><td data-label="Entries" class="right">' + s.entries + '</td></tr>'; }).join('') + '<tr><td colspan="5"><b>Total</b></td><td class="right"><b>' + tot.toFixed(2) + '</b></td><td></td></tr></tbody></table></div>' : '<div class="empty">' + ico('cash') + '<div>No approved hours in this period.</div></div>';
     }
     f.onsubmit = function (e) { e.preventDefault(); load().catch(fail); };
     $('#xlsx').onclick = async function () {
@@ -438,11 +499,13 @@
         busy('Building…'); if (!data) await load();
         await loadScript(ASSET + 'vendor/xlsx.full.min.js');
         var d = H.formData(f), wb = XLSX.utils.book_new();
-        var sum = [['Employee', 'Employee ID', 'Designation', 'Regular Hours', 'Overtime Hours', 'Total Hours', 'Entries']].concat(data.summary.map(function (s) { return [s.name, s.userId, s.designation, s.regularHours, s.overtimeHours, s.totalHours, s.entries]; }));
+        var sum = [['Employee', 'Employee ID', 'Designation', 'Regular Hours', 'Overtime Hours', 'Leave / PTO Hours', 'Total Worked Hours', 'Entries']].concat(data.summary.map(function (s) { return [s.name, s.userId, s.designation, s.regularHours, s.overtimeHours, s.leaveHours || 0, s.totalHours, s.entries]; }));
         var det = [['Employee', 'Employee ID', 'Designation', 'Date', 'Time In', 'Time Out', 'Hours', 'Patient', 'Source', 'Status', 'Note']].concat(data.detail.map(function (t) { return [t.userName, t.userId, t.designation, t.date, H.fmtTime(t.start), H.fmtTime(t.end), +H.hours(t.minutes), t.patientName || '', t.source, t.status, t.note || '']; }));
         var ws1 = XLSX.utils.aoa_to_sheet(sum), ws2 = XLSX.utils.aoa_to_sheet(det);
         ws1['!cols'] = [{ wch: 24 }, { wch: 12 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 9 }]; ws2['!cols'] = [{ wch: 22 }, { wch: 11 }, { wch: 18 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 8 }, { wch: 22 }, { wch: 9 }, { wch: 10 }, { wch: 30 }];
         XLSX.utils.book_append_sheet(wb, ws1, 'Summary'); XLSX.utils.book_append_sheet(wb, ws2, 'Detail');
+        var lv = [['Employee', 'Employee ID', 'Designation', 'Leave Type', 'From', 'To', 'Workdays in Period', 'Hours']].concat((data.leave || []).map(function (l) { return [l.name, l.userId, l.designation, l.type, l.from, l.to, l.days, l.hours]; }));
+        var ws3 = XLSX.utils.aoa_to_sheet(lv); ws3['!cols'] = [{ wch: 22 }, { wch: 11 }, { wch: 18 }, { wch: 12 }, { wch: 11 }, { wch: 11 }, { wch: 10 }, { wch: 8 }]; XLSX.utils.book_append_sheet(wb, ws3, 'Leave');
         XLSX.writeFile(wb, 'CHCS_Payroll_' + d.from + '_to_' + d.to + '.xlsx');
         busyDone('Excel file ready');
       } catch (e) { busyClose(); fail(e); }
@@ -456,24 +519,20 @@
   var CASE_STATUSES = [['new', 'New referral'], ['verifying', 'Verifying insurance'], ['assessment', 'Assessment scheduled'], ['active', 'Active'], ['on_hold', 'On hold'], ['discharged', 'Discharged'], ['declined', 'Declined']];
   var SERVICES = ['Skilled Nursing', 'Physical Therapy', 'Occupational Therapy', 'Speech Therapy', 'Respiratory Therapy', 'Respite Care', 'Home Health Aide', 'Personal Care Aide'];
   var AREAS = ['Queens', 'Brooklyn', 'Bronx', 'Manhattan', 'Staten Island', 'Nassau County'];
-  route('cases', { title: function () { return can('intake') ? 'Intake & cases' : 'My patients'; }, perm: ['intake', 'notes'], render: async function (p, q) {
-    var cases = await API.get('cases');
-    if (!can('intake')) {
-      return '<div class="page-head"><div><h1>My patients</h1><p>Active patients assigned to you.</p></div></div><section class="card">' + (cases.length ? '<ul class="list">' + cases.map(function (c) { return '<li><div class="course__icon">' + ico('heart') + '</div><div class="grow"><b>' + esc(c.patientName) + '</b><div class="small muted">' + esc([c.address, c.borough].filter(Boolean).join(', ')) + '</div><div class="small muted">' + esc((c.services || []).join(' · ')) + '</div></div>' + (c.phone ? '<a class="btn btn--ghost btn--sm" href="tel:' + esc(c.phone.replace(/[^0-9+]/g, '')) + '">Call</a>' : '') + (can('notes') ? '<a class="btn btn--sm" href="#/notes?new=' + c.id + '">Write note</a>' : '') + '</li>'; }).join('') + '</ul>' : '<div class="empty">' + ico('heart') + '<div>No patients assigned yet.</div></div>') + '</section>';
-    }
-    var view = q.view || 'board', term = (q.q || '').toLowerCase();
-    if (term) cases = cases.filter(function (c) { return (c.patientName + ' ' + c.phone + ' ' + c.borough + ' ' + c.insurance).toLowerCase().indexOf(term) !== -1; });
-    var head = '<div class="page-head"><div><h1>Intake &amp; cases</h1><p>Referrals move left to right as they progress.</p></div><div class="row"><form id="case-search" class="row"><input class="input" name="q" placeholder="Search patients" value="' + esc(q.q || '') + '" style="min-height:42px"></form><div class="tabs" style="margin:0;border:0"><a href="#/cases?view=board" class="' + (view === 'board' ? 'is-active' : '') + '">Board</a><a href="#/cases?view=list" class="' + (view === 'list' ? 'is-active' : '') + '">List</a></div><button class="btn" id="new-case">' + ico('plus') + 'New intake</button></div></div>' +
-      '<div class="alert alert--warn" style="margin-bottom:16px">' + ico('shield') + '<span>This section contains protected health information. Only share what\'s needed for care. Access is logged.</span></div>';
-    if (view === 'list') return head + '<section class="card"><div class="table-wrap"><table class="table table--cards"><thead><tr><th>Patient</th><th>Borough</th><th>Services</th><th>Insurance</th><th>Assigned</th><th>Status</th></tr></thead><tbody>' + cases.map(function (c) { return '<tr class="is-click" data-href="#/cases/' + c.id + '"><td data-label="Patient"><b>' + esc(c.patientName) + '</b>' + (c.priority === 'high' ? ' ' + H.badge('high') : '') + '</td><td data-label="Borough">' + esc(c.borough) + '</td><td data-label="Services">' + esc((c.services || []).join(', ')) + '</td><td data-label="Insurance">' + esc(c.insurance) + '</td><td data-label="Assigned">' + esc(c.assignedNames.join(', ') || '—') + '</td><td data-label="Status">' + H.badge(c.status) + '</td></tr>'; }).join('') + '</tbody></table></div></section>';
-    return head + '<div class="kanban">' + CASE_STATUSES.slice(0, 5).map(function (s) {
-      var cs = cases.filter(function (c) { return c.status === s[0]; });
-      return '<div class="kanban__col"><h3>' + esc(s[1]) + '<span>' + cs.length + '</span></h3>' + cs.map(function (c) { return '<a class="kcard" href="#/cases/' + c.id + '"><b>' + esc(c.patientName) + '</b><div class="small muted">' + esc(c.borough || '—') + ' · ' + esc((c.services || []).join(', ') || 'No services yet') + '</div><div class="row" style="margin-top:8px;gap:6px">' + (c.priority === 'high' ? H.badge('high') : '') + (c.assignedNames.length ? '<span class="small muted">' + esc(c.assignedNames.join(', ')) + '</span>' : '<span class="small muted">Unassigned</span>') + '</div></a>'; }).join('') + '</div>';
-    }).join('') + '</div><p class="small muted" style="margin-top:10px">Discharged and declined cases are in the <a href="#/cases?view=list">list view</a>.</p>';
-  }, mount: function (root) {
+  route('cases', { title: 'Intake & cases', perm: 'intake', render: async function (p, q) {
+    var cases = await API.get('cases'), term = (q.q || '').toLowerCase(), st = q.status || 'open';
+    var openSt = ['new', 'verifying', 'assessment', 'active', 'on_hold'];
+    var counts = {}; cases.forEach(function (c) { counts[c.status] = (counts[c.status] || 0) + 1; });
+    var shown = cases.filter(function (c) { return (st === 'all' || (st === 'open' ? openSt.indexOf(c.status) !== -1 : c.status === st)) && (!term || (c.patientName + ' ' + c.phone + ' ' + c.borough + ' ' + c.insurance + ' ' + c.physician).toLowerCase().indexOf(term) !== -1); });
+    var tabs = [['open', 'All open', cases.filter(function (c) { return openSt.indexOf(c.status) !== -1; }).length]].concat(CASE_STATUSES.map(function (x) { return [x[0], x[1], counts[x[0]] || 0]; })).concat([['all', 'All', cases.length]]);
+    return '<div class="page-head"><div><h1>Intake &amp; cases</h1><p>Every referral and patient case in one list.</p></div><div class="row"><form id="case-search" class="row"><input class="input" name="q" placeholder="Search name, phone, insurance…" value="' + esc(q.q || '') + '" style="min-height:42px;min-width:240px"></form><button class="btn" id="new-case">' + ico('plus') + 'New intake</button></div></div>' +
+      '<div class="alert alert--warn" style="margin-bottom:16px">' + ico('shield') + '<span>This section contains protected health information. Only share what\'s needed for care. Access is logged.</span></div>' +
+      '<div class="tabs">' + tabs.map(function (t) { return '<a href="#/cases?status=' + t[0] + (q.q ? '&q=' + encodeURIComponent(q.q) : '') + '" class="' + (st === t[0] ? 'is-active' : '') + '">' + esc(t[1]) + ' (' + t[2] + ')</a>'; }).join('') + '</div>' +
+      '<section class="card">' + (shown.length ? '<div class="table-wrap"><table class="table table--cards"><thead><tr><th>Patient</th><th>Phone</th><th>Borough</th><th>Services</th><th>Insurance</th><th>Care team</th><th>Status</th><th>Updated</th></tr></thead><tbody>' + shown.map(function (c) { return '<tr class="is-click" data-href="#/cases/' + c.id + '"><td data-label="Patient"><b>' + esc(c.patientName) + '</b>' + (c.priority === 'high' ? ' ' + H.badge('high') : '') + '</td><td data-label="Phone" class="nowrap">' + esc(c.phone || '—') + '</td><td data-label="Borough">' + esc(c.borough || '—') + '</td><td data-label="Services">' + esc((c.services || []).join(', ') || '—') + '</td><td data-label="Insurance">' + esc(c.insurance || '—') + '</td><td data-label="Care team">' + esc(c.assignedNames.join(', ') || '—') + '</td><td data-label="Status">' + H.badge(c.status) + '</td><td data-label="Updated" class="small muted nowrap">' + esc(H.ago(c.updatedAt || c.createdAt)) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">' + ico('folder') + '<div>No cases here.</div></div>') + '</section>';
+  }, mount: function (root, p, q) {
     on(root, 'click', 'tr[data-href]', function (e, tr) { go(tr.dataset.href); });
-    var s = $('#case-search'); if (s) s.onsubmit = function (e) { e.preventDefault(); go('#/cases?view=' + (new URLSearchParams(location.hash.split('?')[1] || '').get('view') || 'board') + '&q=' + encodeURIComponent(s.q.value)); };
-    var nb = $('#new-case'); if (nb) nb.onclick = function () { caseForm(); };
+    $('#case-search').onsubmit = function (e) { e.preventDefault(); go('#/cases?status=' + (q.status || 'open') + '&q=' + encodeURIComponent(e.target.q.value)); };
+    $('#new-case').onclick = function () { caseForm(); };
   } });
   function caseForm(c) {
     c = c || { status: 'new', priority: 'normal', services: [] };
@@ -485,7 +544,7 @@
       wide: true, mount: function (w, close) { $('#case-save', w).onclick = async function () { var d = H.formData($('#case-form', w)); d.services = d.services || []; try { var r = c.id ? await API.patch('cases/' + c.id, d) : await API.post('cases', d); close(); toast(c.id ? 'Case updated.' : 'Intake created.', 'ok'); refreshCounts(); go('#/cases/' + r.id); render(); } catch (e) { fail(e); } }; }
     });
   }
-  route('cases/:id', { title: 'Case', nav: 'cases', perm: ['intake', 'notes'], render: async function (p) {
+  route('cases/:id', { title: 'Case', nav: 'cases', perm: 'intake', render: async function (p) {
     var c = await API.get('cases/' + p.id), staff = can('intake') ? await API.get('staff') : [];
     var info = function (l, v) { return '<div><div class="small muted">' + l + '</div><div><b>' + esc(v || '—') + '</b></div></div>'; };
     var html = '<div class="page-head"><div><a href="#/cases" class="small">← All cases</a><h1>' + esc(c.patientName) + '</h1><div class="row">' + H.badge(c.status) + (c.priority === 'high' ? H.badge('high') : '') + '<span class="muted small">Case #' + c.id + '</span></div></div>' + (can('intake') ? '<button class="btn btn--ghost" id="edit-case">Edit case</button>' : '') + '</div>' +
@@ -501,72 +560,68 @@
     var n = $('#cnote'); if (n) n.onsubmit = async function (ev) { ev.preventDefault(); if (!n.body.value.trim()) return; await API.post('cases/' + p.id + '/notes', { body: n.body.value }); render(); };
   } });
 
-  /* ================================================================ visit notes */
-  var TASKS = ['Bath / shower', 'Oral hygiene', 'Hair & grooming', 'Toileting', 'Skin care', 'Dressing', 'Meal preparation', 'Assist with feeding', 'Ambulation / transfer', 'ROM exercises', 'Medication reminder', 'Vital signs', 'Light housekeeping', 'Laundry', 'Shopping / errands', 'Accompany to appointment', 'Wound / dressing observed', 'Safety check'];
-  route('notes', { title: 'Visit notes', perm: ['notes', 'intake'], render: async function (p, q) {
-    var reviewer = can('intake') || can('approvals');
-    var notes = await API.get('notes' + (reviewer && q.scope === 'all' ? '?scope=all' : ''));
-    return '<div class="page-head"><div><h1>Visit notes</h1><p>Document each visit. Notes are reviewed by the nursing supervisor.</p></div><div class="row">' + (reviewer ? '<div class="tabs" style="margin:0;border:0"><a href="#/notes" class="' + (q.scope !== 'all' ? 'is-active' : '') + '">Mine</a><a href="#/notes?scope=all" class="' + (q.scope === 'all' ? 'is-active' : '') + '">All staff</a></div>' : '') + (can('notes') ? '<button class="btn" id="new-note">' + ico('plus') + 'New visit note</button>' : '') + '</div></div>' + notesTable(notes, reviewer && q.scope === 'all');
-  }, mount: function (root, p, q) {
-    var b = $('#new-note'); if (b) b.onclick = function () { noteForm(); };
-    if (q.new && can('notes')) noteForm(+q.new);
-    bindNoteReview(root);
-  } });
-  function notesTable(notes, review) {
-    if (!notes.length) return '<section class="card"><div class="empty">' + ico('note') + '<div>No visit notes yet.</div></div></section>';
-    return '<section class="card"><div class="table-wrap"><table class="table table--cards"><thead><tr><th>Date</th><th>Patient</th>' + (review ? '<th>Staff</th>' : '') + '<th>Time</th><th>Tasks</th><th>Status</th><th></th></tr></thead><tbody>' + notes.map(function (n) {
-      return '<tr><td data-label="Date">' + esc(H.fmtDate(n.date)) + '</td><td data-label="Patient"><b>' + esc(n.patientName) + '</b></td>' + (review ? '<td data-label="Staff">' + esc(n.userName) + ' <span class="muted small">' + esc(n.designation) + '</span></td>' : '') + '<td data-label="Time">' + H.fmtHM(n.timeIn) + (n.timeOut ? '–' + H.fmtHM(n.timeOut) : '') + '</td><td data-label="Tasks">' + n.tasks.length + ' tasks</td><td data-label="Status">' + H.badge(n.status) + '</td><td><button class="btn btn--ghost btn--sm" data-view-note="' + n.id + '">View</button></td></tr>';
-    }).join('') + '</tbody></table></div></section><script type="application/json" id="notes-json">' + JSON.stringify(notes).replace(/</g, '\\u003c') + '</script>';
-  }
-  function bindNoteReview(root) {
-    on(root, 'click', '[data-view-note]', function (e, b) {
-      var notes = JSON.parse(($('#notes-json') || {}).textContent || '[]'), n = notes.find(function (x) { return x.id === +b.dataset.viewNote; }); if (!n) return;
-      var reviewer = (can('intake') || can('approvals')) && n.status !== 'reviewed';
-      modal('Visit note — ' + n.patientName, '<div class="modal__body stack"><div class="grid-3"><div><div class="small muted">Date</div><b>' + esc(H.fmtDate(n.date)) + '</b></div><div><div class="small muted">Time</div><b>' + H.fmtHM(n.timeIn) + '–' + H.fmtHM(n.timeOut) + '</b></div><div><div class="small muted">Staff</div><b>' + esc(n.userName) + '</b></div></div><div><div class="small muted">Tasks completed</div><div class="chips" style="margin-top:6px">' + n.tasks.map(function (t) { return '<span class="badge badge--brand">' + esc(t) + '</span>'; }).join('') + '</div></div>' + (n.condition ? '<div><div class="small muted">Patient condition</div><b>' + esc(n.condition) + '</b></div>' : '') + '<div><div class="small muted">Notes</div><div class="doc">' + esc(n.narrative || '—') + '</div></div><div><div class="small muted">Signed</div><div class="signature">' + esc(n.signature) + '</div></div>' + (n.status === 'reviewed' ? '<div class="alert alert--ok">Reviewed' + (n.reviewNote ? ': ' + esc(n.reviewNote) : '') + '</div>' : '') + (reviewer ? '<label class="field"><span>Review comment</span><input class="input" id="rv-note"></label>' : '') + '</div><div class="modal__foot"><button class="btn btn--ghost no-print" onclick="window.print()">Print</button>' + (reviewer ? '<button class="btn btn--ok" id="rv">Mark reviewed</button>' : '') + '</div>', {
-        mount: function (w, close) { var r = $('#rv', w); if (r) r.onclick = async function () { await API.patch('notes/' + n.id, { status: 'reviewed', reviewNote: $('#rv-note', w).value }); close(); toast('Note reviewed.', 'ok'); render(); }; }
-      });
-    });
-  }
-  async function noteForm(caseId) {
-    var cases = await API.get('cases');
-    if (!cases.length) { toast('No patients are assigned to you yet.'); return; }
-    modal('New visit note', '<form class="modal__body stack" id="note-form"><div class="grid-2"><label class="field"><span>Patient</span><select class="input" name="caseId" required>' + cases.map(function (c) { return '<option value="' + c.id + '"' + (c.id === caseId ? ' selected' : '') + '>' + esc(c.patientName) + '</option>'; }).join('') + '</select></label><label class="field"><span>Date</span><input class="input" type="date" name="date" value="' + H.ymd() + '"></label><label class="field"><span>Time in</span><input class="input" type="time" name="timeIn" required></label><label class="field"><span>Time out</span><input class="input" type="time" name="timeOut" required></label></div>' +
-      '<div class="field"><span class="label">Tasks completed</span><div class="chips">' + TASKS.map(function (t) { return '<label class="chip"><input type="checkbox" name="tasks[]" value="' + esc(t) + '">' + esc(t) + '</label>'; }).join('') + '</div></div>' +
-      '<label class="field"><span>Patient condition</span><select class="input" name="condition"><option>Stable — no changes</option><option>Change observed — reported to RN</option><option>Patient refused care</option><option>Patient not home</option></select></label><label class="field"><span>Notes</span><textarea class="input" name="narrative" placeholder="What happened during the visit? Anything the nurse should know?"></textarea></label><label class="field"><span>Signature (type your full name)</span><input class="input signature" name="signature" value="' + esc(state.user.name) + '" required></label></form><div class="modal__foot"><button class="btn btn--ghost" data-close>Cancel</button><button class="btn" id="note-save">' + ico('send') + 'Submit note</button></div>', {
-      wide: true, mount: function (w, close) { $('#note-save', w).onclick = async function () { var d = H.formData($('#note-form', w)); d.tasks = d.tasks || []; try { await submitting(function () { return API.post('notes', d); }); close(); if (location.hash.indexOf('#/notes') === 0) go('#/notes'); else render(); } catch (e) { /* shown */ } }; }
-    });
-  }
-
   /* ================================================================ chat */
   route('chat', { title: 'Chat', perm: 'chat', render: function () { return chatShell(null); }, mount: function (root) { chatMount(root, null); } });
   route('chat/:id', { title: 'Chat', nav: 'chat', perm: 'chat', render: function (p) { return chatShell(+p.id); }, mount: function (root, p) { chatMount(root, +p.id); } });
   function chatShell(id) {
     return '<section class="card chat' + (id ? ' has-active' : '') + '"><div class="chat__list"><div class="card__head"><h2>Messages</h2><button class="btn btn--sm" id="new-chat">' + ico('plus') + 'New</button></div><div id="conv-list"><div class="loading"><div class="spinner"></div></div></div></div>' +
-      '<div class="chat__pane">' + (id ? '<div class="chat__head"><a href="#/chat" class="btn btn--ghost btn--icon btn--sm" aria-label="Back to conversations">' + ico('left') + '</a><div id="chat-title" class="grow"><b>…</b></div></div><div class="chat__msgs" id="msgs" aria-live="polite"></div><form class="chat__compose" id="compose"><textarea class="input" name="body" placeholder="Write a message…" rows="1" aria-label="Message"></textarea><button class="btn btn--icon" aria-label="Send">' + ico('send') + '</button></form>' : '<div class="empty" style="margin:auto">' + ico('chat') + '<h2>Select a conversation</h2><p>' + (state.user.type === 'field' ? 'You can message anyone in the office.' : 'Message coworkers and field staff.') + '</p></div>') + '</div></section>';
+      '<div class="chat__pane">' + (id ? '<div class="chat__head"><a href="#/chat" class="btn btn--ghost btn--icon btn--sm" aria-label="Back to conversations">' + ico('left') + '</a><div id="chat-title" class="grow"><b>…</b></div></div><div class="chat__msgs" id="msgs" aria-live="polite"></div><form class="chat__compose" id="compose"><textarea class="input" name="body" placeholder="Write a message…" rows="1" aria-label="Message"></textarea><button class="btn btn--icon" aria-label="Send">' + ico('send') + '</button></form>' : '<div class="empty" style="margin:auto">' + ico('chat') + '<h2>Select a conversation</h2><p>' + (state.user.type === 'field' ? 'You can message anyone in the office.' : 'Message coworkers and field staff.') + '</p><p class="small muted">✓ sent · ✓✓ delivered · <span class="seen-sample">✓✓</span> seen</p>' + (notifyPermission() === 'default' ? '<button class="btn btn--ghost btn--sm" id="notif-chat">' + ico('bell') + 'Turn on message notifications</button>' : '') + '</div>') + '</div></section>';
+  }
+  // Message ticks like WhatsApp: ✓ sent · ✓✓ delivered (grey) · ✓✓ seen (blue)
+  var TICK1 = '<svg viewBox="0 0 16 11" aria-hidden="true"><path d="M1 6l3.5 3.5L11 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var TICK2 = '<svg viewBox="0 0 20 11" aria-hidden="true"><path d="M1 6l3.5 3.5L11 2M7.5 8.5l1 1L16 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function tickHtml(m, rc) {
+    if (m.pending) return '<span class="ticks ticks--wait" title="Sending">' + ico('clock') + '</span>';
+    if (m.id <= rc.readUpTo) return '<span class="ticks ticks--seen" title="Seen">' + TICK2 + '<span class="sr-only">Seen</span></span>';
+    if (m.id <= rc.deliveredUpTo) return '<span class="ticks" title="Delivered">' + TICK2 + '<span class="sr-only">Delivered</span></span>';
+    return '<span class="ticks" title="Sent">' + TICK1 + '<span class="sr-only">Sent</span></span>';
+  }
+  function msgHtml(m, rc, pending) {
+    var mine = m.userId === state.user.id;
+    return '<div class="msg' + (mine ? ' msg--me' : '') + '"' + (pending ? ' data-pending="1"' : ' data-mid="' + m.id + '"') + '>' + (!mine ? '<div class="msg__who">' + esc(m.userName) + '</div>' : '') + esc(m.body) + '<small>' + esc(H.fmtTime(m.createdAt)) + (mine ? ' ' + tickHtml(m, rc) : '') + '</small></div>';
+  }
+  function dropPending(box) { $$('.msg[data-pending]', box).forEach(function (el) { el.parentNode.removeChild(el); }); }
+  /* Reusable chat panel (used by the Chat tab and the "Ask the nurse" drawer). */
+  function chatPanel(box, convId) {
+    var lastId = 0, rc = { readUpTo: 0, deliveredUpTo: 0 }, mine = [];
+    async function load() {
+      var d = await API.get('chat/conversations/' + convId + '/messages?after=' + lastId);
+      var msgs = d.messages || d; rc = { readUpTo: d.readUpTo || 0, deliveredUpTo: d.deliveredUpTo || 0 };
+      var list = $('.chat__msgs', box); if (!list) return;
+      var atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 80, firstLoad = !lastId;
+      dropPending(list);
+      if (msgs.length) {
+        list.insertAdjacentHTML('beforeend', msgs.map(function (m) { if (m.userId === state.user.id) mine.push(m); return msgHtml(m, rc); }).join(''));
+        lastId = msgs[msgs.length - 1].id;
+      }
+      mine.forEach(function (m) { var el = list.querySelector('[data-mid="' + m.id + '"] .ticks'); if (el) el.outerHTML = tickHtml(m, rc); });
+      if (msgs.length && (atBottom || firstLoad || msgs.some(function (m) { return m.userId === state.user.id; }))) list.scrollTop = list.scrollHeight;
+    }
+    async function send(body) {
+      var list = $('.chat__msgs', box);
+      list.insertAdjacentHTML('beforeend', msgHtml({ userId: state.user.id, body: body, createdAt: new Date().toISOString(), pending: true }, rc, true));
+      list.scrollTop = list.scrollHeight;
+      await API.post('chat/conversations/' + convId + '/messages', { body: body });
+      await load();
+    }
+    var f = $('.chat__compose', box), ta = f.body;
+    ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); f.requestSubmit(); } });
+    f.onsubmit = async function (e) { e.preventDefault(); var body = ta.value.trim(); if (!body) return; ta.value = ''; try { await send(body); } catch (err) { ta.value = body; dropPending(box); fail(err); } };
+    var t = setInterval(function () { if (!document.body.contains(box)) { clearInterval(t); return; } load().catch(function () {}); }, 3000);
+    state.pollers.push(t);
+    return load();
   }
   async function chatMount(root, id) {
-    var lastId = 0, convs = [];
+    var convs = [];
     async function loadList() {
       convs = await API.get('chat/conversations');
-      $('#conv-list').innerHTML = convs.length ? convs.map(function (c) { return '<a class="chat__item' + (c.id === id ? ' is-active' : '') + '" href="#/chat/' + c.id + '">' + H.avatar(c.title) + '<div class="grow"><div class="row row--between" style="gap:6px"><b>' + esc(c.title) + '</b><small class="muted">' + (c.lastMessage ? esc(H.ago(c.lastMessage.at)) : '') + '</small></div><small>' + esc(c.lastMessage ? c.lastMessage.body : c.subtitle) + '</small></div>' + (c.unread ? '<span class="count badge badge--bad">' + c.unread + '</span>' : '') + '</a>'; }).join('') : '<div class="empty">No conversations yet.</div>';
+      $('#conv-list').innerHTML = convs.length ? convs.map(function (c) { return '<a class="chat__item' + (c.id === id ? ' is-active' : '') + '" href="#/chat/' + c.id + '">' + H.avatar(c.title) + '<div class="grow"><div class="row row--between" style="gap:6px;flex-wrap:nowrap"><b class="ellipsis">' + esc(c.title) + '</b><small class="muted nowrap">' + (c.lastMessage ? esc(H.ago(c.lastMessage.at)) : '') + '</small></div><small>' + (c.lastMessage && c.lastMessage.userId === state.user.id ? 'You: ' : '') + esc(c.lastMessage ? c.lastMessage.body : c.subtitle) + '</small></div>' + (c.unread ? '<span class="count badge badge--bad">' + c.unread + '</span>' : '') + '</a>'; }).join('') : '<div class="empty">No conversations yet.</div>';
       if (id) { var c = convs.find(function (x) { return x.id === id; }); if (c) $('#chat-title').innerHTML = '<b>' + esc(c.title) + '</b><div class="small muted">' + esc(c.subtitle) + '</div>'; }
     }
-    async function loadMsgs() {
-      var msgs = await API.get('chat/conversations/' + id + '/messages?after=' + lastId); if (!msgs.length) return;
-      var box = $('#msgs'); if (!box) return; var atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
-      box.insertAdjacentHTML('beforeend', msgs.map(function (m) { var mine = m.userId === state.user.id; return '<div class="msg' + (mine ? ' msg--me' : '') + '">' + (!mine ? '<div class="msg__who">' + esc(m.userName) + '</div>' : '') + esc(m.body) + '<small>' + esc(H.fmtTime(m.createdAt)) + '</small></div>'; }).join(''));
-      lastId = msgs[msgs.length - 1].id; if (atBottom || lastId) box.scrollTop = box.scrollHeight;
-    }
     await loadList();
-    if (id) {
-      await loadMsgs(); refreshCounts();
-      var f = $('#compose'), ta = f.body;
-      ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); f.requestSubmit(); } });
-      f.onsubmit = async function (e) { e.preventDefault(); var body = ta.value.trim(); if (!body) return; ta.value = ''; try { await API.post('chat/conversations/' + id + '/messages', { body: body }); await loadMsgs(); loadList(); } catch (err) { ta.value = body; fail(err); } };
-      ta.focus();
-      state.pollers.push(setInterval(function () { loadMsgs().catch(function () {}); }, 4000));
-    }
-    state.pollers.push(setInterval(function () { loadList().catch(function () {}); }, 10000));
+    if (id) { await chatPanel($('.chat__pane', root), id); $('#compose textarea').focus(); refreshCounts(); }
+    state.pollers.push(setInterval(function () { loadList().catch(function () {}); }, 8000));
+    var nb = $('#notif-chat'); if (nb) nb.onclick = function () { enableNotifications(); nb.style.display = 'none'; };
     $('#new-chat').onclick = async function () {
       var people = await API.get('chat/directory'), field = state.user.type === 'field';
       modal('New conversation', '<div class="modal__body stack"><input class="input" id="ppl-q" placeholder="Search people"><div id="ppl" class="stack" style="gap:6px;max-height:340px;overflow:auto">' + people.map(function (u) { return '<label class="check perm" data-name="' + esc(u.name.toLowerCase()) + '"><input type="checkbox" value="' + u.id + '">' + H.avatar(u.name, 'sm') + '<span class="grow"><b>' + esc(u.name) + '</b><small>' + esc(u.designation || typeLabel(u)) + '</small></span></label>'; }).join('') + '</div>' + (field ? '<p class="small muted">Field staff can message the office team.</p>' : '<label class="field"><span>Group name <span class="muted">(only for group chats)</span></span><input class="input" id="grp-name"></label>') + '</div><div class="modal__foot"><button class="btn btn--ghost" data-close>Cancel</button><button class="btn" id="start-chat">Start chat</button></div>', {
@@ -577,32 +632,62 @@
       });
     };
   }
+  /* "Ask the nurse" drawer: a direct chat with the in-service nurse, usable while taking a test. */
+  async function openNurseChat(nurseId, context) {
+    try {
+      if (!nurseId) { var n = await API.get('nurse'); nurseId = n && n.id; }
+      if (!nurseId) { toast('No nurse is set up yet. Ask the office.'); return; }
+      var r = await API.post('chat/conversations', { userIds: [nurseId] });
+      var ppl = await API.get('chat/directory'), nurse = ppl.find(function (x) { return x.id === nurseId; }) || { name: 'Nurse' };
+      var old = $('.drawer'); if (old) old.parentNode.removeChild(old);
+      var d = document.createElement('aside'); d.className = 'drawer'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Chat with ' + nurse.name);
+      d.innerHTML = '<div class="chat__head">' + H.avatar(nurse.name, 'sm') + '<div class="grow"><b>' + esc(nurse.name) + '</b><div class="small muted">' + esc(nurse.designation || 'Nurse') + (context ? ' · about ' + esc(context) : '') + '</div></div><button class="btn btn--ghost btn--icon btn--sm" data-x aria-label="Close chat">' + ico('x') + '</button></div><div class="chat__msgs" aria-live="polite"></div><form class="chat__compose"><textarea class="input" name="body" rows="1" placeholder="Ask a question…" aria-label="Message"></textarea><button class="btn btn--icon" aria-label="Send">' + ico('send') + '</button></form>';
+      document.body.appendChild(d);
+      $('[data-x]', d).onclick = function () { d.parentNode.removeChild(d); };
+      await chatPanel(d, r.id);
+      if (context && !$('.chat__msgs', d).children.length) d.querySelector('textarea').value = 'Hi, I have a question about "' + context + '": ';
+      d.querySelector('textarea').focus();
+    } catch (e) { fail(e); }
+  }
 
   /* ================================================================ calendar */
-  route('calendar', { title: 'Schedule', perm: ['calendar', 'calendar_manage'], render: async function (p, q) {
+  // Shows shifts, approved/pending leave, in-service due dates and call-backs in one calendar.
+  route('calendar', { title: 'Calendar', perm: ['calendar', 'calendar_manage'], render: async function (p, q) {
     var manage = can('calendar_manage');
     var month = q.month || H.ymd().slice(0, 7), first = month + '-01', start = H.weekStart(first);
     var end = H.addDays(start, 41), scope = manage && q.mine !== '1' ? 'all' : 'mine';
     var shifts = await API.get('shifts?from=' + start + '&to=' + end + (scope === 'all' ? '&scope=all' : '') + (q.user ? '&userId=' + q.user : ''));
     var staff = manage ? await API.get('staff') : [];
+    var leave = [], ins = [], calls = [];
+    try { leave = await API.get('leave?scope=calendar&from=' + start + '&to=' + end); } catch (e) { /* no access */ }
+    if (can('inservices')) try { ins = await API.get('inservices'); } catch (e) { /* none */ }
+    if (can('calls')) try { calls = await API.get('calls?filter=mine'); } catch (e) { /* none */ }
+    if (q.user) leave = leave.filter(function (l) { return l.userId === +q.user; });
+    if (scope === 'mine') leave = leave.filter(function (l) { return l.userId === state.user.id; });
+    var ev = {};
+    function add(d, html) { (ev[d] = ev[d] || []).push(html); }
+    var types = {}; staff.forEach(function (s) { types[s.id] = s.type; });
+    shifts.forEach(function (s) { add(s.date, '<button class="ev' + (types[s.userId] === 'field' ? ' ev--field' : '') + '" data-shift="' + s.id + '" title="' + esc(s.userName + ' · ' + s.title) + '">' + H.fmtHM(s.start).replace(':00', '') + ' ' + esc(scope === 'all' ? s.userName.split(' ')[0] : s.title) + '</button>'); });
+    leave.forEach(function (l) { for (var d = l.from < start ? start : l.from; d <= l.to && d <= end; d = H.addDays(d, 1)) add(d, '<button class="ev ev--leave' + (l.status === 'pending' ? ' ev--pending' : '') + '" data-leave="' + l.id + '" title="' + esc(l.userName + ' · ' + l.type + ' (' + l.status + ')') + '">' + ico('sun') + esc((scope === 'all' ? l.userName.split(' ')[0] + ' · ' : '') + l.type) + (l.status === 'pending' ? ' ?' : '') + '</button>'); });
+    ins.filter(function (i) { return i.dueDate && !(i.myResult && i.myResult.passed); }).forEach(function (i) { add(i.dueDate, '<a class="ev ev--due" href="' + (i.kind === 'center' ? '#/inservices/center/' + i.centerId : '#/inservices') + '" title="In-service due: ' + esc(i.title) + '">' + ico('grad') + 'Due: ' + esc(i.title) + '</a>'); });
+    calls.filter(function (c) { return c.callbackBy; }).forEach(function (c) { add(c.callbackBy.slice(0, 10), '<a class="ev ev--call" href="#/calls?id=' + c.id + '" title="Call back ' + esc(c.callerName) + '">' + ico('call') + 'Call ' + esc(c.callerName.split(' ')[0]) + '</a>'); });
     var prev = new Date(first + 'T12:00:00'); prev.setMonth(prev.getMonth() - 1); var next = new Date(first + 'T12:00:00'); next.setMonth(next.getMonth() + 1);
     var nav = '<a class="btn btn--ghost btn--icon btn--sm" href="#/calendar?month=' + H.ymd(prev).slice(0, 7) + (q.user ? '&user=' + q.user : '') + '" aria-label="Previous month">' + ico('left') + '</a><b>' + esc(new Date(first + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', year: 'numeric' })) + '</b><a class="btn btn--ghost btn--icon btn--sm" href="#/calendar?month=' + H.ymd(next).slice(0, 7) + (q.user ? '&user=' + q.user : '') + '" aria-label="Next month">' + ico('right') + '</a><a class="btn btn--ghost btn--sm" href="#/calendar' + (q.user ? '?user=' + q.user : '') + '">Today</a>';
-    var html = '<div class="page-head"><div><h1>' + (manage ? 'Schedules' : 'My schedule') + '</h1><p>' + (manage ? 'Office and field staff shifts. Click a day to add a shift.' : 'Your upcoming shifts and visits.') + '</p></div>' + (manage ? '<button class="btn" id="add-shift">' + ico('plus') + 'Add shift</button>' : '') + '</div>';
-    var toolbar = '<div class="cal-toolbar">' + nav + '<span class="grow"></span>' + (manage ? '<select class="input" id="cal-user" style="min-height:36px;max-width:240px" aria-label="Filter by employee"><option value="">Everyone</option>' + staff.map(function (s) { return '<option value="' + s.id + '"' + (+q.user === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select>' : '') + '</div>';
-    var types = {}; staff.forEach(function (s) { types[s.id] = s.type; });
+    var html = '<div class="page-head"><div><h1>' + (manage ? 'Calendar' : 'My calendar') + '</h1><p>Shifts, time off, in-service due dates and call-backs.</p></div><div class="row">' + (can('leave') && state.user.type !== 'field' ? '<a class="btn btn--ghost" href="#/leave">' + ico('sun') + 'Request time off</a>' : '') + (manage ? '<button class="btn" id="add-shift">' + ico('plus') + 'Add shift</button>' : '') + '</div></div>';
+    var toolbar = '<div class="cal-toolbar">' + nav + '<span class="grow"></span><span class="cal-legend"><i class="lg lg--shift"></i>Shift<i class="lg lg--leave"></i>Time off<i class="lg lg--due"></i>In-service due<i class="lg lg--call"></i>Call-back</span>' + (manage ? '<select class="input" id="cal-user" style="min-height:36px;max-width:220px" aria-label="Filter by employee"><option value="">Everyone</option>' + staff.map(function (s) { return '<option value="' + s.id + '"' + (+q.user === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select>' : '') + '</div>';
     html += '<section class="card" style="overflow:hidden">' + toolbar + '<div class="cal">' + ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(function (d) { return '<div class="cal__dow">' + d + '</div>'; }).join('');
     for (var i = 0; i < 42; i++) {
-      var d = H.addDays(start, i), ds = shifts.filter(function (s) { return s.date === d; });
-      html += '<div class="cal__day' + (d.slice(0, 7) !== month ? ' is-out' : '') + (d === H.ymd() ? ' is-today' : '') + '" data-day="' + d + '"><span class="cal__num">' + (+d.slice(8)) + '</span>' + ds.slice(0, 4).map(function (s) { return '<button class="ev' + (types[s.userId] === 'field' ? ' ev--field' : '') + '" data-shift="' + s.id + '" title="' + esc(s.userName + ' · ' + s.title) + '">' + H.fmtHM(s.start).replace(':00', '') + ' ' + esc(scope === 'all' ? s.userName.split(' ')[0] : s.title) + '</button>'; }).join('') + (ds.length > 4 ? '<div class="small muted">+' + (ds.length - 4) + ' more</div>' : '') + '</div>';
+      var d = H.addDays(start, i), items = ev[d] || [];
+      html += '<div class="cal__day' + (d.slice(0, 7) !== month ? ' is-out' : '') + (d === H.ymd() ? ' is-today' : '') + '" data-day="' + d + '"><span class="cal__num">' + (+d.slice(8)) + '</span>' + items.slice(0, 4).join('') + (items.length > 4 ? '<div class="small muted">+' + (items.length - 4) + ' more</div>' : '') + '</div>';
     }
-    html += '</div></section><script type="application/json" id="shifts-json">' + JSON.stringify(shifts).replace(/</g, '\\u003c') + '</script>';
+    html += '</div></section><script type="application/json" id="cal-json">' + JSON.stringify({ shifts: shifts, leave: leave }).replace(/</g, '\\u003c') + '</script>';
     return html;
   }, mount: function (root, p, q) {
-    var shifts = JSON.parse($('#shifts-json').textContent), manage = can('calendar_manage');
+    var data = JSON.parse($('#cal-json').textContent), shifts = data.shifts, manage = can('calendar_manage');
     var u = $('#cal-user'); if (u) u.onchange = function () { go('#/calendar?month=' + (q.month || H.ymd().slice(0, 7)) + (u.value ? '&user=' + u.value : '')); };
     async function shiftForm(s) {
       var staff = await API.get('staff'); s = s || { date: H.ymd(), start: '09:00', end: '17:00', userId: +q.user || '' };
-      modal(s.id ? 'Edit shift' : 'Add shift', '<form class="modal__body stack" id="shift-form"><label class="field"><span>Employee</span><select class="input" name="userId" required><option value="">Choose…</option>' + staff.map(function (x) { return '<option value="' + x.id + '"' + (x.id === s.userId ? ' selected' : '') + '>' + esc(x.name) + ' — ' + esc(x.designation || typeLabel(x)) + '</option>'; }).join('') + '</select></label><div class="grid-3"><label class="field"><span>Date</span><input class="input" type="date" name="date" value="' + s.date + '" required></label><label class="field"><span>Start</span><input class="input" type="time" name="start" value="' + s.start + '" required></label><label class="field"><span>End</span><input class="input" type="time" name="end" value="' + s.end + '" required></label></div><div class="grid-2"><label class="field"><span>Title</span><input class="input" name="title" value="' + esc(s.title || '') + '" placeholder="Office / Patient visit"></label><label class="field"><span>Location</span><input class="input" name="location" value="' + esc(s.location || '') + '"></label></div><label class="field"><span>Notes</span><input class="input" name="notes" value="' + esc(s.notes || '') + '"></label>' + (!s.id ? '<label class="field"><span>Repeat weekly for</span><select class="input" name="repeatWeeks"><option value="0">Does not repeat</option>' + [1, 2, 3, 4, 8, 12].map(function (n) { return '<option value="' + n + '">' + n + ' more week' + (n > 1 ? 's' : '') + '</option>'; }).join('') + '</select></label>' : '') + '</form><div class="modal__foot">' + (s.id ? '<button class="btn btn--ghost" id="shift-del" style="margin-right:auto">Delete</button>' : '') + '<button class="btn btn--ghost" data-close>Cancel</button><button class="btn" id="shift-save">Save</button></div>', {
+      modal(s.id ? 'Edit shift' : 'Add shift', '<form class="modal__body stack" id="shift-form"><label class="field"><span>Employee</span><select class="input" name="userId" required><option value="">Choose…</option>' + staff.map(function (x) { return '<option value="' + x.id + '"' + (x.id === s.userId ? ' selected' : '') + '>' + esc(x.name) + ' — ' + esc(x.designation || typeLabel(x)) + '</option>'; }).join('') + '</select></label><div class="grid-3"><label class="field"><span>Date</span><input class="input" type="date" name="date" value="' + s.date + '" required></label><label class="field"><span>Start</span><input class="input" type="time" name="start" value="' + s.start + '" required></label><label class="field"><span>End</span><input class="input" type="time" name="end" value="' + s.end + '" required></label></div><div class="grid-2"><label class="field"><span>Title</span><input class="input" name="title" value="' + esc(s.title || '') + '" placeholder="Office / Front desk"></label><label class="field"><span>Location</span><input class="input" name="location" value="' + esc(s.location || '') + '"></label></div><label class="field"><span>Notes</span><input class="input" name="notes" value="' + esc(s.notes || '') + '"></label>' + (!s.id ? '<label class="field"><span>Repeat weekly for</span><select class="input" name="repeatWeeks"><option value="0">Does not repeat</option>' + [1, 2, 3, 4, 8, 12].map(function (n) { return '<option value="' + n + '">' + n + ' more week' + (n > 1 ? 's' : '') + '</option>'; }).join('') + '</select></label>' : '') + '<p class="small muted">Shift emails include the title, so don\'t put patient names in it.</p></form><div class="modal__foot">' + (s.id ? '<button class="btn btn--ghost" id="shift-del" style="margin-right:auto">Delete</button>' : '') + '<button class="btn btn--ghost" data-close>Cancel</button><button class="btn" id="shift-save">Save</button></div>', {
         mount: function (w, close) {
           $('#shift-save', w).onclick = async function () { try { var d = H.formData($('#shift-form', w)); if (s.id) await API.patch('shifts/' + s.id, d); else await API.post('shifts', d); close(); toast('Schedule saved. The employee was notified.', 'ok'); render(); } catch (e) { fail(e); } };
           var del = $('#shift-del', w); if (del) del.onclick = async function () { await API.del('shifts/' + s.id); close(); render(); };
@@ -615,33 +700,81 @@
       if (manage) shiftForm(s);
       else modal(s.title, '<div class="modal__body stack"><div><b>' + esc(H.fmtDate(s.date, { weekday: 'long', month: 'long', day: 'numeric' })) + '</b><div>' + H.fmtHM(s.start) + ' – ' + H.fmtHM(s.end) + '</div></div>' + (s.location ? '<div>' + ico('pin') + ' ' + esc(s.location) + '</div>' : '') + (s.notes ? '<div class="doc">' + esc(s.notes) + '</div>' : '') + '</div>');
     });
-    if (manage) on(root, 'click', '[data-day]', function (e, d) { if (e.target.closest('[data-shift]')) return; shiftForm({ date: d.dataset.day, start: '09:00', end: '17:00', userId: +q.user || '' }); });
+    on(root, 'click', '[data-leave]', function (e, b) {
+      e.stopPropagation(); var l = data.leave.find(function (x) { return x.id === +b.dataset.leave; }); if (!l) return;
+      modal('Time off — ' + l.userName, '<div class="modal__body stack"><div class="row">' + H.badge(l.status) + '<b style="text-transform:capitalize">' + esc(l.type) + '</b></div><div>' + esc(H.fmtDate(l.from)) + (l.to !== l.from ? ' → ' + esc(H.fmtDate(l.to)) : '') + ' · ' + l.totalHours + ' hours</div>' + (l.reason ? '<div class="doc">' + esc(l.reason) + '</div>' : '') + '</div>');
+    });
+    if (manage) on(root, 'click', '[data-day]', function (e, d) { if (e.target.closest('[data-shift],[data-leave],a')) return; shiftForm({ date: d.dataset.day, start: '09:00', end: '17:00', userId: +q.user || '' }); });
   } });
 
   /* ================================================================ in-services */
+  function dueBadge(i) {
+    if (i.myResult && i.myResult.passed) return '<span class="badge badge--ok">Completed ' + esc(H.fmtDate(i.myResult.completedAt, { month: 'short', day: 'numeric' })) + '</span>';
+    if (!i.dueDate) return '';
+    var days = Math.round((new Date(i.dueDate + 'T12:00:00') - new Date(H.ymd() + 'T12:00:00')) / 86400000);
+    if (days < 0) return '<span class="badge badge--bad">Overdue · was due ' + esc(H.fmtDate(i.dueDate, { month: 'short', day: 'numeric' })) + '</span>';
+    if (days === 0) return '<span class="badge badge--bad">Due today</span>';
+    return '<span class="badge badge--' + (days <= 7 ? 'warn' : 'muted') + '">Due ' + esc(H.fmtDate(i.dueDate, { month: 'short', day: 'numeric' })) + (days <= 7 ? ' · ' + days + ' day' + (days > 1 ? 's' : '') : '') + '</span>';
+  }
+  function inserviceHref(i) { return i.kind === 'center' ? '#/inservices/center/' + i.centerId : (i.kind === 'link' ? '' : '#/inservices/' + i.id); }
   route('inservices', { title: 'In-services', perm: 'inservices', render: async function () {
     var list = await API.get('inservices');
-    var done = list.filter(function (i) { return i.myResult && i.myResult.passed; }).length;
-    return '<div class="page-head"><div><h1>In-services</h1><p>Required training. Your completions are saved to your employee record.</p></div></div>' +
-      '<section class="card" style="margin-bottom:18px"><div class="card__body"><div class="row row--between"><b>' + done + ' of ' + list.length + ' complete</b><span class="small muted">' + list.reduce(function (a, i) { return a + (i.myResult && i.myResult.passed ? i.hours : 0); }, 0) + ' hours earned</span></div><div class="progress" style="margin-top:10px"><i style="width:' + (list.length ? done / list.length * 100 : 0) + '%"></i></div></div></section>' +
-      '<section class="card">' + (list.length ? list.map(function (i) {
-        var ok = i.myResult && i.myResult.passed;
-        return '<div class="course"><div class="course__icon' + (ok ? ' is-done' : '') + '">' + ico(ok ? 'check' : 'grad') + '</div><div class="grow"><b>' + esc(i.title) + '</b><div class="small muted">' + esc(i.description) + '</div><div class="row small" style="margin-top:6px;gap:8px">' + (i.hours ? '<span class="badge badge--muted">' + i.hours + ' hr</span>' : '') + (i.dueDate ? '<span class="badge badge--' + (ok ? 'muted' : (i.dueDate < H.ymd() ? 'bad' : 'warn')) + '">Due ' + esc(H.fmtDate(i.dueDate)) + '</span>' : '') + (i.myResult ? '<span class="badge badge--' + (ok ? 'ok' : 'bad') + '">' + (ok ? 'Passed ' : 'Not passed ') + i.myResult.score + '%</span>' : '') + '</div></div>' + (i.externalUrl ? '<button class="btn btn--sm" data-open-form="' + esc(i.externalUrl) + '" data-title="' + esc(i.title) + '">' + ico('ext') + 'Open</button>' : '<a class="btn btn--sm' + (ok ? ' btn--ghost' : '') + '" href="#/inservices/' + i.id + '">' + (ok ? 'Review' : 'Start') + '</a>') + '</div>';
-      }).join('') : '<div class="empty">' + ico('grad') + '<div>No in-services assigned.</div></div>') + '</section>';
-  }, mount: function (root) { on(root, 'click', '[data-open-form]', function (e, b) { openForm(b.dataset.openForm, b.dataset.title); }); } });
+    var todo = list.filter(function (i) { return !(i.myResult && i.myResult.passed); }), done = list.filter(function (i) { return i.myResult && i.myResult.passed; });
+    var nurse = list.find(function (i) { return i.nurseId; }) || {};
+    var row = function (i) {
+      var ok = i.myResult && i.myResult.passed, href = inserviceHref(i);
+      return '<div class="course"><div class="course__icon' + (ok ? ' is-done' : '') + '">' + ico(ok ? 'check' : 'grad') + '</div><div class="grow"><b>' + esc(i.title) + '</b><div class="small muted">' + esc(i.description || (i.kind === 'center' ? 'CHCS In-Service Training Center' : '')) + '</div><div class="row small" style="margin-top:6px;gap:8px">' + dueBadge(i) + (i.hours ? '<span class="badge badge--muted">' + i.hours + ' hr</span>' : '') + (i.myResult && !i.myResult.passed ? '<span class="badge badge--bad">Last score ' + i.myResult.score + '%</span>' : '') + (i.nurseName ? '<span class="muted">' + ico('nurse') + ' ' + esc(i.nurseName) + '</span>' : '') + '</div></div><div class="row" style="gap:6px">' + (i.nurseId && !ok ? '<button class="btn btn--ghost btn--sm" data-nurse="' + i.nurseId + '" data-ctx="' + esc(i.title) + '">' + ico('chat') + '<span class="hide-sm">Ask nurse</span></button>' : '') + (i.kind === 'link' ? '<button class="btn btn--sm" data-open-form="' + esc(i.externalUrl) + '" data-title="' + esc(i.title) + '">' + ico('ext') + 'Open</button>' : '<a class="btn btn--sm' + (ok ? ' btn--ghost' : '') + '" href="' + href + '">' + (ok ? 'Review' : 'Start') + '</a>') + '</div></div>';
+    };
+    var lib = (window.CHCS_CENTER || []).map(function (c) {
+      var mine = list.find(function (i) { return i.centerId === c[0]; });
+      return '<a class="tile" href="#/inservices/center/' + c[0] + '"><div class="row row--between"><div class="course__icon' + (mine && mine.myResult && mine.myResult.passed ? ' is-done' : '') + '">' + ico(mine && mine.myResult && mine.myResult.passed ? 'check' : 'grad') + '</div>' + (mine ? dueBadge(mine) : '') + '</div><b>' + esc(c[1]) + '</b><span class="small muted">About ' + c[2] + ' minutes</span></a>';
+    }).join('');
+    return '<div class="page-head"><div><h1>In-services</h1><p>Your required trainings and their due dates. Completions are saved to your employee record.</p></div>' + (nurse.nurseId ? '<button class="btn btn--ghost" data-nurse="' + nurse.nurseId + '" data-ctx="">' + ico('nurse') + 'Message ' + esc(nurse.nurseName) + '</button>' : '') + '</div>' +
+      '<section class="card" style="margin-bottom:18px"><div class="card__body"><div class="row row--between"><b>' + done.length + ' of ' + list.length + ' assigned in-services complete</b><span class="small muted">' + todo.filter(function (i) { return i.dueDate && i.dueDate < H.ymd(); }).length + ' overdue</span></div><div class="progress" style="margin-top:10px"><i style="width:' + (list.length ? done.length / list.length * 100 : 0) + '%"></i></div></div></section>' +
+      '<section class="card" style="margin-bottom:18px"><div class="card__head"><h2>To do</h2><span class="small muted">Sorted by due date</span></div>' + (todo.length ? todo.map(row).join('') : '<div class="empty">' + ico('check') + '<div>You\'re all caught up.</div></div>') + '</section>' +
+      '<h2 style="margin:24px 0 12px">Training Center library</h2><p class="muted" style="margin-top:-6px">Open any training. Your name from your profile is filled in automatically.</p><div class="tiles" style="margin-bottom:18px">' + lib + '</div>' +
+      (done.length ? '<section class="card"><div class="card__head"><h2>Completed</h2></div>' + done.map(row).join('') + '</section>' : '');
+  }, mount: function (root) {
+    on(root, 'click', '[data-open-form]', function (e, b) { openForm(b.dataset.openForm, b.dataset.title); });
+    on(root, 'click', '[data-nurse]', function (e, b) { openNurseChat(+b.dataset.nurse, b.dataset.ctx); });
+  } });
+
+  // Training Center module inside the In-services tab (not a form).
+  route('inservices/center/:id', { title: 'In-service', nav: 'inservices', perm: 'inservices', render: async function (p) {
+    var c = (window.CHCS_CENTER || []).find(function (x) { return x[0] === p.id; }) || [p.id, 'Training Center', 0];
+    var mine = (await API.get('inservices')).find(function (i) { return i.centerId === c[0]; }) || {};
+    var nurse = mine.nurseId ? { id: mine.nurseId, name: mine.nurseName } : await API.get('nurse').catch(function () { return null; });
+    // Connect the Training Center to the profile: it reads the name from this storage key (same site).
+    try { var key = 'chcs-inservice-v1', st = JSON.parse(localStorage.getItem(key) || '{}'); st.name = state.user.name; localStorage.setItem(key, JSON.stringify(st)); } catch (e) { /* storage blocked */ }
+    return '<div class="center-bar"><a href="#/inservices" class="btn btn--ghost btn--sm">' + ico('left') + 'All in-services</a><div class="grow"><b>' + esc(c[1]) + '</b><div class="small">' + dueBadge(mine) + '</div></div>' + (nurse ? '<button class="btn btn--sm" id="ask-nurse">' + ico('chat') + 'Ask ' + esc(String(nurse.name).split(',')[0]) + '</button>' : '') + '</div>' +
+      '<div class="center-frame"><iframe id="center-frame" title="' + esc(c[1]) + '" src="' + ASSET + 'forms/inservice-training.html?portal=1#/training/' + encodeURIComponent(c[0]) + '"></iframe></div>' +
+      '<script type="application/json" id="center-json">' + JSON.stringify({ id: c[0], title: c[1], nurseId: nurse && nurse.id }).replace(/</g, '\\u003c') + '</script>';
+  }, mount: function (root) {
+    var c = JSON.parse($('#center-json').textContent);
+    var b = $('#ask-nurse'); if (b) b.onclick = function () { openNurseChat(c.nurseId, c.title); };
+  } });
+  // The Training Center tells the portal when a certificate was submitted.
+  window.addEventListener('message', async function (e) {
+    if (e.origin !== location.origin || !e.data || e.data.type !== 'chcs-inservice-complete' || !state.user) return;
+    try { await API.post('inservices/center-complete', { centerId: e.data.id, score: e.data.score, name: e.data.name }); toast('In-service completed and saved to your record.', 'ok'); refreshCounts(); } catch (err) { /* not assigned or no access */ }
+  });
 
   route('inservices/:id', { title: 'In-service', nav: 'inservices', perm: 'inservices', render: async function (p) {
     var i = (await API.get('inservices')).find(function (x) { return x.id === +p.id; }); if (!i) throw new Error('In-service not found.');
-    return '<div class="page-head"><div><a href="#/inservices" class="small">← All in-services</a><h1>' + esc(i.title) + '</h1><p>' + esc(i.description) + '</p></div></div><div class="stack"><section class="card"><div class="card__head"><h2>1. Read the material</h2>' + (i.hours ? '<span class="badge badge--muted">' + i.hours + ' hr</span>' : '') + '</div><div class="card__body"><div class="doc">' + esc(i.body || 'No reading for this in-service.') + '</div></div></section>' +
+    return '<div class="page-head"><div><a href="#/inservices" class="small">← All in-services</a><h1>' + esc(i.title) + '</h1><p>' + esc(i.description) + '</p><div class="row small" style="margin-top:6px">' + dueBadge(i) + '</div></div>' + (i.nurseId ? '<button class="btn btn--ghost" id="ask-nurse" data-nurse="' + i.nurseId + '">' + ico('chat') + 'Ask ' + esc(String(i.nurseName).split(',')[0]) + '</button>' : '') + '</div><div class="stack"><section class="card"><div class="card__head"><h2>1. Read the material</h2>' + (i.hours ? '<span class="badge badge--muted">' + i.hours + ' hr</span>' : '') + '</div><div class="card__body"><div class="doc">' + esc(i.body || 'No reading for this in-service.') + '</div></div></section>' +
       '<form id="quiz" class="card"><div class="card__head"><h2>2. ' + (i.questions.length ? 'Quiz' : 'Confirm') + '</h2>' + (i.questions.length ? '<span class="small muted">Pass score ' + i.passScore + '%</span>' : '') + '</div><div class="card__body stack">' + i.questions.map(function (q, k) { return '<fieldset class="quiz-q"><legend class="sr-only">Question ' + (k + 1) + '</legend><b>' + (k + 1) + '. ' + esc(q.q) + '</b>' + q.options.map(function (o, j) { return '<label><input type="radio" name="q' + k + '" value="' + j + '" required> ' + esc(o) + '</label>'; }).join('') + '</fieldset>'; }).join('') +
-      '<label class="field"><span>Signature — type your full name to certify you completed this in-service</span><input class="input signature" name="signature" value="" placeholder="' + esc(state.user.name) + '" required></label><div id="quiz-res"></div><button class="btn btn--lg">' + ico('send') + 'Submit</button></div></form></div>';
+      '<label class="field"><span>Signature — type your full name to certify you completed this in-service</span><input class="input signature" name="signature" value="' + esc(state.user.name) + '" required></label><div id="quiz-res"></div><button class="btn btn--lg">' + ico('send') + 'Submit</button></div></form></div>' +
+      (i.nurseId ? '<button class="btn nurse-fab" data-nurse="' + i.nurseId + '" aria-label="Ask the nurse">' + ico('nurse') + '<span>Ask the nurse</span></button>' : '') +
+      '<script type="application/json" id="ins-json">' + JSON.stringify({ title: i.title }).replace(/</g, '\\u003c') + '</script>';
   }, mount: function (root, p) {
+    var info = JSON.parse($('#ins-json').textContent);
+    on(root, 'click', '[data-nurse]', function (e, b) { openNurseChat(+b.dataset.nurse, info.title); });
     var f = $('#quiz'); f.onsubmit = async function (e) {
       e.preventDefault(); var d = H.formData(f), answers = [];
-      Object.keys(d).forEach(function (k) { if (k[0] === 'q' && /^q\d+$/.test(k)) answers[+k.slice(1)] = +d[k]; });
+      Object.keys(d).forEach(function (k) { if (/^q\d+$/.test(k)) answers[+k.slice(1)] = +d[k]; });
       try {
         var r = await submitting(function () { return API.post('inservices/' + p.id + '/complete', { answers: answers, signature: d.signature }); });
-        $('#quiz-res').innerHTML = r.passed ? '<div class="alert alert--ok">You passed with ' + r.score + '%. Your completion was recorded.</div>' : '<div class="alert alert--bad">You scored ' + r.score + '% (need ' + r.passScore + '%). Review the material and try again.</div>';
+        $('#quiz-res').innerHTML = r.passed ? '<div class="alert alert--ok">You passed with ' + r.score + '%. Your completion was recorded.</div>' : '<div class="alert alert--bad">You scored ' + r.score + '% (need ' + r.passScore + '%). Review the material, ask the nurse if anything is unclear, and try again.</div>';
         refreshCounts();
       } catch (err) { /* shown */ }
     };
@@ -706,15 +839,112 @@
     });
   } });
 
+  /* ================================================================ vacation & sick leave */
+  var LEAVE_LABEL = {}; (window.CHCS_LEAVE_TYPES || []).forEach(function (t) { LEAVE_LABEL[t[0]] = t[1]; });
+  route('leave', { title: 'Vacation & sick leave', perm: ['leave', 'leave_manage'], render: async function (p, q) {
+    var manage = can('leave_manage'), mineOk = can('leave') && state.user.type !== 'field';
+    var tab = q.tab || (mineOk ? 'mine' : 'manage');
+    var head = '<div class="page-head"><div><h1>Vacation &amp; sick leave</h1><p>Request time off. Approved leave shows on the calendar and in the payroll export.</p></div>' + (mineOk ? '<button class="btn" id="req-leave">' + ico('plus') + 'Request time off</button>' : '') + '</div>' +
+      (manage && mineOk ? '<div class="tabs"><a href="#/leave" class="' + (tab === 'mine' ? 'is-active' : '') + '">My leave</a><a href="#/leave?tab=manage" class="' + (tab === 'manage' ? 'is-active' : '') + '">Requests to approve</a><a href="#/leave?tab=balances" class="' + (tab === 'balances' ? 'is-active' : '') + '">Allowances</a></div>' : (manage ? '<div class="tabs"><a href="#/leave?tab=manage" class="' + (tab === 'manage' ? 'is-active' : '') + '">Requests</a><a href="#/leave?tab=balances" class="' + (tab === 'balances' ? 'is-active' : '') + '">Allowances</a></div>' : ''));
+    var table = function (list, who) {
+      return list.length ? '<div class="table-wrap"><table class="table table--cards"><thead><tr>' + (who ? '<th>Employee</th>' : '') + '<th>Type</th><th>Dates</th><th class="right">Hours</th><th>Reason</th><th>Status</th><th></th></tr></thead><tbody>' + list.map(function (l) { return '<tr>' + (who ? '<td data-label="Employee"><b>' + esc(l.userName) + '</b> <span class="small muted">' + esc(l.designation) + '</span></td>' : '') + '<td data-label="Type">' + esc(LEAVE_LABEL[l.type] || l.type) + '</td><td data-label="Dates" class="nowrap">' + esc(H.fmtDate(l.from, { month: 'short', day: 'numeric' })) + (l.to !== l.from ? ' → ' + esc(H.fmtDate(l.to, { month: 'short', day: 'numeric', year: 'numeric' })) : ', ' + l.from.slice(0, 4)) + (l.partial ? ' <span class="small muted">(' + l.hoursPerDay + 'h/day)</span>' : '') + '</td><td data-label="Hours" class="right">' + l.totalHours + '</td><td data-label="Reason" class="small">' + esc(l.reason || '—') + (l.decisionNote ? '<div class="muted">' + esc(l.decidedByName) + ': ' + esc(l.decisionNote) + '</div>' : '') + '</td><td data-label="Status">' + H.badge(l.status) + '</td><td class="nowrap">' + (who && l.status === 'pending' ? '<button class="btn btn--ghost btn--sm" data-ldec="reject" data-id="' + l.id + '">Reject</button> <button class="btn btn--ok btn--sm" data-ldec="approve" data-id="' + l.id + '">Approve</button>' : '') + (!who && (l.status === 'pending' || (l.status === 'approved' && l.from > H.ymd())) ? '<button class="btn btn--ghost btn--sm" data-lcancel="' + l.id + '">Cancel</button>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">' + ico('sun') + '<div>No leave requests.</div></div>';
+    };
+    if (tab === 'manage') {
+      var all = await API.get('leave?scope=all'), st = q.status || 'pending';
+      var shown = all.filter(function (l) { return st === 'all' || l.status === st; });
+      return head + '<section class="card"><div class="card__head"><h2>Leave requests</h2><div class="tabs" style="margin:0;border:0">' + [['pending', 'Pending'], ['approved', 'Approved'], ['rejected', 'Rejected'], ['all', 'All']].map(function (t) { return '<a href="#/leave?tab=manage&status=' + t[0] + '" class="' + (st === t[0] ? 'is-active' : '') + '">' + t[1] + ' (' + all.filter(function (l) { return t[0] === 'all' || l.status === t[0]; }).length + ')</a>'; }).join('') + '</div></div>' + table(shown, true) + '</section>';
+    }
+    if (tab === 'balances') {
+      var bal = await API.get('leave/balances?all=1');
+      return head + '<section class="card"><div class="card__head"><h2>Yearly allowances (hours)</h2><span class="small muted">' + new Date().getFullYear() + ' · used / allowed</span></div><div class="table-wrap"><table class="table table--cards"><thead><tr><th>Employee</th><th>Vacation</th><th>Sick</th><th>Personal</th><th></th></tr></thead><tbody>' + bal.map(function (b) { var g = function (t) { var x = b.balances.find(function (y) { return y.type === t; }); return x.used + ' / ' + x.allowed + (x.pending ? ' <span class="muted small">(+' + x.pending + ' pending)</span>' : ''); }; return '<tr><td data-label="Employee"><b>' + esc(b.name) + '</b> <span class="small muted">' + esc(b.designation) + '</span></td><td data-label="Vacation">' + g('vacation') + '</td><td data-label="Sick">' + g('sick') + '</td><td data-label="Personal">' + g('personal') + '</td><td><button class="btn btn--ghost btn--sm" data-allow="' + b.userId + '" data-name="' + esc(b.name) + '" data-v="' + b.allowance.vacation + '" data-s="' + b.allowance.sick + '" data-p="' + b.allowance.personal + '">Edit</button></td></tr>'; }).join('') + '</tbody></table></div></section><p class="small muted" style="margin-top:10px">New York requires paid sick leave (40 hours for employers with 5–99 employees, 56 hours for 100+). Set allowances to match your policy.</p>';
+    }
+    var mine = await API.get('leave'), bals = await API.get('leave/balances');
+    return head + '<div class="stats">' + bals.map(function (b) { return '<div class="stat"><div class="stat__label">' + ico('sun') + esc(LEAVE_LABEL[b.type]) + '</div><div class="stat__value">' + b.left + '<span class="small muted" style="font-weight:600"> h left</span></div><div class="stat__hint">' + b.used + ' of ' + b.allowed + ' used' + (b.pending ? ' · ' + b.pending + ' pending' : '') + '</div></div>'; }).join('') + '</div><section class="card"><div class="card__head"><h2>My requests</h2></div>' + table(mine, false) + '</section>';
+  }, mount: function (root) {
+    var rb = $('#req-leave'); if (rb) rb.onclick = function () {
+      modal('Request time off', '<form class="modal__body stack" id="leave-form"><label class="field"><span>Type</span><select class="input" name="type">' + (window.CHCS_LEAVE_TYPES || []).map(function (t) { return '<option value="' + t[0] + '">' + t[1] + '</option>'; }).join('') + '</select></label><div class="grid-2"><label class="field"><span>From</span><input class="input" type="date" name="from" value="' + H.ymd() + '" required></label><label class="field"><span>To</span><input class="input" type="date" name="to" value="' + H.ymd() + '" required></label></div><label class="check"><input type="checkbox" name="partial" id="lv-partial"> Partial day</label><label class="field hidden" id="lv-hours"><span>Hours per day</span><input class="input" type="number" name="hours" min="0.5" max="8" step="0.5" value="4"></label><label class="field"><span>Reason <span class="muted">(optional — no medical details needed)</span></span><input class="input" name="reason"></label><p class="small muted">Weekends are not counted. Your manager is notified by email.</p></form><div class="modal__foot"><button class="btn btn--ghost" data-close>Cancel</button><button class="btn" id="leave-save">' + ico('send') + 'Send request</button></div>', {
+        mount: function (w, close) {
+          $('#lv-partial', w).onchange = function () { $('#lv-hours', w).classList.toggle('hidden', !this.checked); };
+          $('#leave-save', w).onclick = async function () { var d = H.formData($('#leave-form', w)); d.partial = !!d.partial; try { await submitting(function () { return API.post('leave', d); }); close(); render(); } catch (e) { /* shown */ } };
+        }
+      });
+    };
+    on(root, 'click', '[data-ldec]', function (e, b) {
+      modal(b.dataset.ldec === 'approve' ? 'Approve leave' : 'Reject leave', '<div class="modal__body"><label class="field"><span>Note to employee (optional)</span><input class="input" id="ld-note"></label></div><div class="modal__foot"><button class="btn btn--ghost" data-close>Cancel</button><button class="btn ' + (b.dataset.ldec === 'approve' ? 'btn--ok' : 'btn--red') + '" id="ld-go">' + (b.dataset.ldec === 'approve' ? 'Approve' : 'Reject') + '</button></div>', {
+        mount: function (w, close) { $('#ld-go', w).onclick = async function () { try { await API.patch('leave/' + b.dataset.id, { action: b.dataset.ldec, note: $('#ld-note', w).value }); close(); toast('Done. The employee was notified.', 'ok'); refreshCounts(); render(); } catch (err) { fail(err); } }; }
+      });
+    });
+    on(root, 'click', '[data-lcancel]', async function (e, b) { if (await confirmBox('Cancel this request?', 'Your manager will see it as cancelled.', 'Cancel request', true)) { try { await API.patch('leave/' + b.dataset.lcancel, { action: 'cancel' }); render(); } catch (err) { fail(err); } } });
+    on(root, 'click', '[data-allow]', function (e, b) {
+      modal('Allowances — ' + b.dataset.name, '<form class="modal__body grid-3" id="al-form"><label class="field"><span>Vacation (h/yr)</span><input class="input" type="number" min="0" name="vacation" value="' + b.dataset.v + '"></label><label class="field"><span>Sick (h/yr)</span><input class="input" type="number" min="0" name="sick" value="' + b.dataset.s + '"></label><label class="field"><span>Personal (h/yr)</span><input class="input" type="number" min="0" name="personal" value="' + b.dataset.p + '"></label></form><div class="modal__foot"><button class="btn btn--ghost" data-close>Cancel</button><button class="btn" id="al-save">Save</button></div>', {
+        mount: function (w, close) { $('#al-save', w).onclick = async function () { try { await API.put('leave/allowance/' + b.dataset.allow, H.formData($('#al-form', w))); close(); toast('Saved.', 'ok'); render(); } catch (err) { fail(err); } }; }
+      });
+    });
+  } });
+
+  /* ================================================================ call dashboard */
+  var CALL_STATUS = { open: 'Open', in_progress: 'In progress', returned: 'Returned', closed: 'Closed' };
+  function callTypeLabel(t) { var x = (window.CHCS_CALLER_TYPES || []).find(function (y) { return y[0] === t; }); return x ? x[1] : t; }
+  route('calls', { title: 'Call dashboard', perm: 'calls', render: async function (p, q) {
+    var f = q.filter || 'open', stats = await API.get('calls/stats'), list = await API.get('calls?filter=' + f + (q.q ? '&q=' + encodeURIComponent(q.q) : ''));
+    var nowIso = new Date().toISOString().slice(0, 16);
+    var tiles = [['call', 'Calls today', stats.today, 'today'], ['bell', 'Assigned to me', stats.mine, 'mine'], ['folder', 'Open calls', stats.open, 'open'], ['clock', 'Call-backs overdue', stats.overdue, 'open']];
+    return '<div class="page-head"><div><h1>Call dashboard</h1><p>Log every call you take. Assign it and that person gets an email and a notification right away.</p></div><button class="btn btn--lg btn--red" id="take-call">' + ico('call') + 'Take a call</button></div>' +
+      '<div class="stats">' + tiles.map(function (t) { return '<a class="stat" href="#/calls?filter=' + t[3] + '"><div class="stat__label">' + ico(t[0]) + esc(t[1]) + '</div><div class="stat__value"' + (t[0] === 'clock' && t[2] ? ' style="color:var(--red)"' : '') + '>' + t[2] + '</div>' + (t[0] === 'folder' && stats.urgent ? '<div class="stat__hint" style="color:var(--red)">' + stats.urgent + ' urgent</div>' : '<div class="stat__hint">&nbsp;</div>') + '</a>'; }).join('') + '</div>' +
+      '<section class="card"><div class="card__head"><div class="tabs" style="margin:0;border:0">' + [['open', 'Open'], ['mine', 'Assigned to me'], ['taken', 'Taken by me'], ['today', 'Today'], ['all', 'All calls']].map(function (t) { return '<a href="#/calls?filter=' + t[0] + '" class="' + (f === t[0] ? 'is-active' : '') + '">' + t[1] + '</a>'; }).join('') + '</div><form id="call-search"><input class="input" name="q" placeholder="Search caller, phone, message" value="' + esc(q.q || '') + '" style="min-height:38px;min-width:240px"></form></div>' +
+      (list.length ? '<div class="table-wrap"><table class="table table--cards"><thead><tr><th>When</th><th>Caller</th><th>About</th><th>For</th><th>Call back by</th><th>Status</th></tr></thead><tbody>' + list.map(function (c) { var late = c.callbackBy && c.callbackBy < nowIso && (c.status === 'open' || c.status === 'in_progress'); return '<tr class="is-click' + (c.priority === 'urgent' ? ' is-urgent' : '') + '" data-call="' + c.id + '"><td data-label="When" class="nowrap small">' + esc(H.ago(c.createdAt)) + '<div class="muted">by ' + esc(c.takenByName.split(' ')[0]) + '</div></td><td data-label="Caller"><b>' + esc(c.callerName) + '</b>' + (c.priority === 'urgent' ? ' <span class="badge badge--bad">Urgent</span>' : '') + '<div class="small muted">' + esc(c.callerPhone || '') + ' · ' + esc(callTypeLabel(c.callerType)) + '</div></td><td data-label="About"><b class="small">' + esc(c.reason) + '</b><div class="small muted clamp2">' + esc(c.message) + '</div></td><td data-label="For">' + (c.assignedToName ? esc(c.assignedToName) : '<span class="muted">—</span>') + '</td><td data-label="Call back by" class="nowrap' + (late ? ' late' : '') + '">' + (c.callbackBy ? esc(H.fmtDate(c.callbackBy, { month: 'short', day: 'numeric' })) + ' ' + esc(H.fmtHM(c.callbackBy.slice(11, 16))) : '—') + (late ? ' <span class="badge badge--bad">Late</span>' : '') + '</td><td data-label="Status">' + H.badge(c.status === 'returned' ? 'approved' : c.status === 'closed' ? 'discharged' : c.status === 'in_progress' ? 'pending' : 'new').replace(/>[^<]+</, '>' + CALL_STATUS[c.status] + '<') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">' + ico('call') + '<div>No calls here.</div></div>') + '</section>' +
+      '<script type="application/json" id="calls-json">' + JSON.stringify(list).replace(/</g, '\\u003c') + '</script>';
+  }, mount: async function (root, p, q) {
+    var list = JSON.parse($('#calls-json').textContent), staff = await API.get('chat/directory').catch(function () { return []; });
+    staff = staff.filter(function (s) { return s.type !== 'field'; }).concat([{ id: state.user.id, name: state.user.name + ' (me)', designation: state.user.designation }]);
+    $('#call-search').onsubmit = function (e) { e.preventDefault(); go('#/calls?filter=all&q=' + encodeURIComponent(e.target.q.value)); };
+    $('#take-call').onclick = function () { takeCall(staff); };
+    on(root, 'click', '[data-call]', function (e, tr) { callDetail(list.find(function (c) { return c.id === +tr.dataset.call; }), staff); });
+    if (q.id) { var c = list.find(function (x) { return x.id === +q.id; }); if (c) callDetail(c, staff); else API.get('calls?filter=all').then(function (all) { var c2 = all.find(function (x) { return x.id === +q.id; }); if (c2) callDetail(c2, staff); }); }
+  } });
+  function staffOptions(staff, sel) { return '<option value="">— Nobody (just log it) —</option>' + staff.map(function (s) { return '<option value="' + s.id + '"' + (s.id === sel ? ' selected' : '') + '>' + esc(s.name) + (s.designation ? ' — ' + esc(s.designation) : '') + '</option>'; }).join(''); }
+  function takeCall(staff) {
+    var started = Date.now();
+    modal('Incoming call', '<form class="modal__body stack" id="call-form"><div class="call-timer"><span class="dot dot--live"></span><b id="call-timer">00:00</b><span class="small muted">on the call</span></div>' +
+      '<div class="grid-2"><label class="field"><span>Caller phone</span><input class="input" name="callerPhone" type="tel" id="cf-phone" autocomplete="off" placeholder="(718) 555-0100"></label><label class="field"><span>Caller name</span><input class="input" name="callerName" id="cf-name" autocomplete="off"></label></div><div id="cf-lookup"></div>' +
+      '<div class="grid-2"><label class="field"><span>Caller is a…</span><select class="input" name="callerType">' + (window.CHCS_CALLER_TYPES || []).map(function (t) { return '<option value="' + t[0] + '">' + t[1] + '</option>'; }).join('') + '</select></label><label class="field"><span>About</span><select class="input" name="reason">' + (window.CHCS_CALL_REASONS || []).map(function (r) { return '<option>' + r + '</option>'; }).join('') + '</select></label></div>' +
+      '<label class="field"><span>Message / notes</span><textarea class="input" name="message" rows="4" placeholder="What did they need? Best time to call back?" required></textarea></label>' +
+      '<div class="grid-3"><label class="field"><span>For (assign to)</span><select class="input" name="assignedTo">' + staffOptions(staff) + '</select></label><label class="field"><span>Call back by</span><input class="input" type="datetime-local" name="callbackBy"></label><label class="field"><span>Priority</span><select class="input" name="priority"><option value="normal">Normal</option><option value="urgent">Urgent</option></select></label></div>' +
+      '<label class="check"><input type="checkbox" name="resolved"> Resolved on this call (no follow-up needed)</label></form><div class="modal__foot"><button class="btn btn--ghost" data-close>Discard</button><button class="btn" id="call-save">' + ico('check') + 'Save call</button></div>', {
+      wide: true, mount: function (w, close) {
+        var timer = setInterval(function () { var el = $('#call-timer', w); if (!el) { clearInterval(timer); return; } var s = Math.floor((Date.now() - started) / 1000); el.textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }, 1000);
+        var lk; $('#cf-phone', w).oninput = function () { clearTimeout(lk); var v = this.value; lk = setTimeout(async function () { var r = await API.get('calls/lookup?phone=' + encodeURIComponent(v)).catch(function () { return {}; }); var box = $('#cf-lookup', w); if (!box) return; var bits = []; if (r.patient) bits.push('Patient on file: <b>' + esc(r.patient.name) + '</b> (' + esc(r.patient.status) + ')'); if (r.employee) bits.push('Employee: <b>' + esc(r.employee.name) + '</b> ' + esc(r.employee.designation)); if (r.calls) bits.push(r.calls + ' earlier call' + (r.calls > 1 ? 's' : '') + (r.last ? ', last ' + esc(H.ago(r.last.createdAt)) + ' about "' + esc(r.last.reason) + '"' : '')); box.innerHTML = bits.length ? '<div class="alert alert--info">' + ico('user') + '<span>' + bits.join('<br>') + '</span></div>' : ''; var nm = $('#cf-name', w); if (!nm.value && (r.patient || r.employee || r.last)) nm.value = r.employee ? r.employee.name : (r.last ? r.last.callerName : r.patient.name); }, 400); };
+        $('#call-save', w).onclick = async function () {
+          var d = H.formData($('#call-form', w)); d.duration = Math.round((Date.now() - started) / 1000); if (d.resolved) d.status = 'closed'; delete d.resolved;
+          try { await submitting(function () { return API.post('calls', d); }); clearInterval(timer); close(); render(); } catch (e) { /* shown */ }
+        };
+      }
+    });
+  }
+  function callDetail(c, staff) {
+    var tel = (c.callerPhone || '').replace(/[^0-9+]/g, '');
+    modal(c.callerName, '<div class="modal__body stack"><div class="row">' + (c.priority === 'urgent' ? '<span class="badge badge--bad">Urgent</span>' : '') + '<span class="badge badge--brand">' + esc(CALL_STATUS[c.status]) + '</span><span class="small muted">' + esc(callTypeLabel(c.callerType)) + ' · taken by ' + esc(c.takenByName) + ' · ' + esc(new Date(c.createdAt).toLocaleString()) + (c.duration ? ' · ' + Math.round(c.duration / 60) + ' min' : '') + '</span></div>' +
+      (c.callerPhone ? '<div class="row"><a class="btn btn--ok" href="tel:' + esc(tel) + '">' + ico('call') + 'Call ' + esc(c.callerPhone) + '</a></div>' : '') +
+      '<div><div class="small muted">' + esc(c.reason) + '</div><div class="doc">' + esc(c.message) + '</div></div>' +
+      (c.followUps.length ? '<div><div class="small muted">Follow-ups</div><ul class="list">' + c.followUps.map(function (f) { return '<li style="padding:8px 0">' + H.avatar(f.userName, 'sm') + '<div class="grow"><div class="small"><b>' + esc(f.userName) + '</b> <span class="muted">' + esc(H.ago(f.at)) + '</span></div>' + esc(f.body) + '</div></li>'; }).join('') + '</ul></div>' : '') +
+      '<div class="grid-3"><label class="field"><span>Assigned to</span><select class="input" id="cd-assign">' + staffOptions(staff, c.assignedTo) + '</select></label><label class="field"><span>Call back by</span><input class="input" type="datetime-local" id="cd-cb" value="' + esc(c.callbackBy || '') + '"></label><label class="field"><span>Status</span><select class="input" id="cd-status">' + Object.keys(CALL_STATUS).map(function (k) { return '<option value="' + k + '"' + (c.status === k ? ' selected' : '') + '>' + CALL_STATUS[k] + '</option>'; }).join('') + '</select></label></div>' +
+      '<label class="field"><span>Add a follow-up note</span><input class="input" id="cd-note" placeholder="e.g. Called back, left voicemail"></label></div><div class="modal__foot"><button class="btn btn--ghost" data-close>Close</button><button class="btn btn--ok" id="cd-returned">' + ico('check') + 'Mark returned</button><button class="btn" id="cd-save">Save</button></div>', {
+      wide: true, mount: function (w, close) {
+        async function save(extra) { var body = Object.assign({ assignedTo: $('#cd-assign', w).value ? +$('#cd-assign', w).value : null, callbackBy: $('#cd-cb', w).value, status: $('#cd-status', w).value, note: $('#cd-note', w).value }, extra || {}); try { await API.patch('calls/' + c.id, body); close(); toast('Call updated.', 'ok'); go('#/calls?filter=' + (new URLSearchParams(location.hash.split('?')[1] || '').get('filter') || 'open')); render(); } catch (e) { fail(e); } }
+        $('#cd-save', w).onclick = function () { save(); };
+        $('#cd-returned', w).onclick = function () { save({ status: 'returned', note: $('#cd-note', w).value || 'Call returned.' }); };
+      }
+    });
+  }
+
   /* ================================================================ forms hub */
   var FORMS = [
     { file: 'forms/duty-sheet.html', title: 'HHA / PCA Duty Sheet', desc: 'Weekly duty sheet with client & aide signatures. Submits a signed PDF.', icon: 'sheet', show: function () { return can('forms') || can('timesheet'); } },
     { file: 'forms/patient-assessment.html', title: 'Patient Assessment', desc: 'RN / LPN patient assessment with offline drafts. Submits a signed PDF.', icon: 'heart', show: function () { return can('forms') && (state.user.type !== 'field' || /RN|LPN/.test(state.user.designation)); } },
-    { file: 'forms/inservice-training.html', title: 'In-Service Training Center', desc: 'Full in-service library with certificates.', icon: 'grad', show: function () { return can('inservices') || can('training_manage'); } },
     { file: 'forms/employment-application.html', title: 'Employment Application Packet', desc: 'Application, references, health assessment and competency checklist.', icon: 'brief', show: function () { return can('applications') || isApplicant(); } },
     { file: 'forms/workspace-app.html', title: 'CHCS Workspace App', desc: 'Agency Google Workspace tool (sign in with your @completehcs.com account).', icon: 'ext', show: function () { return state.user.type === 'office' || state.user.type === 'admin'; } }
   ];
-  route('forms', { title: 'Forms', perm: ['forms', 'inservices'], render: function () {
+  route('forms', { title: 'Forms', perm: 'forms', render: function () {
     var list = FORMS.filter(function (f) { return f.show(); });
     return '<div class="page-head"><div><h1>Forms</h1><p>Agency forms. Each one submits directly to the office when you tap Submit.</p></div></div>' + (CFG.mode === 'demo' ? '<div class="alert alert--warn" style="margin-bottom:16px">' + ico('shield') + '<span>Heads up: even in this demo, these forms are live. Submitting one sends it to the agency\'s real Google Apps Script. Only submit test data your office expects.</span></div>' : '') + '<div class="tiles">' + list.map(function (f) { return '<a class="tile" href="#" data-open-form="' + f.file + '" data-title="' + esc(f.title) + '"><div class="course__icon">' + ico(f.icon) + '</div><b>' + esc(f.title) + '</b><span class="small muted">' + esc(f.desc) + '</span></a>'; }).join('') + '</div>';
   }, mount: function (root) { on(root, 'click', '[data-open-form]', function (e, b) { e.preventDefault(); openForm(b.dataset.openForm, b.dataset.title); }); } });
@@ -723,6 +953,13 @@
     var w = document.createElement('div'); w.className = 'frame-wrap';
     w.innerHTML = '<div class="frame-wrap__bar"><button class="btn btn--ghost btn--sm" id="fw-close">' + ico('left') + 'Back to portal</button><b class="grow">' + esc(title || 'Form') + '</b></div><iframe src="' + esc(url) + '" title="' + esc(title || 'Form') + '" allow="geolocation; camera; microphone"></iframe>';
     document.body.appendChild(w); document.body.style.overflow = 'hidden';
+    // Connect forms to the profile: fill the employee's name/phone if the form has those fields and they're empty.
+    $('iframe', w).addEventListener('load', function () {
+      try {
+        var doc = this.contentDocument, fill = { employeeName: state.user.name, phone: state.user.phone || '' };
+        Object.keys(fill).forEach(function (id) { var el = doc.getElementById(id); if (el && !el.value && fill[id]) { el.value = fill[id]; el.dispatchEvent(new Event('input', { bubbles: true })); } });
+      } catch (e) { /* cross-site form: nothing to fill */ }
+    });
     $('#fw-close', w).onclick = function () { w.remove(); document.body.style.overflow = ''; };
   }
 
@@ -732,11 +969,13 @@
     return '<div class="page-head"><div class="row">' + H.avatar(u.name, 'lg') + '<div><h1 style="margin:0">' + esc(u.name) + '</h1><div class="muted">' + esc(u.designation || typeLabel(u)) + ' · ' + esc(u.email) + '</div></div></div></div><div class="cards cards--2"><form class="card" id="prof"><div class="card__head"><h2>Contact details</h2></div><div class="card__body stack"><label class="field"><span>Full name</span><input class="input" name="name" value="' + esc(u.name) + '"></label><label class="field"><span>Mobile phone</span><input class="input" name="phone" value="' + esc(u.phone || '') + '"></label><button class="btn">Save</button></div></form>' +
       '<form class="card" id="pw"><div class="card__head"><h2>Change password</h2></div><div class="card__body stack"><label class="field"><span>Current password</span><input class="input" type="password" name="currentPassword" autocomplete="current-password"></label><label class="field"><span>New password</span><input class="input" type="password" name="newPassword" minlength="8" autocomplete="new-password"></label><button class="btn">Update password</button></div></form></div>' +
       '<section class="card" style="margin-top:18px"><div class="card__head"><h2>My access</h2></div><div class="card__body"><div class="chips">' + (u.permissions.length ? u.permissions.map(function (p) { var m = MODULES.find(function (x) { return x[0] === p; }); return '<span class="badge badge--brand">' + esc(m ? m[1] : p) + '</span>'; }).join('') : '<span class="muted">No modules yet.</span>') + '</div><p class="small muted" style="margin-top:10px">Need something else? Ask your administrator.</p></div></section>' +
+      '<section class="card" style="margin-top:18px"><div class="course"><div class="course__icon">' + ico('bell') + '</div><div class="grow"><b>Notifications on this device</b><div class="small muted">Alerts for new messages, calls assigned to you, leave decisions and in-services. Status: <b id="np-status">' + ({ granted: 'On', denied: 'Blocked in browser settings', 'default': 'Off', unsupported: 'Not supported here (on iPhone, install the app first)' }[notifyPermission()]) + '</b></div></div>' + (notifyPermission() === 'default' ? '<button class="btn btn--sm" id="np-on">Turn on</button>' : '') + '</div></section>' +
       '<section class="card" style="margin-top:18px"><div class="course"><div class="course__icon">' + ico('phone') + '</div><div class="grow"><b>Use the portal as an app</b><div class="small muted">Install it on your phone\'s home screen for one-tap access. On iPhone: tap Share → Add to Home Screen. On Android: tap Install.</div></div><button class="btn btn--sm" id="inst">Install</button></div></section>';
   }, mount: function () {
     $('#prof').onsubmit = async function (e) { e.preventDefault(); try { state.user = (await API.patch('me', H.formData(e.target))).user; toast('Profile saved.', 'ok'); renderShell('profile'); } catch (err) { fail(err); } };
     $('#pw').onsubmit = async function (e) { e.preventDefault(); try { await API.patch('me', H.formData(e.target)); e.target.reset(); toast('Password updated.', 'ok'); } catch (err) { fail(err); } };
     $('#inst').onclick = installApp;
+    var np = $('#np-on'); if (np) np.onclick = function () { enableNotifications().then(function () { render(); }); };
   } });
 
   /* ================================================================ admin: users */
@@ -810,7 +1049,7 @@
   } });
 
   /* ================================================================ admin: email & API */
-  var TEMPLATES = [['verify', 'Email verification', 'Sent when someone creates an account (required for sign-up to work)'], ['password_reset', 'Password reset', 'Forgot-password links and invitations'], ['signup_admin', 'New account alert (to admin)', 'When a verified account is waiting for approval'], ['account_decision', 'Account approved / rejected', 'Tells the user the outcome'], ['application_received', 'Application received', 'Confirmation to applicant + alert to admin'], ['application_decision', 'Application decision', 'Hire or reject message'], ['time_decision', 'Time approved / rejected', 'When a manager decides on hours'], ['shift_assigned', 'Shift scheduled', 'When a shift is added for an employee'], ['inservice_assigned', 'In-service assigned', 'When new training is published'], ['new_post', 'New staff post', 'Emails every staff member when a staff post is published']];
+  var TEMPLATES = [['verify', 'Email verification', 'Sent when someone creates an account (required for sign-up to work)'], ['password_reset', 'Password reset', 'Forgot-password links and invitations'], ['signup_admin', 'New account alert (to admin)', 'When a verified account is waiting for approval'], ['account_decision', 'Account approved / rejected', 'Tells the user the outcome'], ['application_received', 'Application received', 'Confirmation to applicant + alert to admin'], ['application_decision', 'Application decision', 'Hire or reject message'], ['time_decision', 'Time approved / rejected', 'When a manager decides on hours'], ['shift_assigned', 'Shift scheduled', 'When a shift is added for an employee'], ['inservice_assigned', 'In-service assigned', 'When training is published or a nurse assigns it'], ['leave_request', 'Leave request (to managers)', 'When an office employee requests time off'], ['leave_decision', 'Leave approved / rejected', 'Tells the employee the outcome'], ['call_assigned', 'Call assigned', 'When a logged call is assigned to someone'], ['new_post', 'New staff post', 'Emails every staff member when a staff post is published']];
   route('admin/email', { title: 'Email & API', nav: 'admin-email', perm: 'settings', render: async function () {
     var s = await API.get('settings/email'), log = await API.get('emails');
     return '<div class="page-head"><div><h1>Email &amp; API</h1><p>Connect Resend to send automatic emails reliably, and choose which emails are sent.</p></div></div><form id="em" class="stack"><section class="card"><div class="card__head"><h2>Delivery</h2>' + (s.provider === 'resend' && s.resendKeySet ? '<span class="badge badge--ok">Resend connected</span>' : '') + '</div><div class="card__body stack">' +
@@ -830,7 +1069,17 @@
 
   /* ================================================================ admin: training setup */
   route('admin/training', { title: 'Training setup', nav: 'admin-training', perm: 'training_manage', render: async function (p, q) {
-    var tab = q.tab || 'inservices', head = '<div class="page-head"><div><h1>Training setup</h1><p>Create in-services and orientation, and track completion.</p></div></div><div class="tabs">' + [['inservices', 'In-services'], ['orientation', 'Orientation'], ['report', 'Completion report']].map(function (t) { return '<a href="#/admin/training?tab=' + t[0] + '" class="' + (tab === t[0] ? 'is-active' : '') + '">' + t[1] + '</a>'; }).join('') + '</div>';
+    var tab = q.tab || 'assign', head = '<div class="page-head"><div><h1>Training setup</h1><p>Assign in-services to employees with due dates, build quizzes and orientation, and track completion.</p></div></div><div class="tabs">' + [['assign', 'Assign & track'], ['inservices', 'Quizzes'], ['orientation', 'Orientation'], ['report', 'Completion report']].map(function (t) { return '<a href="#/admin/training?tab=' + t[0] + '" class="' + (tab === t[0] ? 'is-active' : '') + '">' + t[1] + '</a>'; }).join('') + '</div>';
+    if (tab === 'assign') {
+      var asg = await API.get('inservices/assignments'), f = q.f || 'open';
+      var shownA = asg.filter(function (a) { return f === 'all' || (f === 'open' ? a.status !== 'completed' : f === 'overdue' ? a.overdue : a.status === 'completed'); });
+      return head + '<section class="card" style="margin-bottom:18px"><div class="card__head"><h2>Assign an in-service</h2></div><form class="card__body stack" id="assign-form">' +
+        '<div class="grid-3"><label class="field"><span>In-service</span><select class="input" name="what" required><optgroup label="Training Center">' + (window.CHCS_CENTER || []).map(function (c) { return '<option value="c:' + c[0] + '">' + esc(c[1]) + '</option>'; }).join('') + '</optgroup><optgroup label="Portal quizzes" id="quiz-opts"></optgroup></select></label><label class="field"><span>Due date</span><input class="input" type="date" name="dueDate" value="' + H.addDays(H.ymd(), 14) + '" required></label><label class="field"><span>Nurse for questions</span><select class="input" name="nurseId" id="nurse-sel"></select></label></div>' +
+        '<div class="field"><span class="label">Employees</span><div class="row" style="margin-bottom:8px"><input class="input" id="emp-q" placeholder="Search name or designation" style="max-width:280px;min-height:38px"><button type="button" class="btn btn--ghost btn--sm" data-pick="field">Select all field staff</button><button type="button" class="btn btn--ghost btn--sm" data-pick="none">Clear</button></div><div class="perm-grid" id="emp-list" style="max-height:280px;overflow:auto"></div></div>' +
+        '<div class="row"><button class="btn">' + ico('send') + 'Assign &amp; notify</button><span class="small muted">Each employee gets an email and a notification, and it shows on their calendar.</span></div></form></section>' +
+        '<section class="card"><div class="card__head"><h2>Assignments</h2><div class="tabs" style="margin:0;border:0">' + [['open', 'Open'], ['overdue', 'Overdue'], ['completed', 'Completed'], ['all', 'All']].map(function (t) { return '<a href="#/admin/training?tab=assign&f=' + t[0] + '" class="' + (f === t[0] ? 'is-active' : '') + '">' + t[1] + ' (' + asg.filter(function (a) { return t[0] === 'all' || (t[0] === 'open' ? a.status !== 'completed' : t[0] === 'overdue' ? a.overdue : a.status === 'completed'); }).length + ')</a>'; }).join('') + '</div></div>' +
+        (shownA.length ? '<div class="table-wrap"><table class="table table--cards"><thead><tr><th>Employee</th><th>In-service</th><th>Due</th><th>Nurse</th><th>Status</th><th></th></tr></thead><tbody>' + shownA.map(function (a) { return '<tr><td data-label="Employee"><b>' + esc(a.userName) + '</b> <span class="small muted">' + esc(a.designation) + '</span></td><td data-label="In-service">' + esc(a.title) + '</td><td data-label="Due" class="nowrap">' + esc(H.fmtDate(a.dueDate)) + '</td><td data-label="Nurse">' + esc(a.nurseName) + '</td><td data-label="Status">' + (a.status === 'completed' ? '<span class="badge badge--ok">Completed</span>' : a.overdue ? '<span class="badge badge--bad">Overdue</span>' : '<span class="badge badge--warn">Assigned</span>') + '</td><td class="nowrap">' + (a.status !== 'completed' ? '<button class="btn btn--ghost btn--sm" data-unassign="' + a.id + '">Remove</button>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">Nothing here.</div>') + '</section>';
+    }
     if (tab === 'orientation') {
       var mods = await API.get('orientation/modules'), rep = await API.get('orientation/report');
       return head + '<div class="cards cards--2"><section class="card"><div class="card__head"><h2>Sections</h2><button class="btn btn--sm" id="new-mod">' + ico('plus') + 'Add section</button></div><ul class="list">' + mods.map(function (m) { return '<li><div class="course__icon"><b>' + m.order + '</b></div><div class="grow"><b>' + esc(m.title) + '</b></div><button class="btn btn--ghost btn--sm" data-mod="' + m.id + '">Edit</button></li>'; }).join('') + '</ul></section><section class="card"><div class="card__head"><h2>Who can take orientation</h2></div><ul class="list">' + (rep.length ? rep.map(function (r) { return '<li>' + H.avatar(r.name, 'sm') + '<div class="grow"><b>' + esc(r.name) + '</b><div class="progress" style="margin-top:6px"><i style="width:' + (r.total ? r.done / r.total * 100 : 0) + '%"></i></div></div><span class="small">' + r.done + '/' + r.total + '</span></li>'; }).join('') : '<li class="muted">Nobody has orientation access. Grant it in Users &amp; access.</li>') + '</ul></section></div><script type="application/json" id="mods-json">' + JSON.stringify(mods).replace(/</g, '\\u003c') + '</script>';
@@ -841,8 +1090,25 @@
     }
     var list = await API.get('inservices?manage=1');
     return head + '<section class="card"><div class="card__head"><h2>In-services</h2><button class="btn btn--sm" id="new-is">' + ico('plus') + 'New in-service</button></div>' + list.map(function (i) { return '<div class="course"><div class="course__icon">' + ico('grad') + '</div><div class="grow"><b>' + esc(i.title) + '</b> ' + (i.active ? '' : H.badge('archived')) + '<div class="small muted">' + esc((i.audience || []).join(' + ')) + ' · ' + i.questions.length + ' questions · ' + i.completions + ' completed' + (i.dueDate ? ' · due ' + esc(H.fmtDate(i.dueDate)) : '') + '</div></div><button class="btn btn--ghost btn--sm" data-is="' + i.id + '">Edit</button></div>'; }).join('') + '</section><script type="application/json" id="is-json">' + JSON.stringify(list).replace(/</g, '\\u003c') + '</script>';
-  }, mount: function (root, p, q) {
-    var tab = q.tab || 'inservices';
+  }, mount: async function (root, p, q) {
+    var tab = q.tab || 'assign';
+    if (tab === 'assign') {
+      var staff = await API.get('staff'), quizzes = (await API.get('inservices?manage=1')).filter(function (i) { return i.active && !i.externalUrl; });
+      $('#quiz-opts').innerHTML = quizzes.map(function (i) { return '<option value="i:' + i.id + '">' + esc(i.title) + '</option>'; }).join('');
+      var nurses = staff.filter(function (s) { return s.type !== 'field'; });
+      $('#nurse-sel').innerHTML = nurses.map(function (s) { return '<option value="' + s.id + '"' + (s.id === state.user.id ? ' selected' : '') + '>' + esc(s.name) + ' — ' + esc(s.designation || typeLabel(s)) + '</option>'; }).join('');
+      var emps = staff.filter(function (s) { return s.id !== state.user.id; });
+      $('#emp-list').innerHTML = emps.map(function (s) { return '<label class="perm" data-name="' + esc((s.name + ' ' + s.designation).toLowerCase()) + '" data-type="' + s.type + '"><input type="checkbox" name="emp" value="' + s.id + '"><span><b>' + esc(s.name) + '</b><small>' + esc(s.designation || typeLabel(s)) + '</small></span></label>'; }).join('');
+      $('#emp-q').oninput = function () { var v = this.value.toLowerCase(); $$('#emp-list [data-name]').forEach(function (l) { l.classList.toggle('hidden', l.dataset.name.indexOf(v) === -1); }); };
+      on(root, 'click', '[data-pick]', function (e, b) { $$('#emp-list [data-type]').forEach(function (l) { l.querySelector('input').checked = b.dataset.pick === 'field' ? l.dataset.type === 'field' : false; }); });
+      $('#assign-form').onsubmit = async function (e) {
+        e.preventDefault(); var d = H.formData(e.target), ids = $$('#emp-list input:checked').map(function (i) { return +i.value; });
+        if (!ids.length) { toast('Choose at least one employee.'); return; }
+        var body = { userIds: ids, dueDate: d.dueDate, nurseId: +d.nurseId }; if (d.what.indexOf('c:') === 0) body.centerId = d.what.slice(2); else body.inserviceId = +d.what.slice(2);
+        try { var r2 = await submitting(function () { return API.post('inservices/assign', body); }); toast(r2.assigned + ' assignment' + (r2.assigned === 1 ? '' : 's') + ' created.', 'ok'); render(); } catch (err) { /* shown */ }
+      };
+      on(root, 'click', '[data-unassign]', async function (e, b) { if (await confirmBox('Remove assignment?', 'The employee will no longer see this in-service as assigned.', 'Remove', true)) { await API.del('inservices/assignments/' + b.dataset.unassign); render(); } });
+    }
     if (tab === 'inservices') {
       var list = JSON.parse($('#is-json').textContent);
       var editor = function (i) {

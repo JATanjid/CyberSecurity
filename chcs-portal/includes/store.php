@@ -59,6 +59,10 @@ function chcs_rec_index_map() {
 		'applications'        => array( 'owner' => 'userId', 'status' => 'status' ),
 		'emails'              => array(),
 		'audit'               => array( 'owner' => 'userId' ),
+		'notifications'       => array( 'owner' => 'userId', 'status' => 'status' ),
+		'leave'               => array( 'owner' => 'userId', 'status' => 'status', 'date' => 'from' ),
+		'calls'               => array( 'owner' => 'assignedTo', 'ref' => 'takenBy', 'status' => 'status', 'date' => 'day' ),
+		'inserviceAssignments' => array( 'owner' => 'userId', 'ref' => 'inserviceId', 'status' => 'status' ),
 	);
 }
 

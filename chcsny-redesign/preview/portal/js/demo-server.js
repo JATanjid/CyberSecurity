@@ -33,16 +33,17 @@
     var pw = await hash('demo1234');
     db = { seq: 1000, users: [], designations: [], records: {}, settings: {}, session: null };
     var D = function (name, type, perms) { db.designations.push({ id: nextId(), name: name, type: type, permissions: perms }); };
-    D('Office Manager', 'office', ['clock', 'approvals', 'intake', 'chat', 'calendar', 'calendar_manage', 'payroll', 'applications', 'news_manage', 'training_manage', 'forms']);
-    D('Intake Coordinator', 'office', ['clock', 'intake', 'chat', 'calendar', 'forms']);
-    D('Scheduler', 'office', ['clock', 'intake', 'chat', 'calendar', 'calendar_manage']);
-    D('Payroll Specialist', 'office', ['clock', 'approvals', 'payroll', 'chat', 'calendar']);
-    D('HR Coordinator', 'office', ['clock', 'applications', 'training_manage', 'news_manage', 'chat', 'calendar']);
-    D('Nursing Supervisor', 'office', ['clock', 'intake', 'notes', 'approvals', 'chat', 'calendar', 'training_manage', 'forms']);
-    D('PCA', 'field', ['chat', 'inservices', 'notes', 'calendar', 'forms']);
-    D('HHA', 'field', ['chat', 'inservices', 'notes', 'calendar', 'forms']);
-    D('LPN', 'field', ['chat', 'inservices', 'notes', 'calendar', 'forms']);
-    D('RN', 'field', ['chat', 'inservices', 'notes', 'calendar', 'forms']);
+    var OFFICE = ['clock', 'leave', 'calls', 'chat', 'calendar'];
+    D('Office Manager', 'office', OFFICE.concat(['approvals', 'intake', 'calendar_manage', 'payroll', 'leave_manage', 'applications', 'news_manage', 'training_manage', 'forms']));
+    D('Intake Coordinator', 'office', OFFICE.concat(['intake', 'forms']));
+    D('Scheduler', 'office', OFFICE.concat(['intake', 'calendar_manage']));
+    D('Payroll Specialist', 'office', OFFICE.concat(['approvals', 'payroll']));
+    D('HR Coordinator', 'office', OFFICE.concat(['applications', 'training_manage', 'news_manage', 'leave_manage']));
+    D('Nursing Supervisor', 'office', OFFICE.concat(['intake', 'approvals', 'training_manage', 'inservices', 'forms']));
+    D('PCA', 'field', ['chat', 'inservices', 'calendar', 'forms']);
+    D('HHA', 'field', ['chat', 'inservices', 'calendar', 'forms']);
+    D('LPN', 'field', ['chat', 'inservices', 'calendar', 'forms']);
+    D('RN', 'field', ['chat', 'inservices', 'calendar', 'forms']);
 
     var U = function (name, email, type, designation, extra) {
       var u = Object.assign({ id: nextId(), name: name, email: email, phone: '', type: type, designation: designation, status: 'active', permissions: null, password: pw, createdAt: now(), emailVerified: true }, extra || {});
@@ -51,15 +52,17 @@
     var admin = U('Agency Admin', 'admin@chcs.demo', 'admin', 'Administrator');
     var maria = U('Maria Lopez', 'manager@chcs.demo', 'office', 'Office Manager', { phone: '(718) 555-0101' });
     var james = U('James Carter', 'intake@chcs.demo', 'office', 'Intake Coordinator', { phone: '(718) 555-0102' });
-    var grace = U('Grace Johnson', 'hha@chcs.demo', 'field', 'HHA', { phone: '(718) 555-0144', permissions: ['chat', 'inservices', 'notes', 'calendar', 'forms', 'timesheet', 'orientation'] });
-    var nadia = U('Nadia Pierre', 'rn@chcs.demo', 'field', 'RN', { phone: '(718) 555-0155', permissions: ['chat', 'inservices', 'notes', 'calendar', 'forms', 'timesheet'] });
+    var grace = U('Grace Johnson', 'hha@chcs.demo', 'field', 'HHA', { phone: '(718) 555-0144', permissions: ['chat', 'inservices', 'calendar', 'forms', 'timesheet', 'orientation'] });
+    var nadia = U('Nadia Pierre', 'rn@chcs.demo', 'field', 'RN', { phone: '(718) 555-0155', permissions: ['chat', 'inservices', 'calendar', 'forms', 'timesheet'] });
+    var rita = U('Rita Okafor, RN', 'nurse@chcs.demo', 'office', 'Nursing Supervisor', { phone: '(718) 555-0160' });
     U('Kevin Brown', 'pending@chcs.demo', 'office', 'Scheduler', { status: 'pending' });
     var appl = U('Ana Rivera', 'applicant@chcs.demo', 'applicant', '', {});
 
     db.settings.email = {
       provider: 'wordpress', resendKey: '', fromName: 'Complete Home Care Services', fromEmail: 'no-reply@chcsny.com', replyTo: 'info@chcsny.com', adminEmail: 'admin@chcs.demo',
-      templates: { verify: true, password_reset: true, signup_admin: true, account_decision: true, application_received: true, application_decision: true, time_decision: true, shift_assigned: true, inservice_assigned: true, new_post: false }
+      templates: { verify: true, password_reset: true, signup_admin: true, account_decision: true, application_received: true, application_decision: true, time_decision: true, shift_assigned: true, inservice_assigned: true, leave_request: true, leave_decision: true, call_assigned: true, new_post: false }
     };
+    db.settings.leave = { vacation: 80, sick: 40, personal: 16, hoursPerDay: 8 };
 
     // Cases
     var c1 = insert('cases', { patientName: 'Dorothy Williams', dob: '1941-03-12', phone: '(718) 555-0190', address: '110-20 Farmers Blvd', borough: 'Queens', referralSource: 'Hospital discharge', referrerName: 'Jamaica Hospital — D. Shah', insurance: 'Medicare', physician: 'Dr. A. Mensah', services: ['Skilled Nursing', 'Physical Therapy'], status: 'active', priority: 'normal', assigned: [nadia.id, grace.id], createdBy: james.id, socDate: today(-12) });
@@ -90,7 +93,6 @@
       questions: [{ q: 'How long should you wash your hands with soap and water?', options: ['5 seconds', '10 seconds', 'At least 20 seconds'], answer: 2 }, { q: 'When should gloves be changed?', options: ['Once per day', 'Between tasks', 'Only if torn'], answer: 1 }, { q: 'Who do you report signs of infection to?', options: ['The RN', 'Nobody', 'A neighbor'], answer: 0 }] });
     insert('inservices', { title: 'HIPAA & Patient Privacy', description: 'Protecting patient information at home, on the phone and on your mobile device.', body: '• Only share patient information with people involved in their care.\n• Never post about patients on social media.\n• Lock your phone and never save patient photos to your personal gallery.\n• Report any privacy breach to the Compliance Hotline immediately.', hours: 1, dueDate: today(30), audience: ['field', 'office'], passScore: 100, externalUrl: '', active: true,
       questions: [{ q: 'Can you post a photo of a patient on social media if you hide their face?', options: ['Yes', 'No'], answer: 1 }, { q: 'Where do you report a privacy breach?', options: ['Compliance Hotline', 'Social media', 'Nowhere'], answer: 0 }] });
-    insert('inservices', { title: 'CHCS In-Service Training Center (full library)', description: 'Workplace violence, emergency preparedness, fire & lithium battery safety and more. Opens the full training center.', body: '', hours: 0, dueDate: '', audience: ['field'], passScore: 0, externalUrl: 'forms/inservice-training.html', active: true, questions: [] });
 
     // Orientation
     ['Welcome to Complete Home Care Services', 'Patient Rights & Responsibilities', 'Infection Control', 'Emergency Preparedness', 'Abuse, Neglect & Incident Reporting', 'Compliance & Code of Conduct'].forEach(function (t, i) {
@@ -112,6 +114,22 @@
     insert('messages', { convId: dm.id, userId: maria.id, body: 'Thanks Grace, I updated the schedule.' });
 
     insert('applications', { userId: appl.id, status: 'submitted', submittedAt: now(), data: { position: 'HHA', availability: 'Weekdays, mornings', certification: 'NYS HHA certificate', licenseNumber: 'HHA-445219', experience: '3 years home care in Brooklyn', languages: 'English, Spanish', references: 'R. Diaz (718) 555-0133', workAuth: 'yes', attestation: true, signature: 'Ana Rivera' } });
+    // In-service assignments (Training Center modules + a portal quiz), made by the nursing supervisor
+    insert('inserviceAssignments', { userId: grace.id, centerId: 'homecare', title: 'Home Care Overview', dueDate: today(5), nurseId: rita.id, assignedBy: rita.id, status: 'assigned' });
+    insert('inserviceAssignments', { userId: grace.id, centerId: 'violence', title: 'Workplace Violence Prevention & Safety', dueDate: today(-2), nurseId: rita.id, assignedBy: rita.id, status: 'assigned' });
+    insert('inserviceAssignments', { userId: nadia.id, centerId: 'rnlpn', title: 'RN/LPN Training / Competency Checklist', dueDate: today(12), nurseId: rita.id, assignedBy: rita.id, status: 'assigned' });
+    // Leave
+    insert('leave', { userId: james.id, type: 'vacation', from: today(9), to: today(11), partial: false, hoursPerDay: 8, totalHours: 24, reason: 'Family trip', status: 'pending' });
+    insert('leave', { userId: maria.id, type: 'sick', from: today(-6), to: today(-6), partial: false, hoursPerDay: 8, totalHours: 8, reason: '', status: 'approved', decidedBy: admin.id });
+    // Calls
+    insert('calls', { takenBy: james.id, callerName: 'Linda Martinez', callerPhone: '(718) 555-0177', callerType: 'family', reason: 'Scheduling', message: 'Daughter of Rosa Martinez asking when the nurse assessment will be scheduled.', assignedTo: rita.id, priority: 'normal', status: 'open', callbackBy: today(0) + 'T16:00', duration: 240, followUps: [] });
+    insert('calls', { takenBy: maria.id, callerName: 'Jamaica Hospital — D. Shah', callerPhone: '(718) 555-0199', callerType: 'physician', reason: 'New referral / services', message: 'New referral for skilled nursing, patient discharging Friday. Fax coming.', assignedTo: james.id, priority: 'urgent', status: 'open', callbackBy: today(0) + 'T12:00', duration: 300, followUps: [] });
+    insert('calls', { takenBy: james.id, callerName: 'Grace Johnson', callerPhone: '(718) 555-0144', callerType: 'employee', reason: 'Payroll', message: 'Question about last week\'s hours.', assignedTo: maria.id, priority: 'normal', status: 'returned', callbackBy: '', duration: 120, followUps: [{ userId: maria.id, body: 'Called back, explained the approval schedule.', at: now() }] });
+    insert('notifications', { userId: rita.id, kind: 'call', title: 'Call assigned to you: Linda Martinez', body: 'Asking when the nurse assessment will be scheduled.', link: '#/calls', read: false });
+    insert('notifications', { userId: james.id, kind: 'call', title: 'Urgent call assigned to you: Jamaica Hospital', body: 'New referral for skilled nursing.', link: '#/calls', read: false });
+    insert('notifications', { userId: grace.id, kind: 'inservice', title: 'In-service assigned: Home Care Overview', body: 'Due ' + today(5), link: '#/inservices', read: false });
+    var nurseChat = insert('conversations', { type: 'direct', name: null, members: [grace.id, rita.id], lastMessageAt: now(), reads: {}, delivered: {} });
+    insert('messages', { convId: nurseChat.id, userId: rita.id, body: 'Hi Grace, I assigned you two in-services. Message me here if you have questions during the test.' });
     audit(admin.id, 'demo.seed', 'Demo data created');
     save();
   }
@@ -119,6 +137,12 @@
   /* ------------------------------------------------------------- helpers */
   function audit(userId, action, detail) { insert('audit', { userId: userId, action: action, detail: detail || '' }); var a = col('audit'); if (a.length > 500) a.splice(0, a.length - 500); }
 
+  function notify(userId, kind, title, body, link) {
+    if (!userId) return;
+    insert('notifications', { userId: Number(userId), kind: kind, title: title, body: body || '', link: link || '', read: false });
+    var n = col('notifications'); if (n.length > 1000) n.splice(0, n.length - 1000);
+  }
+  function usersWith(p) { return db.users.filter(function (u) { return u.status === 'active' && can(u, p); }); }
   function perms(u) {
     if (!u) return [];
     if (u.type === 'admin') return MODULES.map(function (m) { return m[0]; });
@@ -175,6 +199,7 @@
     if (!u) throw err(400, 'This verification link is invalid or was already used.');
     u.verifyToken = null; u.emailVerified = true;
     u.status = u.type === 'applicant' ? 'active' : 'pending';
+    if (u.status === 'pending') usersWith('users').forEach(function (a) { notify(a.id, 'account', 'Account waiting for approval', u.name + ' (' + (u.designation || u.type) + ')', '#/admin/users'); });
     if (u.status === 'pending') notifyAdmins('signup_admin', 'New portal account waiting for approval', u.name + ' (' + u.email + ') signed up as ' + u.type + (u.designation ? ' — ' + u.designation : '') + '. Review it in Admin → Users.');
     audit(u.id, 'auth.verified', '');
     save(); return { ok: true, status: u.status };
@@ -227,7 +252,10 @@
     if (can(u, 'users')) out.pendingUsers = db.users.filter(function (x) { return x.status === 'pending'; }).length;
     out.upcomingShifts = col('shifts').filter(function (s) { return s.userId === u.id && s.date >= today(); }).sort(function (a, b) { return (a.date + a.start).localeCompare(b.date + b.start); }).slice(0, 4);
     if (can(u, 'inservices')) out.inservicesDue = visibleInservices(u).filter(function (i) { return !i.myResult || !i.myResult.passed; }).length;
-    out.unread = conversationsFor(u).reduce(function (a, c) { return a + c.unread; }, 0);
+    out.unread = can(u, 'chat') ? conversationsFor(u).reduce(function (a, c) { return a + c.unread; }, 0) : 0;
+    if (can(u, 'calls')) out.myCalls = col('calls').filter(function (c) { return c.assignedTo === u.id && (c.status === 'open' || c.status === 'in_progress'); }).length;
+    if (can(u, 'leave_manage')) out.pendingLeave = col('leave').filter(function (l) { return l.status === 'pending' && l.userId !== u.id; }).length;
+    out.unreadNotifications = col('notifications').filter(function (n) { return n.userId === u.id && !n.read; }).length;
     out.posts = visiblePosts(u).slice(0, 4);
     return out;
   });
@@ -320,6 +348,7 @@
   });
   route('POST', 'time/clock-in', function (p, b) {
     var u = requirePerm('clock');
+    if (u.type === 'field') throw err(403, 'Field staff clock in and out in HHAeXchange.');
     if (col('time').some(function (t) { return t.userId === u.id && t.status === 'open'; })) throw err(400, 'You are already clocked in.');
     var t = insert('time', { userId: u.id, date: today(), start: now(), end: null, minutes: 0, source: 'clock', status: 'open', note: str(b.note, 300), geo: b.geo || null });
     audit(u.id, 'time.clock_in', ''); save(); return decorateTime(t);
@@ -352,13 +381,22 @@
   route('POST', 'time/decide', function (p, b) {
     var u = requirePerm('approvals'), ids = (b.ids || []).map(Number), act = b.action === 'reject' ? 'rejected' : 'approved', touched = {};
     col('time').forEach(function (t) { if (ids.indexOf(t.id) !== -1 && t.status === 'pending') { t.status = act; t.decidedBy = u.id; t.decidedAt = now(); if (b.note) t.decisionNote = str(b.note, 300); touched[t.userId] = (touched[t.userId] || 0) + 1; } });
-    Object.keys(touched).forEach(function (uid) { var w = user(uid); if (w) sendEmail('time_decision', w.email, 'Your time entries were ' + act, 'Hi ' + w.name + ',\n\n' + touched[uid] + ' time entr' + (touched[uid] > 1 ? 'ies were ' : 'y was ') + act + (b.note ? '.\nNote: ' + b.note : '.')); });
+    Object.keys(touched).forEach(function (uid) { var w = user(uid); notify(uid, 'time', 'Time entries ' + act, touched[uid] + ' entr' + (touched[uid] > 1 ? 'ies' : 'y') + (b.note ? ' — ' + b.note : ''), w && w.type === 'field' ? '#/timesheet' : '#/clock'); if (w) sendEmail('time_decision', w.email, 'Your time entries were ' + act, 'Hi ' + w.name + ',\n\n' + touched[uid] + ' time entr' + (touched[uid] > 1 ? 'ies were ' : 'y was ') + act + (b.note ? '.\nNote: ' + b.note : '.')); });
     audit(u.id, 'time.' + act, ids.length + ' entries'); save(); return { ok: true };
   });
   route('GET', 'payroll', function (p, b, q) {
     requirePerm('payroll');
     var list = col('time').filter(function (t) { return t.end && t.date >= (q.from || '0000') && t.date <= (q.to || '9999') && (q.includePending === '1' ? (t.status === 'approved' || t.status === 'pending') : t.status === 'approved'); });
-    return payrollRows(list);
+    var out = payrollRows(list), from = q.from || '0000-01-01', to = q.to || '9999-12-31', leaveRows = [];
+    col('leave').filter(function (l) { return l.status === 'approved' && l.to >= from && l.from <= to; }).forEach(function (l) {
+      var days = workdays(l.from < from ? from : l.from, l.to > to ? to : l.to), hours = days * (l.hoursPerDay || 8), w = user(l.userId);
+      leaveRows.push({ userId: l.userId, name: w ? w.name : '—', designation: w ? w.designation : '', type: l.type, from: l.from, to: l.to, days: days, hours: hours });
+      var s0 = out.summary.find(function (x) { return x.userId === l.userId; });
+      if (!s0) { s0 = { userId: l.userId, name: w ? w.name : '—', designation: w ? w.designation : '', regularHours: 0, overtimeHours: 0, totalHours: 0, entries: 0 }; out.summary.push(s0); }
+      s0.leaveHours = +((s0.leaveHours || 0) + hours).toFixed(2);
+    });
+    out.summary.forEach(function (x) { x.leaveHours = x.leaveHours || 0; });
+    out.leave = leaveRows; return out;
   });
   function payrollRows(list) {
     var detail = list.map(decorateTime).sort(function (a, b) { return (a.userName + a.start).localeCompare(b.userName + b.start); });
@@ -386,7 +424,7 @@
     if (can(u, 'intake')) return col('cases');
     return col('cases').filter(function (c) { return (c.assigned || []).indexOf(u.id) !== -1 && c.status === 'active'; });
   }
-  route('GET', 'cases', function () { var u = requireUser(); if (!can(u, 'intake') && !can(u, 'notes') && !can(u, 'timesheet')) throw err(403, 'No access.'); return casesFor(u).slice().sort(function (a, b) { return b.createdAt.localeCompare(a.createdAt); }).map(function (c) { return decorateCase(c, can(u, 'intake')); }); });
+  route('GET', 'cases', function () { var u = requireUser(); if (!can(u, 'intake') && !can(u, 'timesheet')) throw err(403, 'No access.'); return casesFor(u).slice().sort(function (a, b) { return b.createdAt.localeCompare(a.createdAt); }).map(function (c) { return decorateCase(c, can(u, 'intake')); }); });
   route('POST', 'cases', function (p, b) {
     var u = requirePerm('intake'); if (!str(b.patientName)) throw err(400, 'Patient name is required.');
     var c = { services: Array.isArray(b.services) ? b.services.slice(0, 10) : [], assigned: [], createdBy: u.id };
@@ -416,29 +454,6 @@
     var n = insert('caseNotes', { caseId: c.id, userId: u.id, body: str(b.body, 4000) }); save(); return Object.assign({}, n, { userName: u.name });
   });
 
-  // ---- visit notes
-  function decorateNote(n) { var u = user(n.userId), c = find('cases', n.caseId); return Object.assign({}, n, { userName: u ? u.name : '—', designation: u ? u.designation : '', patientName: c ? c.patientName : '—' }); }
-  route('GET', 'notes', function (p, b, q) {
-    var u = requireUser(); var reviewer = can(u, 'intake') || can(u, 'approvals');
-    if (!can(u, 'notes') && !reviewer) throw err(403, 'No access.');
-    var list = col('notes').filter(function (n) { return (q.scope === 'all' && reviewer) || n.userId === u.id; });
-    return list.slice().sort(function (a, b2) { return b2.createdAt.localeCompare(a.createdAt); }).map(decorateNote);
-  });
-  route('POST', 'notes', function (p, b) {
-    var u = requirePerm('notes'), c = find('cases', b.caseId);
-    if (!c || casesFor(u).indexOf(c) === -1) throw err(400, 'Choose one of your assigned patients.');
-    if (!str(b.narrative) && !(b.tasks || []).length) throw err(400, 'Add the tasks you completed or a note.');
-    if (!str(b.signature)) throw err(400, 'Sign the note.');
-    var n = insert('notes', { userId: u.id, caseId: c.id, date: str(b.date, 10) || today(), timeIn: str(b.timeIn, 5), timeOut: str(b.timeOut, 5), tasks: (b.tasks || []).slice(0, 40).map(function (t) { return str(t, 80); }), condition: str(b.condition, 60), narrative: str(b.narrative, 4000), signature: str(b.signature, 100), status: 'submitted' });
-    audit(u.id, 'notes.create', '#' + n.id); save(); return decorateNote(n);
-  });
-  route('PATCH', 'notes/:id', function (p, b) {
-    var u = requireUser(), n = find('notes', p.id); if (!n) throw err(404, 'Not found.');
-    if (!can(u, 'intake') && !can(u, 'approvals')) throw err(403, 'No access.');
-    if (b.status === 'reviewed') { n.status = 'reviewed'; n.reviewedBy = u.id; n.reviewedAt = now(); n.reviewNote = str(b.reviewNote, 500); }
-    save(); return decorateNote(n);
-  });
-
   // ---- chat
   function directory(u) {
     return db.users.filter(function (x) {
@@ -448,13 +463,22 @@
     });
   }
   function conversationsFor(u) {
-    return col('conversations').filter(function (c) { return c.members.indexOf(u.id) !== -1; }).map(function (c) {
+    var dirty = false;
+    var out = col('conversations').filter(function (c) { return c.members.indexOf(u.id) !== -1; }).map(function (c) {
       var msgs = col('messages').filter(function (m) { return m.convId === c.id; });
       var lastRead = (c.reads || {})[u.id] || 0, last = msgs[msgs.length - 1];
+      var lastId = last ? last.id : 0; c.delivered = c.delivered || {}; if ((c.delivered[u.id] || 0) < lastId) { c.delivered[u.id] = lastId; dirty = true; }
       var title = c.type === 'group' ? c.name : (c.members.filter(function (id) { return id !== u.id; }).map(function (id) { var w = user(id); return w ? w.name : '—'; }).join(', ') || 'Me');
       var other = c.type === 'direct' ? user(c.members.find(function (id) { return id !== u.id; })) : null;
       return { id: c.id, type: c.type, title: title, subtitle: other ? other.designation : c.members.length + ' members', members: c.members, lastMessage: last ? { body: last.body, at: last.createdAt, userId: last.userId } : null, unread: msgs.filter(function (m) { return m.id > lastRead && m.userId !== u.id; }).length };
     }).sort(function (a, b) { return ((b.lastMessage || {}).at || '').localeCompare((a.lastMessage || {}).at || ''); });
+    if (dirty) save();
+    return out;
+  }
+  function receipts(c, me) {
+    var others = c.members.filter(function (id) { return id !== me; });
+    var mins = function (m) { return others.length ? Math.min.apply(null, others.map(function (id) { return (m || {})[id] || 0; })) : 0; };
+    return { readUpTo: mins(c.reads), deliveredUpTo: Math.max(mins(c.delivered), mins(c.reads)) };
   }
   route('GET', 'chat/directory', function () { var u = requirePerm('chat'); return directory(u).map(function (x) { return pub(x); }); });
   route('GET', 'chat/conversations', function () { return conversationsFor(requirePerm('chat')); });
@@ -465,24 +489,26 @@
     if (members.length === 1 && !b.name) {
       var ex = col('conversations').find(function (c) { return c.type === 'direct' && c.members.length === 2 && c.members.indexOf(u.id) !== -1 && c.members.indexOf(members[0]) !== -1; });
       if (ex) return { id: ex.id };
-      var c = insert('conversations', { type: 'direct', name: null, members: [u.id, members[0]], reads: {}, lastMessageAt: now() }); save(); return { id: c.id };
+      var c = insert('conversations', { type: 'direct', name: null, members: [u.id, members[0]], reads: {}, delivered: {}, lastMessageAt: now() }); save(); return { id: c.id };
     }
     if (u.type === 'field') throw err(403, 'Group chats are created by the office.');
-    var g = insert('conversations', { type: 'group', name: str(b.name, 80) || 'Group', members: [u.id].concat(members), reads: {}, lastMessageAt: now() }); save(); return { id: g.id };
+    var g = insert('conversations', { type: 'group', name: str(b.name, 80) || 'Group', members: [u.id].concat(members), reads: {}, delivered: {}, lastMessageAt: now() }); save(); return { id: g.id };
   });
   route('GET', 'chat/conversations/:id/messages', function (p, b, q) {
     var u = requirePerm('chat'), c = find('conversations', p.id);
     if (!c || c.members.indexOf(u.id) === -1) throw err(404, 'Conversation not found.');
     var after = Number(q.after || 0);
     var msgs = col('messages').filter(function (m) { return m.convId === c.id && m.id > after; }).map(function (m) { var w = user(m.userId); return Object.assign({}, m, { userName: w ? w.name : '—' }); });
-    if (msgs.length) { c.reads = c.reads || {}; c.reads[u.id] = msgs[msgs.length - 1].id; save(); }
-    return msgs;
+    var all = col('messages').filter(function (m) { return m.convId === c.id; }), lastId = all.length ? all[all.length - 1].id : 0;
+    c.reads = c.reads || {}; c.delivered = c.delivered || {};
+    if ((c.reads[u.id] || 0) < lastId) { c.reads[u.id] = lastId; c.delivered[u.id] = Math.max(c.delivered[u.id] || 0, lastId); save(); }
+    return Object.assign({ messages: msgs }, receipts(c, u.id));
   });
   route('POST', 'chat/conversations/:id/messages', function (p, b) {
     var u = requirePerm('chat'), c = find('conversations', p.id);
     if (!c || c.members.indexOf(u.id) === -1) throw err(404, 'Conversation not found.');
     var body = str(b.body, 4000); if (!body) throw err(400, 'Message is empty.');
-    var m = insert('messages', { convId: c.id, userId: u.id, body: body }); c.lastMessageAt = m.createdAt; c.reads = c.reads || {}; c.reads[u.id] = m.id;
+    var m = insert('messages', { convId: c.id, userId: u.id, body: body }); c.lastMessageAt = m.createdAt; c.reads = c.reads || {}; c.reads[u.id] = m.id; c.delivered = c.delivered || {}; c.delivered[u.id] = m.id;
     save(); return Object.assign({}, m, { userName: u.name });
   });
 
@@ -506,18 +532,46 @@
     var u = requirePerm('calendar_manage'), dates = [b.date], s0 = shiftInput(b), out = [];
     if (b.repeatWeeks) { for (var i = 1; i <= Math.min(12, Number(b.repeatWeeks)); i++) { var d = new Date(b.date + 'T12:00:00'); d.setDate(d.getDate() + 7 * i); dates.push(ymd(d)); } }
     dates.forEach(function (d) { out.push(insert('shifts', Object.assign({}, s0, { date: d, createdBy: u.id }))); });
-    var w = user(s0.userId); sendEmail('shift_assigned', w.email, 'New shift scheduled', 'Hi ' + w.name + ',\n\nYou have ' + out.length + ' new shift(s) starting ' + b.date + ' ' + b.start + '–' + b.end + ' (' + s0.title + ').');
+    var w = user(s0.userId); notify(w.id, 'shift', 'New shift: ' + s0.title, b.date + ' ' + b.start + '–' + b.end + (out.length > 1 ? ' (' + out.length + ' shifts)' : ''), '#/calendar'); sendEmail('shift_assigned', w.email, 'New shift scheduled', 'Hi ' + w.name + ',\n\nYou have ' + out.length + ' new shift(s) starting ' + b.date + ' ' + b.start + '–' + b.end + ' (' + s0.title + ').');
     audit(u.id, 'shifts.create', out.length + ' for ' + w.email); save(); return out.map(decorateShift);
   });
   route('PATCH', 'shifts/:id', function (p, b) { var u = requirePerm('calendar_manage'), s = find('shifts', p.id); if (!s) throw err(404, 'Not found.'); Object.assign(s, shiftInput(Object.assign({}, s, b))); audit(u.id, 'shifts.update', '#' + s.id); save(); return decorateShift(s); });
   route('DELETE', 'shifts/:id', function (p) { var u = requirePerm('calendar_manage'), s = find('shifts', p.id); if (!s) throw err(404, 'Not found.'); col('shifts').splice(col('shifts').indexOf(s), 1); audit(u.id, 'shifts.delete', '#' + p.id); save(); return { ok: true }; });
 
   // ---- in-services
+  function defaultNurse() { var n = db.users.find(function (x) { return x.status === 'active' && x.type !== 'field' && x.designation === 'Nursing Supervisor'; }); return n || db.users.find(function (x) { return x.status === 'active' && x.type === 'admin'; }); }
+  function resultFor(uid, inserviceId, centerId) {
+    return col('inserviceResults').filter(function (x) { return x.userId === uid && (inserviceId ? x.inserviceId === inserviceId : x.centerId === centerId); }).sort(function (a, b) { return b.createdAt.localeCompare(a.createdAt); })[0] || null;
+  }
   function visibleInservices(u) {
-    return col('inservices').filter(function (i) { return i.active && (i.audience || []).indexOf(u.type === 'admin' ? 'office' : u.type) !== -1; }).map(function (i) {
-      var r = col('inserviceResults').filter(function (x) { return x.inserviceId === i.id && x.userId === u.id; }).sort(function (a, b) { return b.createdAt.localeCompare(a.createdAt); })[0];
-      var o = clone(i); o.questions = i.questions.map(function (q) { return { q: q.q, options: q.options }; }); o.myResult = r ? { score: r.score, passed: r.passed, completedAt: r.createdAt } : null; return o;
+    var out = [], seen = {}, nurse = defaultNurse();
+    col('inserviceAssignments').filter(function (a) { return a.userId === u.id; }).forEach(function (a) {
+      var nu = user(a.nurseId) || nurse, i = a.inserviceId ? find('inservices', a.inserviceId) : null;
+      if (a.inserviceId && (!i || !i.active)) return;
+      var r = resultFor(u.id, a.inserviceId, a.centerId);
+      var o = i ? clone(i) : { title: a.title, description: 'CHCS In-Service Training Center', hours: 0, questions: [], passScore: 0 };
+      o.kind = a.centerId ? 'center' : 'quiz'; o.centerId = a.centerId || null; o.id = i ? i.id : null; o.assignmentId = a.id;
+      o.dueDate = a.dueDate || (i && i.dueDate) || ''; o.nurseId = nu ? nu.id : null; o.nurseName = nu ? nu.name : '';
+      o.questions = (o.questions || []).map(function (q) { return { q: q.q, options: q.options }; });
+      o.myResult = r ? { score: r.score, passed: r.passed, completedAt: r.createdAt } : null;
+      if (a.status === 'completed' && !o.myResult) o.myResult = { score: 100, passed: true, completedAt: a.completedAt };
+      seen[(a.inserviceId || '') + '|' + (a.centerId || '')] = 1; out.push(o);
     });
+    col('inservices').filter(function (i) { return i.active && (i.audience || []).indexOf(u.type === 'admin' ? 'office' : u.type) !== -1 && !seen[i.id + '|']; }).forEach(function (i) {
+      var r = resultFor(u.id, i.id), o = clone(i);
+      o.kind = i.externalUrl ? 'link' : 'quiz'; o.questions = i.questions.map(function (q) { return { q: q.q, options: q.options }; });
+      o.nurseId = nurse ? nurse.id : null; o.nurseName = nurse ? nurse.name : '';
+      o.myResult = r ? { score: r.score, passed: r.passed, completedAt: r.createdAt } : null; out.push(o);
+    });
+    // Training Center courses finished without an assignment still count as completed.
+    col('inserviceResults').filter(function (x) { return x.userId === u.id && x.centerId && !seen['|' + x.centerId]; }).forEach(function (x) {
+      seen['|' + x.centerId] = 1; var c = (window.CHCS_CENTER || []).find(function (y) { return y[0] === x.centerId; });
+      out.push({ kind: 'center', centerId: x.centerId, id: null, title: c ? c[1] : x.centerId, description: 'CHCS In-Service Training Center', hours: c ? +(c[2] / 60).toFixed(2) : 0, questions: [], dueDate: '', nurseId: nurse ? nurse.id : null, nurseName: nurse ? nurse.name : '', myResult: { score: x.score, passed: true, completedAt: x.createdAt } });
+    });
+    return out.sort(function (a, b) { return (a.myResult && a.myResult.passed ? 1 : 0) - (b.myResult && b.myResult.passed ? 1 : 0) || (a.dueDate || '9999').localeCompare(b.dueDate || '9999'); });
+  }
+  function completeAssignments(uid, inserviceId, centerId) {
+    col('inserviceAssignments').forEach(function (a) { if (a.userId === uid && a.status !== 'completed' && (inserviceId ? a.inserviceId === inserviceId : a.centerId === centerId)) { a.status = 'completed'; a.completedAt = now(); var n = user(a.nurseId); if (n) notify(n.id, 'inservice', (user(uid) || {}).name + ' completed ' + a.title, '', '#/admin/training?tab=assign'); } });
   }
   route('GET', 'inservices', function (p, b, q) {
     var u = requireUser();
@@ -535,7 +589,7 @@
   }
   route('POST', 'inservices', function (p, b) {
     var u = requirePerm('training_manage'), i = insert('inservices', inserviceInput(b));
-    db.users.filter(function (x) { return x.status === 'active' && i.audience.indexOf(x.type) !== -1; }).forEach(function (x) { sendEmail('inservice_assigned', x.email, 'New in-service assigned: ' + i.title, 'Hi ' + x.name + ',\n\nA new in-service is ready for you' + (i.dueDate ? ' (due ' + i.dueDate + ')' : '') + '. Open the CHCS Portal to complete it.'); });
+    db.users.filter(function (x) { return x.status === 'active' && i.audience.indexOf(x.type) !== -1; }).forEach(function (x) { notify(x.id, 'inservice', 'New in-service: ' + i.title, i.dueDate ? 'Due ' + i.dueDate : '', '#/inservices'); sendEmail('inservice_assigned', x.email, 'New in-service assigned: ' + i.title, 'Hi ' + x.name + ',\n\nA new in-service is ready for you' + (i.dueDate ? ' (due ' + i.dueDate + ')' : '') + '. Open the CHCS Portal to complete it.'); });
     audit(u.id, 'inservices.create', i.title); save(); return i;
   });
   route('PATCH', 'inservices/:id', function (p, b) { var u = requirePerm('training_manage'), i = find('inservices', p.id); if (!i) throw err(404, 'Not found.'); Object.assign(i, inserviceInput(Object.assign({}, i, b))); audit(u.id, 'inservices.update', i.title); save(); return i; });
@@ -546,11 +600,12 @@
     var correct = 0; (i.questions || []).forEach(function (q, k) { if (Number((b.answers || [])[k]) === q.answer) correct++; });
     var score = i.questions.length ? Math.round(correct / i.questions.length * 100) : 100, passed = score >= i.passScore;
     insert('inserviceResults', { inserviceId: i.id, userId: u.id, score: score, passed: passed, answers: b.answers || [], signature: str(b.signature, 100) });
+    if (passed) completeAssignments(u.id, i.id, null);
     audit(u.id, 'inservices.complete', i.title + ' ' + score + '%'); save(); return { score: score, passed: passed, passScore: i.passScore };
   });
   route('GET', 'inservices/report', function () {
     requirePerm('training_manage');
-    return col('inserviceResults').slice().reverse().map(function (r) { var u = user(r.userId), i = find('inservices', r.inserviceId); return { id: r.id, userName: u ? u.name : '—', designation: u ? u.designation : '', title: i ? i.title : '—', hours: i ? i.hours : 0, score: r.score, passed: r.passed, completedAt: r.createdAt }; });
+    return col('inserviceResults').slice().reverse().map(function (r) { var u = user(r.userId), i = r.inserviceId ? find('inservices', r.inserviceId) : null, c = (window.CHCS_CENTER || []).find(function (x) { return x[0] === r.centerId; }); return { id: r.id, userName: u ? u.name : '—', designation: u ? u.designation : '', title: i ? i.title : (c ? c[1] + ' (Training Center)' : '—'), hours: i ? i.hours : (c ? +(c[2] / 60).toFixed(2) : 0), score: r.score, passed: r.passed, completedAt: r.createdAt }; });
   });
 
   // ---- orientation
@@ -593,6 +648,7 @@
     a.data = data; a.updatedAt = now();
     if (b.submit) {
       a.status = 'submitted'; a.submittedAt = now();
+      usersWith('applications').forEach(function (a) { notify(a.id, 'application', 'New application: ' + u.name, data.position, '#/applications'); });
       notifyAdmins('application_received', 'New employment application: ' + u.name, u.name + ' applied for ' + data.position + '. Review it in the portal under Applications.');
       sendEmail('application_received', u.email, 'We received your application', 'Hi ' + u.name + ',\n\nThank you for applying to Complete Home Care Services. Our HR team will review your application and contact you.');
       audit(u.id, 'application.submit', data.position);
@@ -642,6 +698,153 @@
   });
   route('PATCH', 'posts/:id', function (p, b) { var u = requirePerm('news_manage'), x = find('posts', p.id); if (!x) throw err(404, 'Not found.'); Object.assign(x, postInput(Object.assign({}, x, b))); x.updatedAt = now(); audit(u.id, 'posts.update', x.title); save(); return x; });
   route('DELETE', 'posts/:id', function (p) { var u = requirePerm('news_manage'), x = find('posts', p.id); if (!x) throw err(404, 'Not found.'); col('posts').splice(col('posts').indexOf(x), 1); audit(u.id, 'posts.delete', x.title); save(); return { ok: true }; });
+
+
+  // ---- notifications & live updates
+  route('GET', 'pulse', function (p, b, q) {
+    var u = requireUser(), since = Number(q.since || 0), msgSince = Number(q.msgSince || 0);
+    var mine = col('notifications').filter(function (n) { return n.userId === u.id; });
+    var convs = can(u, 'chat') ? conversationsFor(u) : [];   // also marks messages as delivered
+    var convIds = convs.map(function (c) { return c.id; });
+    var msgs = col('messages').filter(function (m) { return m.id > msgSince && m.userId !== u.id && convIds.indexOf(m.convId) !== -1; }).slice(-10).map(function (m) { var c = convs.find(function (x) { return x.id === m.convId; }), w = user(m.userId); return { id: m.id, convId: m.convId, title: c ? c.title : '', userName: w ? w.name : '', body: m.body }; });
+    var allMsgs = col('messages'), allN = col('notifications');
+    return { notifications: mine.filter(function (n) { return n.id > since; }).slice(-20).reverse(), unreadNotifications: mine.filter(function (n) { return !n.read; }).length, unreadChat: convs.reduce(function (a, c) { return a + c.unread; }, 0), messages: msgs, lastMsgId: allMsgs.length ? allMsgs[allMsgs.length - 1].id : 0, lastNotifId: allN.length ? allN[allN.length - 1].id : 0 };
+  });
+  route('GET', 'notifications', function () { var u = requireUser(); return col('notifications').filter(function (n) { return n.userId === u.id; }).slice(-50).reverse(); });
+  route('POST', 'notifications/read', function (p, b) { var u = requireUser(), ids = (b.ids || []).map(Number); col('notifications').forEach(function (n) { if (n.userId === u.id && (b.all || ids.indexOf(n.id) !== -1)) n.read = true; }); save(); return { ok: true }; });
+
+  // ---- vacation & sick leave (office staff)
+  function workdays(from, to) { var n = 0, d = new Date(from + 'T12:00:00'), e = new Date(to + 'T12:00:00'); while (d <= e) { var w = d.getDay(); if (w !== 0 && w !== 6) n++; d.setDate(d.getDate() + 1); } return n; }
+  function allowance(u) { var dflt = db.settings.leave, a = u.leaveAllowance || {}; return { vacation: a.vacation != null ? a.vacation : dflt.vacation, sick: a.sick != null ? a.sick : dflt.sick, personal: a.personal != null ? a.personal : dflt.personal }; }
+  function balances(u) {
+    var yr = today().slice(0, 4), al = allowance(u), used = { vacation: 0, sick: 0, personal: 0 }, pending = { vacation: 0, sick: 0, personal: 0 };
+    col('leave').filter(function (l) { return l.userId === u.id && l.from.slice(0, 4) === yr; }).forEach(function (l) { if (!(l.type in used)) return; if (l.status === 'approved') used[l.type] += l.totalHours; if (l.status === 'pending') pending[l.type] += l.totalHours; });
+    return Object.keys(al).map(function (k) { return { type: k, allowed: al[k], used: used[k], pending: pending[k], left: al[k] - used[k] }; });
+  }
+  function decorateLeave(l) { var w = user(l.userId), d = user(l.decidedBy); return Object.assign({}, l, { userName: w ? w.name : '—', designation: w ? w.designation : '', decidedByName: d ? d.name : '' }); }
+  route('GET', 'leave', function (p, b, q) {
+    var u = requireUser(), list = col('leave');
+    if (q.scope === 'all') { if (!can(u, 'leave_manage')) throw err(403, 'No access.'); }
+    else if (q.scope === 'calendar') { if (!can(u, 'calendar_manage') && !can(u, 'leave_manage')) list = list.filter(function (l) { return l.userId === u.id; }); list = list.filter(function (l) { return l.status === 'approved' || (l.status === 'pending' && l.userId === u.id); }); }
+    else { if (!can(u, 'leave')) throw err(403, 'No access.'); list = list.filter(function (l) { return l.userId === u.id; }); }
+    if (q.status) list = list.filter(function (l) { return l.status === q.status; });
+    if (q.from) list = list.filter(function (l) { return l.to >= q.from; });
+    if (q.to) list = list.filter(function (l) { return l.from <= q.to; });
+    return list.slice().sort(function (a, b2) { return b2.from.localeCompare(a.from); }).map(decorateLeave);
+  });
+  route('GET', 'leave/balances', function (p, b, q) {
+    var u = requireUser();
+    if (q.userId && Number(q.userId) !== u.id) { if (!can(u, 'leave_manage')) throw err(403, 'No access.'); return balances(user(q.userId)); }
+    if (q.all === '1') { if (!can(u, 'leave_manage')) throw err(403, 'No access.'); return db.users.filter(function (x) { return x.status === 'active' && (x.type === 'office' || x.type === 'admin'); }).map(function (x) { return { userId: x.id, name: x.name, designation: x.designation, balances: balances(x), allowance: allowance(x) }; }); }
+    return balances(u);
+  });
+  route('POST', 'leave', function (p, b) {
+    var u = requirePerm('leave'), types = (window.CHCS_LEAVE_TYPES || []).map(function (t) { return t[0]; });
+    if (types.indexOf(b.type) === -1) throw err(400, 'Choose a leave type.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(b.from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(b.to || b.from || '')) throw err(400, 'Choose the dates.');
+    var to = b.to || b.from; if (to < b.from) throw err(400, 'The end date is before the start date.');
+    var days = workdays(b.from, to); if (!days) throw err(400, 'Those dates are only weekend days.');
+    var hpd = b.partial ? Math.min(8, Math.max(0.5, Number(b.hours) || 4)) : db.settings.leave.hoursPerDay;
+    var overlap = col('leave').some(function (l) { return l.userId === u.id && ['pending', 'approved'].indexOf(l.status) !== -1 && l.from <= to && l.to >= b.from; });
+    if (overlap) throw err(400, 'You already have leave requested for some of these days.');
+    var l = insert('leave', { userId: u.id, type: b.type, from: b.from, to: to, partial: !!b.partial, hoursPerDay: hpd, totalHours: days * hpd, reason: str(b.reason, 500), status: 'pending' });
+    usersWith('leave_manage').filter(function (m) { return m.id !== u.id; }).forEach(function (m) { notify(m.id, 'leave', 'Leave request: ' + u.name, b.type + ' · ' + b.from + (to !== b.from ? ' → ' + to : '') + ' (' + l.totalHours + 'h)', '#/leave?tab=manage'); sendEmail('leave_request', m.email, 'Leave request from ' + u.name, u.name + ' requested ' + b.type + ' leave: ' + b.from + (to !== b.from ? ' to ' + to : '') + ' (' + l.totalHours + ' hours).\n\nReview it in the portal: ' + base() + '#/leave?tab=manage'); });
+    audit(u.id, 'leave.request', b.type + ' ' + b.from); save(); return decorateLeave(l);
+  });
+  route('PATCH', 'leave/:id', function (p, b) {
+    var u = requireUser(), l = find('leave', p.id); if (!l) throw err(404, 'Not found.');
+    if (b.action === 'cancel') { if (l.userId !== u.id || ['pending', 'approved'].indexOf(l.status) === -1) throw err(400, 'You can only cancel your own pending or approved leave.'); if (l.status === 'approved' && l.from <= today()) throw err(400, 'Leave that has started can only be changed by a manager.'); l.status = 'cancelled'; save(); return decorateLeave(l); }
+    if (!can(u, 'leave_manage')) throw err(403, 'No access.');
+    if (l.userId === u.id && u.type !== 'admin') throw err(400, 'Someone else has to approve your own leave.');
+    if (b.action !== 'approve' && b.action !== 'reject') throw err(400, 'Unknown action.');
+    l.status = b.action === 'approve' ? 'approved' : 'rejected'; l.decidedBy = u.id; l.decidedAt = now(); l.decisionNote = str(b.note, 300);
+    var w = user(l.userId);
+    notify(l.userId, 'leave', 'Leave ' + l.status + ': ' + l.from + (l.to !== l.from ? ' → ' + l.to : ''), l.decisionNote, '#/leave');
+    if (w) sendEmail('leave_decision', w.email, 'Your leave request was ' + l.status, 'Hi ' + w.name + ',\n\nYour ' + l.type + ' leave (' + l.from + (l.to !== l.from ? ' to ' + l.to : '') + ') was ' + l.status + '.' + (l.decisionNote ? '\nNote: ' + l.decisionNote : ''));
+    audit(u.id, 'leave.' + l.status, (w ? w.email : '') + ' ' + l.from); save(); return decorateLeave(l);
+  });
+  route('PUT', 'leave/allowance/:id', function (p, b) {
+    var u = requirePerm('leave_manage'), w = user(p.id); if (!w) throw err(404, 'Not found.');
+    w.leaveAllowance = { vacation: Math.max(0, Number(b.vacation) || 0), sick: Math.max(0, Number(b.sick) || 0), personal: Math.max(0, Number(b.personal) || 0) };
+    audit(u.id, 'leave.allowance', w.email); save(); return { ok: true };
+  });
+
+  // ---- call dashboard (incoming call management)
+  function digits(s) { return String(s || '').replace(/\D/g, '').slice(-10); }
+  function decorateCall(c) { var t = user(c.takenBy), a = user(c.assignedTo); return Object.assign({}, c, { takenByName: t ? t.name : '—', assignedToName: a ? a.name : '', followUps: (c.followUps || []).map(function (f) { var w = user(f.userId); return Object.assign({}, f, { userName: w ? w.name : '—' }); }) }); }
+  function callAssigned(c, by) {
+    var a = user(c.assignedTo); if (!a || a.id === by.id) return;
+    notify(a.id, 'call', (c.priority === 'urgent' ? 'URGENT call for you: ' : 'Call for you: ') + c.callerName, (c.callerPhone ? c.callerPhone + ' · ' : '') + c.message.slice(0, 140), '#/calls?id=' + c.id);
+    sendEmail('call_assigned', a.email, (c.priority === 'urgent' ? '[URGENT] ' : '') + 'Call for you from ' + c.callerName, 'Hi ' + a.name + ',\n\n' + by.name + ' took a call for you.\n\nCaller: ' + c.callerName + (c.callerPhone ? '\nPhone: ' + c.callerPhone : '') + '\nAbout: ' + c.reason + '\nMessage: ' + c.message + (c.callbackBy ? '\nPlease call back by: ' + c.callbackBy.replace('T', ' ') : '') + '\n\nOpen it in the portal: ' + base() + '#/calls?id=' + c.id);
+  }
+  route('GET', 'calls', function (p, b, q) {
+    var u = requirePerm('calls'), list = col('calls'), term = (q.q || '').toLowerCase();
+    if (q.filter === 'mine') list = list.filter(function (c) { return c.assignedTo === u.id && (c.status === 'open' || c.status === 'in_progress'); });
+    else if (q.filter === 'taken') list = list.filter(function (c) { return c.takenBy === u.id; });
+    else if (q.filter === 'open') list = list.filter(function (c) { return c.status === 'open' || c.status === 'in_progress'; });
+    else if (q.filter === 'today') list = list.filter(function (c) { return c.createdAt.slice(0, 10) === new Date().toISOString().slice(0, 10); });
+    if (term) list = list.filter(function (c) { return (c.callerName + ' ' + c.callerPhone + ' ' + c.message + ' ' + c.reason).toLowerCase().indexOf(term) !== -1 || (digits(term) && digits(c.callerPhone).indexOf(digits(term)) !== -1); });
+    return list.slice().reverse().slice(0, 300).map(decorateCall);
+  });
+  route('GET', 'calls/stats', function () {
+    var u = requirePerm('calls'), all = col('calls'), d = new Date().toISOString().slice(0, 10), nowIso = new Date().toISOString().slice(0, 16);
+    var open = all.filter(function (c) { return c.status === 'open' || c.status === 'in_progress'; });
+    return { today: all.filter(function (c) { return c.createdAt.slice(0, 10) === d; }).length, open: open.length, mine: open.filter(function (c) { return c.assignedTo === u.id; }).length, overdue: open.filter(function (c) { return c.callbackBy && c.callbackBy < nowIso; }).length, urgent: open.filter(function (c) { return c.priority === 'urgent'; }).length };
+  });
+  route('GET', 'calls/lookup', function (p, b, q) {
+    requirePerm('calls'); var dg = digits(q.phone); if (dg.length < 7) return { calls: 0 };
+    var prev = col('calls').filter(function (c) { return digits(c.callerPhone) === dg; });
+    var cs = col('cases').find(function (c) { return digits(c.phone) === dg; });
+    var emp = db.users.find(function (x) { return digits(x.phone) === dg; });
+    return { calls: prev.length, last: prev.length ? decorateCall(prev[prev.length - 1]) : null, patient: cs ? { id: cs.id, name: cs.patientName, status: cs.status } : null, employee: emp ? { id: emp.id, name: emp.name, designation: emp.designation } : null };
+  });
+  route('POST', 'calls', function (p, b) {
+    var u = requirePerm('calls');
+    if (!str(b.callerName) && !str(b.callerPhone)) throw err(400, 'Enter the caller\'s name or phone number.');
+    if (!str(b.message)) throw err(400, 'Write what the call was about.');
+    var assignee = b.assignedTo ? user(b.assignedTo) : null; if (b.assignedTo && (!assignee || assignee.status !== 'active')) throw err(400, 'Choose an active staff member.');
+    var c = insert('calls', { takenBy: u.id, callerName: str(b.callerName, 120) || 'Unknown caller', callerPhone: str(b.callerPhone, 30), callerType: str(b.callerType, 20) || 'other', reason: str(b.reason, 60) || 'Other', message: str(b.message, 2000), assignedTo: assignee ? assignee.id : null, priority: b.priority === 'urgent' ? 'urgent' : 'normal', status: assignee ? 'open' : (b.status === 'closed' ? 'closed' : 'open'), callbackBy: str(b.callbackBy, 16), duration: Math.max(0, Math.round(Number(b.duration) || 0)), direction: b.direction === 'outgoing' ? 'outgoing' : 'incoming', followUps: [] });
+    callAssigned(c, u); audit(u.id, 'calls.create', '#' + c.id); save(); return decorateCall(c);
+  });
+  route('PATCH', 'calls/:id', function (p, b) {
+    var u = requirePerm('calls'), c = find('calls', p.id); if (!c) throw err(404, 'Not found.');
+    var before = c.assignedTo;
+    if (b.status && ['open', 'in_progress', 'returned', 'closed'].indexOf(b.status) !== -1) { c.status = b.status; if (b.status === 'closed' || b.status === 'returned') c.closedAt = now(); }
+    if (b.priority) c.priority = b.priority === 'urgent' ? 'urgent' : 'normal';
+    if (b.callbackBy != null) c.callbackBy = str(b.callbackBy, 16);
+    if (b.assignedTo !== undefined) { var a = b.assignedTo ? user(b.assignedTo) : null; c.assignedTo = a ? a.id : null; if (a && c.status === 'closed') c.status = 'open'; }
+    if (b.note) (c.followUps = c.followUps || []).push({ userId: u.id, body: str(b.note, 1000), at: now() });
+    if (c.assignedTo && c.assignedTo !== before) callAssigned(c, u);
+    if (b.note && c.takenBy !== u.id && (b.status === 'returned' || b.status === 'closed')) notify(c.takenBy, 'call', 'Call ' + c.status + ': ' + c.callerName, u.name + ': ' + str(b.note, 140), '#/calls?id=' + c.id);
+    audit(u.id, 'calls.update', '#' + c.id + ' ' + c.status); save(); return decorateCall(c);
+  });
+
+  // ---- in-service assignments (nurse / training managers)
+  function decorateAssignment(a) { var w = user(a.userId), n = user(a.nurseId); return Object.assign({}, a, { userName: w ? w.name : '—', designation: w ? w.designation : '', nurseName: n ? n.name : '', overdue: a.status !== 'completed' && a.dueDate && a.dueDate < today() }); }
+  route('GET', 'inservices/assignments', function (p, b, q) { requirePerm('training_manage'); var l = col('inserviceAssignments'); if (q.userId) l = l.filter(function (a) { return a.userId === Number(q.userId); }); return l.slice().reverse().map(decorateAssignment); });
+  route('POST', 'inservices/assign', function (p, b) {
+    var u = requirePerm('training_manage'), ids = (b.userIds || []).map(Number).filter(function (id) { var x = user(id); return x && x.status === 'active'; });
+    if (!ids.length) throw err(400, 'Choose at least one employee.');
+    var i = b.inserviceId ? find('inservices', b.inserviceId) : null, c = (window.CHCS_CENTER || []).find(function (x) { return x[0] === b.centerId; });
+    if (!i && !c) throw err(400, 'Choose an in-service.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(b.dueDate || '')) throw err(400, 'Choose a due date.');
+    var nurse = user(b.nurseId) || u, title = i ? i.title : c[1], made = 0;
+    ids.forEach(function (id) {
+      if (col('inserviceAssignments').some(function (a) { return a.userId === id && a.status !== 'completed' && (i ? a.inserviceId === i.id : a.centerId === c[0]); })) return;
+      insert('inserviceAssignments', { userId: id, inserviceId: i ? i.id : null, centerId: c ? c[0] : null, title: title, dueDate: b.dueDate, nurseId: nurse.id, assignedBy: u.id, status: 'assigned' }); made++;
+      var w = user(id); notify(id, 'inservice', 'In-service assigned: ' + title, 'Due ' + b.dueDate + ' · Questions? Message ' + nurse.name, '#/inservices');
+      sendEmail('inservice_assigned', w.email, 'In-service assigned: ' + title, 'Hi ' + w.name + ',\n\n' + u.name + ' assigned you "' + title + '", due ' + b.dueDate + '.\nOpen the CHCS Portal → In-services to start. You can message ' + nurse.name + ' from inside the in-service if you have questions.\n\n' + base() + '#/inservices');
+    });
+    audit(u.id, 'inservices.assign', title + ' x' + made); save(); return { ok: true, assigned: made };
+  });
+  route('DELETE', 'inservices/assignments/:id', function (p) { var u = requirePerm('training_manage'), a = find('inserviceAssignments', p.id); if (!a) throw err(404, 'Not found.'); col('inserviceAssignments').splice(col('inserviceAssignments').indexOf(a), 1); audit(u.id, 'inservices.unassign', a.title); save(); return { ok: true }; });
+  route('POST', 'inservices/center-complete', function (p, b) {
+    var u = requirePerm('inservices'), c = (window.CHCS_CENTER || []).find(function (x) { return x[0] === b.centerId; });
+    if (!c) throw err(400, 'Unknown training.');
+    insert('inserviceResults', { centerId: c[0], userId: u.id, score: Math.min(100, Math.max(0, Number(b.score) || 100)), passed: true, answers: [], signature: str(b.name, 100) });
+    completeAssignments(u.id, null, c[0]); audit(u.id, 'inservices.center_complete', c[1]); save(); return { ok: true };
+  });
+  route('GET', 'nurse', function () { requireUser(); var n = defaultNurse(); return n ? pub(n) : null; });
 
   /* ------------------------------------------------------------- dispatcher */
   var ready = (async function () { load(); if (!db || !db.users) await seed(); })();

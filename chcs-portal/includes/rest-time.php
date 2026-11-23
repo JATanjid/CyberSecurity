@@ -65,6 +65,9 @@ add_action(
 			'/time/clock-in',
 			'clock',
 			function ( $req, $me ) {
+				if ( 'field' === chcs_user_type( $me ) ) {
+					return chcs_err( 403, 'Field staff clock in and out in HHAeXchange.' );
+				}
 				if ( chcs_rec_query( 'time', array( 'owner' => $me, 'status' => 'open' ), 1 ) ) {
 					return chcs_err( 400, 'You are already clocked in.' );
 				}
@@ -215,6 +218,7 @@ add_action(
 				}
 				foreach ( $touched as $uid => $n ) {
 					$u = get_userdata( $uid );
+					chcs_notify( $uid, 'time', 'Time entries ' . $act, $n . ' entr' . ( $n > 1 ? 'ies' : 'y' ) . ( $note ? ' — ' . $note : '' ), 'field' === chcs_user_type( $uid ) ? '#/timesheet' : '#/clock' );
 					if ( $u ) {
 						chcs_mail( 'time_decision', $u->user_email, 'Your time entries were ' . $act, "Hi {$u->display_name},\n\n{$n} time entr" . ( $n > 1 ? 'ies were ' : 'y was ' ) . $act . ( $note ? ".\nNote: {$note}" : '.' ) . "\n\n" . chcs_portal_url( 'timesheet' ) );
 					}
@@ -274,10 +278,38 @@ add_action(
 						'entries'       => $s['entries'],
 					);
 				}
+				// Approved vacation / sick leave in the period (Mon–Fri days × hours per day).
+				$from  = chcs_str( $req['from'], 10 ) ?: '0000-01-01';
+				$to    = chcs_str( $req['to'], 10 ) ?: '9999-12-31';
+				$leave = array();
+				foreach ( chcs_rec_query( 'leave', array( 'status' => 'approved' ), 5000 ) as $l ) {
+					if ( $l['to'] < $from || $l['from'] > $to ) {
+						continue;
+					}
+					$days    = chcs_workdays( max( $l['from'], $from ), min( $l['to'], $to ) );
+					$hours   = $days * (float) $l['hoursPerDay'];
+					$leave[] = array( 'userId' => (int) $l['userId'], 'name' => chcs_user_name( $l['userId'] ), 'designation' => (string) get_user_meta( $l['userId'], 'chcs_designation', true ), 'type' => $l['type'], 'from' => $l['from'], 'to' => $l['to'], 'days' => $days, 'hours' => $hours );
+					$found   = false;
+					foreach ( $summary as &$s ) {
+						if ( $s['userId'] === (int) $l['userId'] ) {
+							$s['leaveHours'] = round( ( $s['leaveHours'] ?? 0 ) + $hours, 2 );
+							$found           = true;
+						}
+					}
+					unset( $s );
+					if ( ! $found ) {
+						$summary[] = array( 'userId' => (int) $l['userId'], 'name' => chcs_user_name( $l['userId'] ), 'designation' => (string) get_user_meta( $l['userId'], 'chcs_designation', true ), 'regularHours' => 0, 'overtimeHours' => 0, 'totalHours' => 0, 'entries' => 0, 'leaveHours' => round( $hours, 2 ) );
+					}
+				}
+				foreach ( $summary as &$s ) {
+					$s['leaveHours'] = $s['leaveHours'] ?? 0;
+				}
+				unset( $s );
 				chcs_audit( $me, 'payroll.view', $req['from'] . '..' . $req['to'] );
 				return array(
 					'summary' => $summary,
 					'detail'  => $detail,
+					'leave'   => $leave,
 				);
 			}
 		);

@@ -11,7 +11,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** All grantable modules (keys must match app/js/core.js). */
 function chcs_modules() {
-	return array( 'clock', 'timesheet', 'approvals', 'payroll', 'intake', 'notes', 'forms', 'calendar', 'calendar_manage', 'chat', 'news_manage', 'inservices', 'orientation', 'training_manage', 'applications', 'users', 'settings', 'audit' );
+	return array( 'clock', 'timesheet', 'approvals', 'payroll', 'leave', 'leave_manage', 'calls', 'chat', 'news_manage', 'intake', 'forms', 'calendar', 'calendar_manage', 'inservices', 'orientation', 'training_manage', 'applications', 'users', 'settings', 'audit' );
+}
+
+/** Trainings inside the In-Service Training Center (app/forms/inservice-training.html): id => [title, minutes]. */
+function chcs_center_trainings() {
+	return array(
+		'homecare'   => array( 'Home Care Overview', 60 ),
+		'osha'       => array( 'OSHA Standards: Infection and Safety', 60 ),
+		'disaster'   => array( 'Disaster and Emergency Preparedness', 45 ),
+		'oxygen'     => array( 'Oxygen Safety', 30 ),
+		'rnlpn'      => array( 'RN/LPN Training / Competency Checklist', 60 ),
+		'violence'   => array( 'Workplace Violence Prevention & Safety', 45 ),
+		'measles'    => array( 'Measles & Hantavirus Infection Control', 45 ),
+		'lithium'    => array( 'Lithium Battery Safety & Fire Prevention', 30 ),
+		'lgbtqia'    => array( 'LGBTQIA+ Cultural Competency Training', 45 ),
+		'maid'       => array( 'Medical Aid in Dying Clinical Protocols', 45 ),
+		'cyclo'      => array( 'Cyclosporiasis: Prevention, Identification, and Reporting', 30 ),
+		'harassment' => array( 'Sexual Harassment Prevention Training', 60 ),
+	);
+}
+
+/** In-app notification (bell + device notification). */
+function chcs_notify( $uid, $kind, $title, $body = '', $link = '' ) {
+	if ( ! $uid ) {
+		return;
+	}
+	chcs_rec_insert( 'notifications', array( 'userId' => (int) $uid, 'kind' => $kind, 'title' => mb_substr( $title, 0, 200 ), 'body' => mb_substr( (string) $body, 0, 300 ), 'link' => $link, 'read' => false, 'status' => 'unread' ) );
+}
+
+/** Active portal users that have a permission. */
+function chcs_users_with( $perm ) {
+	return array_values( array_filter( chcs_portal_users( 'active' ), function ( $id ) use ( $perm ) { return chcs_can( $id, $perm ); } ) );
 }
 
 function chcs_designations() {

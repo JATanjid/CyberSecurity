@@ -149,6 +149,7 @@ self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(func
 self.addEventListener('fetch',function(e){var r=e.request,u=new URL(r.url);
 if(r.method!=='GET'||u.origin!==self.location.origin||u.pathname.indexOf('/wp-json/')!==-1||u.search.indexOf('rest_route')!==-1||u.pathname.indexOf('/forms/')!==-1)return;
 e.respondWith(fetch(r).then(function(res){if(res&&res.ok){var c=res.clone();caches.open(CACHE).then(function(x){x.put(r,c);});}return res;}).catch(function(){return caches.match(r).then(function(m){return m||caches.match('./');});}));});
+self.addEventListener('notificationclick',function(e){e.notification.close();var link=(e.notification.data&&e.notification.data.link)||'#/dashboard';e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(function(l){for(var i=0;i<l.length;i++){if(l[i].url.indexOf(self.registration.scope)===0){l[i].postMessage({type:'chcs-open',link:link});return l[i].focus();}}return self.clients.openWindow(self.registration.scope+link);}));});
 JS;
 }
 

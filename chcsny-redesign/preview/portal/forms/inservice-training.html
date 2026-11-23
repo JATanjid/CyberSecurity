@@ -3975,6 +3975,7 @@ body{top:0!important}
         p.completedAt = iso; p.fileUrl = j.fileUrl || ''; p.recordUrl = recordUrl; p.certName = name; p.opened = true;
         p.certRn = { name: CONFIG.rnSupervisor.name, title: CONFIG.rnSupervisor.title, email: CONFIG.rnSupervisor.email, phone: CONFIG.rnSupervisor.phone };
         if (window.CHCSPopup) CHCSPopup.done('Your certificate was sent to the office.');
+        try { if (window.parent !== window) window.parent.postMessage({ type: 'chcs-inservice-complete', id: t.id, title: t.title, name: name, score: 100 }, location.origin); } catch (e) { /* not inside the portal */ }
         s.submitting = false; s.redo = false; s.file = null; s.attest = false; save(); renderExternal(); scrollTop();
       })
       .catch(function (err) {
@@ -4319,6 +4320,7 @@ body{top:0!important}
         });
     }).then(function () {
       if (window.CHCSPopup) CHCSPopup.done('Your certificate was sent to the office.');
+      try { if (window.parent !== window) window.parent.postMessage({ type: 'chcs-inservice-complete', id: t.id, title: t.title, name: name, score: t.final && t.final.length ? Math.round((p.score || 0) / t.final.length * 100) : 100 }, location.origin); } catch (e) { /* not inside the portal */ }
       s.submitting = false; renderTraining(); scrollTop();
     }).catch(function (err) {
       if (window.CHCSPopup) CHCSPopup.hide();
@@ -4563,5 +4565,7 @@ body{top:0!important}
 </div>
 
 <script src="submit-popup.js"></script>
+<link rel="stylesheet" href="chcs-form-theme.css">
+<script src="chcs-form-theme.js" data-form="inservice"></script>
 </body>
 </html>

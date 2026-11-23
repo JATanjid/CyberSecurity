@@ -108,6 +108,9 @@ add_action(
 				update_user_meta( $uid, 'chcs_status', $status );
 				if ( 'pending' === $status ) {
 					$p = chcs_user_pub( $uid, true );
+					foreach ( chcs_users_with( 'users' ) as $a ) {
+						chcs_notify( $a, 'account', 'Account waiting for approval', $p['name'] . ' (' . ( $p['designation'] ? $p['designation'] : $p['type'] ) . ')', '#/admin/users' );
+					}
 					chcs_notify_admins( 'signup_admin', 'New portal account waiting for approval', "{$p['name']} ({$p['email']}) signed up as {$p['type']}" . ( $p['designation'] ? " — {$p['designation']}" : '' ) . ".\n\nReview it here:\n" . chcs_portal_url( 'admin/users' ) );
 				}
 				chcs_audit( $uid, 'auth.verified' );
@@ -318,7 +321,14 @@ add_action(
 						)
 					);
 				}
-				$out['unread'] = array_sum( wp_list_pluck( chcs_conversations_for( $me ), 'unread' ) );
+				$out['unread'] = chcs_can( $me, 'chat' ) ? array_sum( wp_list_pluck( chcs_conversations_for( $me ), 'unread' ) ) : 0;
+				if ( chcs_can( $me, 'calls' ) ) {
+					$out['myCalls'] = count( chcs_rec_query( 'calls', array( 'owner' => $me, 'status' => array( 'open', 'in_progress' ) ), 500 ) );
+				}
+				if ( chcs_can( $me, 'leave_manage' ) ) {
+					$out['pendingLeave'] = count( array_filter( chcs_rec_query( 'leave', array( 'status' => 'pending' ), 500 ), function ( $l ) use ( $me ) { return (int) $l['userId'] !== $me; } ) );
+				}
+				$out['unreadNotifications'] = count( chcs_rec_query( 'notifications', array( 'owner' => $me, 'status' => 'unread' ), 100 ) );
 				$out['posts']  = array_slice( chcs_visible_posts( $me ), 0, 4 );
 				return $out;
 			}
