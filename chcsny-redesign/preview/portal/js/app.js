@@ -378,7 +378,7 @@
     if (d.inservicesDue != null && u.type === 'field') stats.push(['grad', 'In-services to do', d.inservicesDue, 'See due dates', '#/inservices']);
     if (d.myCalls != null) stats.push(['call', 'Calls for me', d.myCalls, 'Open call-backs', '#/calls?filter=mine']);
     if (d.myTasks != null) stats.push(['sheet', 'Tasks due soon', d.myTasks, 'Next 7 days + overdue', '#/tasks']);
-    if ((can('clock') && u.type !== 'field') || can('timesheet')) stats.push(['clock', 'Hours this week', H.hours(d.weekMinutes), 'Mon–Sun', can('clock') && u.type !== 'field' ? '#/clock' : '#/timesheet']);
+    if (can('clock') && u.type !== 'field') stats.push(['clock', 'Hours this week', H.hours(d.weekMinutes), 'Mon–Sun', '#/clock']);
     if (d.pendingLeave != null) stats.push(['sun', 'Leave to approve', d.pendingLeave, 'Pending requests', '#/leave?tab=manage']);
     if (d.pendingApprovals != null) stats.push(['checkc', 'Time to approve', d.pendingApprovals, 'Pending entries', '#/approvals']);
     if (d.newCases != null) stats.push(['folder', 'New referrals', d.newCases, 'New + verifying', '#/cases']);
@@ -418,14 +418,14 @@
   /* ================================================================ time clock */
   route('clock', { title: 'Time clock', perm: 'clock', render: async function () {
     if (state.user.type === 'field') return '<div class="card"><div class="empty">' + ico('clock') + '<h2>Clock in with HHAeXchange</h2><p>Field staff clock in and out of visits in the HHAeXchange app.</p></div></div>';
-    var list = await API.get('time/entries?from=' + H.addDays(H.ymd(), -13));
+    var res = await Promise.all([API.get('time/entries?from=' + H.addDays(H.ymd(), -13)), API.get('settings/time'), API.get('me').catch(function () { return {}; })]), list = res[0];
+    var sched = (res[2] && res[2].user && res[2].user.schedule) || res[1];
     var open = list.find(function (t) { return t.status === 'open'; });
     var week = list.filter(function (t) { return t.date >= H.weekStart() && t.end; }).reduce(function (a, t) { return a + t.minutes; }, 0);
     return '<div class="cards cards--2"><section class="card"><div class="clock"><div class="muted">' + esc(new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })) + '</div><div class="clock__time" id="clock-now"></div>' +
       '<div class="clock__ring" id="ring"><div><span class="small muted">' + (open ? 'On the clock' : 'This week') + '</span><b id="elapsed">' + (open ? '' : H.hours(week) + 'h') + '</b><span class="small muted">' + (open ? 'since ' + H.fmtTime(open.start) : 'of 40h') + '</span></div></div>' +
-      '<label class="field" style="max-width:340px;margin:0 auto 14px;text-align:left"><span>Note <span class="muted">(optional)</span></span><input class="input" id="clock-note" placeholder="e.g. Field visit, training"></label>' +
       '<button class="btn clock-btn ' + (open ? 'btn--red' : 'btn--ok') + '" id="clock-btn" data-open="' + (open ? 1 : 0) + '">' + ico('clock') + (open ? 'Clock out' : 'Clock in') + '</button><p class="small muted" style="margin-top:12px">Your location is recorded only if you allow it.</p></div></section>' +
-      '<section class="card"><div class="card__head"><h2>Recent punches</h2><span class="small muted">Last 2 weeks</span></div>' + timeTable(list.filter(function (t) { return t.source === 'clock'; }), false) + '</section></div>';
+      '<section class="card"><div class="card__head"><h2>Recent punches</h2><span class="small muted">Last 2 weeks</span></div><p class="small muted" style="padding:0 20px">Your schedule: <b>' + esc(schedText(sched)) + '</b>. Time inside it is approved automatically.</p>' + timeTable(list.filter(function (t) { return t.source === 'clock'; }), false) + '</section></div>';
   }, mount: function (root) {
     function tick() { var n = $('#clock-now'); if (!n) return; n.textContent = new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', second: '2-digit' }); }
     tick(); state.pollers.push(setInterval(tick, 1000));
@@ -436,57 +436,48 @@
       el(); state.pollers.push(setInterval(el, 15000));
     });
     btn.onclick = async function () {
-      var out = btn.dataset.open === '1', note = $('#clock-note').value; btn.disabled = true;
+      var out = btn.dataset.open === '1'; btn.disabled = true;
       var geo = null;
       if (!out && navigator.geolocation) geo = await new Promise(function (res) { navigator.geolocation.getCurrentPosition(function (p) { res({ lat: +p.coords.latitude.toFixed(5), lng: +p.coords.longitude.toFixed(5), acc: Math.round(p.coords.accuracy) }); }, function () { res(null); }, { timeout: 5000, maximumAge: 60000 }); });
-      try { await API.post(out ? 'time/clock-out' : 'time/clock-in', { note: note, geo: geo }); toast(out ? 'Clocked out. Your hours were sent for approval.' : 'Clocked in. Have a great shift!', 'ok'); refreshCounts(); render(); } catch (e) { btn.disabled = false; fail(e); }
+      try { var t = await API.post(out ? 'time/clock-out' : 'time/clock-in', { geo: geo }); toast(!out ? 'Clocked in. Have a great day!' : t.status === 'approved' ? 'Clocked out. Your hours are approved.' : 'Clocked out. Outside your schedule, so it was sent for approval: ' + (t.flag || 'outside schedule') + '.', 'ok'); refreshCounts(); render(); } catch (e) { btn.disabled = false; fail(e); }
     };
   } });
 
   function timeTable(list, withUser, selectable) {
-    if (!list.length) return '<div class="empty">' + ico('clock') + '<div>No entries.</div></div>';
-    return '<div class="table-wrap"><table class="table table--cards"><thead><tr>' + (selectable ? '<th><input type="checkbox" id="sel-all" aria-label="Select all"></th>' : '') + (withUser ? '<th>Employee</th>' : '') + '<th>Date</th><th>In</th><th>Out</th><th class="right">Hours</th><th>Patient / note</th><th>Status</th>' + (!withUser ? '<th></th>' : '') + '</tr></thead><tbody>' +
+    if (!list.length) return '<div class="empty">' + ico('clock') + '<div>' + (selectable ? 'Nothing to approve. Time inside the work schedule is approved automatically.' : 'No entries.') + '</div></div>';
+    return '<div class="table-wrap"><table class="table table--cards"><thead><tr>' + (selectable ? '<th><input type="checkbox" id="sel-all" aria-label="Select all"></th>' : '') + (withUser ? '<th>Employee</th>' : '') + '<th>Date</th><th>In</th><th>Out</th><th class="right">Hours</th>' + (selectable ? '<th>Outside schedule</th>' : '') + '<th>Status</th></tr></thead><tbody>' +
       list.map(function (t) {
         return '<tr>' + (selectable ? '<td><input type="checkbox" class="sel" value="' + t.id + '" aria-label="Select entry"></td>' : '') + (withUser ? '<td data-label="Employee"><b>' + esc(t.userName) + '</b><div class="small muted">' + esc(t.designation) + '</div></td>' : '') +
           '<td data-label="Date">' + esc(H.fmtDate(t.date, { weekday: 'short', month: 'short', day: 'numeric' })) + '</td><td data-label="In">' + H.fmtTime(t.start) + '</td><td data-label="Out">' + (t.end ? H.fmtTime(t.end) : '—') + '</td><td data-label="Hours" class="right"><b>' + (t.end ? H.hours(t.minutes) : '—') + '</b></td>' +
-          '<td data-label="Patient / note">' + esc(t.patientName || '') + (t.note ? '<div class="small muted">' + esc(t.note) + '</div>' : '') + (t.geo ? '<div class="small muted">' + ico('pin') + ' located</div>' : '') + (t.decisionNote ? '<div class="small" style="color:var(--red)">' + esc(t.decisionNote) + '</div>' : '') + '</td><td data-label="Status">' + H.badge(t.status) + '</td>' +
-          (!withUser ? '<td>' + (t.source === 'manual' && (t.status === 'draft' || t.status === 'rejected') ? '<button class="btn btn--ghost btn--sm" data-del-time="' + t.id + '">Delete</button>' : '') + '</td>' : '') + '</tr>';
+          (selectable ? '<td data-label="Outside schedule"><span class="flag">' + ico('clock') + esc(t.flag || 'Outside schedule') + '</span></td>' : '') +
+          '<td data-label="Status">' + H.badge(t.status) + (t.autoApproved ? '<div class="small muted">automatic</div>' : '') + (!selectable && t.status === 'pending' && t.flag ? '<div class="small muted">' + esc(t.flag) + '</div>' : '') + (t.decisionNote ? '<div class="small" style="color:var(--red)">' + esc(t.decisionNote) + '</div>' : '') + '</td></tr>';
       }).join('') + '</tbody></table></div>';
   }
 
+  /* work schedule helpers (office time approval) */
+  var DOW = [[1, 'Mon'], [2, 'Tue'], [3, 'Wed'], [4, 'Thu'], [5, 'Fri'], [6, 'Sat'], [0, 'Sun']];
+  function schedText(r) { if (!r) return '—'; var d = DOW.filter(function (x) { return r.days.indexOf(x[0]) !== -1; }).map(function (x) { return x[1]; }); var txt = d.join(', '); if (d.join() === 'Mon,Tue,Wed,Thu,Fri') txt = 'Mon–Fri'; else if (d.length === 7) txt = 'Every day'; return txt + ' · ' + H.fmtHM(r.start) + ' – ' + H.fmtHM(r.end); }
+  function schedFields(r, prefix) {
+    r = r || { days: [1, 2, 3, 4, 5], start: '09:00', end: '17:00' };
+    return '<div class="field"><span class="label">Work days</span><div class="dow">' + DOW.map(function (x) { return '<label><input type="checkbox" name="' + prefix + 'day" value="' + x[0] + '"' + (r.days.indexOf(x[0]) !== -1 ? ' checked' : '') + '><span>' + x[1] + '</span></label>'; }).join('') + '</div></div><div class="grid-2"><label class="field"><span>Starts</span><input class="input" type="time" name="' + prefix + 'start" value="' + esc(r.start) + '"></label><label class="field"><span>Ends</span><input class="input" type="time" name="' + prefix + 'end" value="' + esc(r.end) + '"></label></div>';
+  }
+  function readSched(w, prefix) { return { days: $$('input[name=' + prefix + 'day]:checked', w).map(function (i) { return +i.value; }), start: $('input[name=' + prefix + 'start]', w).value, end: $('input[name=' + prefix + 'end]', w).value }; }
+
   /* ================================================================ timesheet (field) */
-  function timesheetTabs(t) { return '<div class="tabs"><a href="#/timesheet" class="' + (t === 'hours' ? 'is-active' : '') + '">' + ico('clock') + ' Hours</a><a href="#/timesheet?tab=duty" class="' + (t === 'duty' ? 'is-active' : '') + '">' + ico('sheet') + ' HHA duty sheet</a></div>'; }
-  route('timesheet', { title: 'Timesheet', perm: 'timesheet', render: async function (p, q) {
-    if (q.tab === 'duty') {
-      return '<div class="page-head"><div><h1>Timesheet</h1><p>Fill in your weekly HHA / PCA duty sheet, sign it with your client, and tap Submit. It goes straight to the office.</p></div></div>' + timesheetTabs('duty') +
-        '<div class="center-frame"><iframe id="duty-frame" title="HHA duty sheet" src="' + ASSET + 'forms/duty-sheet.html?portal=1"></iframe></div>';
-    }
-    var ws = q.week || H.weekStart(), we = H.addDays(ws, 6);
-    var list = await API.get('time/entries?from=' + ws + '&to=' + we);
-    var total = list.filter(function (t) { return t.end; }).reduce(function (a, t) { return a + t.minutes; }, 0);
-    var drafts = list.filter(function (t) { return t.status === 'draft' || t.status === 'rejected'; }).length;
-    return timesheetTabs('hours').replace('<div class="tabs">', '<div class="tabs" style="margin-top:6px">') + '<div class="page-head"><div><h1>Timesheet</h1><p>Add your hours, then submit the week for approval. Use the <a href="#/timesheet?tab=duty">HHA duty sheet</a> tab for the weekly duty sheet.</p></div><div class="row"><a class="btn btn--ghost btn--icon" href="#/timesheet?week=' + H.addDays(ws, -7) + '" aria-label="Previous week">' + ico('left') + '</a><b>' + esc(H.fmtDate(ws, { month: 'short', day: 'numeric' })) + ' – ' + esc(H.fmtDate(we)) + '</b><a class="btn btn--ghost btn--icon" href="#/timesheet?week=' + H.addDays(ws, 7) + '" aria-label="Next week">' + ico('right') + '</a></div></div>' +
-      '<div class="stats"><div class="stat"><div class="stat__label">' + ico('clock') + 'Total hours</div><div class="stat__value">' + H.hours(total) + '</div></div><div class="stat"><div class="stat__label">' + ico('sheet') + 'Entries</div><div class="stat__value">' + list.length + '</div></div><div class="stat"><div class="stat__label">' + ico('note') + 'Not submitted</div><div class="stat__value">' + drafts + '</div></div><div class="stat"><div class="stat__label">' + ico('checkc') + 'Approved</div><div class="stat__value">' + list.filter(function (t) { return t.status === 'approved'; }).length + '</div></div></div>' +
-      '<section class="card"><div class="card__head"><h2>Visits this week</h2><div class="row"><button class="btn btn--ghost btn--sm" id="add-entry">' + ico('plus') + 'Add visit</button><button class="btn btn--sm" id="submit-week"' + (drafts ? '' : ' disabled') + '>' + ico('send') + 'Submit week</button></div></div>' + timeTable(list, false) + '</section>' +
-''; 
-  }, mount: function (root, p, q) {
-    var df = $('#duty-frame');
-    if (df) { df.addEventListener('load', function () { prefillForm(df); }); return; }
-    var ws = q.week || H.weekStart();
-    $('#add-entry').onclick = async function () {
-      var cases = []; try { cases = await API.get('cases'); } catch (e) { /* none */ }
-      modal('Add visit', '<form class="modal__body stack" id="entry-form"><div class="grid-3"><label class="field"><span>Date</span><input class="input" type="date" name="date" value="' + H.ymd() + '" required></label><label class="field"><span>Time in</span><input class="input" type="time" name="startTime" value="09:00" required></label><label class="field"><span>Time out</span><input class="input" type="time" name="endTime" value="13:00" required></label></div><label class="field"><span>Patient</span><select class="input" name="caseId"><option value="">— Not patient-specific —</option>' + cases.map(function (c) { return '<option value="' + c.id + '">' + esc(c.patientName) + '</option>'; }).join('') + '</select></label><label class="field"><span>Note</span><input class="input" name="note" placeholder="Optional"></label></form><div class="modal__foot"><button class="btn btn--ghost" data-close>Cancel</button><button class="btn" id="entry-save">Add</button></div>', {
-        mount: function (w, close) { $('#entry-save', w).onclick = async function () { try { await API.post('time/entries', H.formData($('#entry-form', w))); close(); toast('Visit added.', 'ok'); render(); } catch (e) { fail(e); } }; }
-      });
-    };
-    $('#submit-week').onclick = async function () { try { var r = await submitting(function () { return API.post('time/submit', { weekStart: ws }); }); refreshCounts(); render(); } catch (e) { /* shown */ } };
-    on(root, 'click', '[data-del-time]', async function (e, b) { await API.del('time/entries/' + b.dataset.delTime); render(); });
+  route('timesheet', { title: 'Timesheet', perm: 'timesheet', render: function () {
+    return '<div class="page-head"><div><h1>Timesheet</h1><p>Fill in your weekly HHA / PCA duty sheet, sign it with your client, and tap Submit. It goes straight to the office. Visit hours are recorded in HHAeXchange.</p></div></div>' +
+      '<div class="center-frame"><iframe id="duty-frame" title="HHA duty sheet" src="' + ASSET + 'forms/duty-sheet.html?portal=1"></iframe></div>';
+  }, mount: function () {
+    var df = $('#duty-frame'); if (df) df.addEventListener('load', function () { prefillForm(df); });
   } });
 
   /* ================================================================ approvals */
   route('approvals', { title: 'Approvals', perm: 'approvals', render: async function () {
-    var list = await API.get('time/entries?scope=all&status=pending');
-    return '<div class="page-head"><div><h1>Approvals</h1><p>Review hours before they go to payroll. Leave requests are under <a href="#/leave?tab=manage">Vacation &amp; sick leave</a>.</p></div></div><section class="card"><div class="card__head"><h2>' + list.length + ' pending</h2><div class="row"><input class="input" id="dec-note" placeholder="Note to employee (optional)" style="min-height:34px;max-width:240px"><button class="btn btn--ghost btn--sm" data-decide="reject">Reject selected</button><button class="btn btn--ok btn--sm" data-decide="approve">' + ico('check') + 'Approve selected</button></div></div>' + timeTable(list, true, true) + '</section>';
+    var res = await Promise.all([API.get('time/entries?scope=all&status=pending'), API.get('settings/time')]), list = res[0], rules = res[1];
+    state.timeRules = rules;
+    return '<div class="page-head"><div><h1>Approvals</h1><p>Only time <b>outside the work schedule</b> comes here. Time inside the schedule is approved automatically. Leave requests are under <a href="#/leave?tab=manage">Vacation &amp; sick leave</a>.</p></div></div>' +
+      '<section class="card rules"><div class="card__body row" style="justify-content:space-between"><div class="row" style="gap:12px;flex-wrap:nowrap"><div class="course__icon">' + ico('clock') + '</div><div><b>Office work schedule</b><div class="small muted">' + esc(schedText(rules)) + ' · ' + rules.grace + ' min grace before and after</div><div class="small muted">A shift on the calendar, or a personal schedule set in Users &amp; access, is used instead when there is one.</div></div></div><button class="btn btn--ghost btn--sm" id="edit-rules">' + ico('note') + 'Change</button></div></section>' +
+      '<section class="card"><div class="card__head"><h2>' + list.length + ' need' + (list.length === 1 ? 's' : '') + ' approval</h2>' + (list.length ? '<div class="row"><input class="input" id="dec-note" placeholder="Message to employee (optional)" style="min-height:34px;max-width:240px"><button class="btn btn--ghost btn--sm" data-decide="reject">Reject selected</button><button class="btn btn--ok btn--sm" data-decide="approve">' + ico('check') + 'Approve selected</button></div>' : '') + '</div>' + timeTable(list, true, true) + '</section>';
   }, mount: function (root) {
     var all = $('#sel-all'); if (all) all.onchange = function () { $$('.sel', root).forEach(function (c) { c.checked = all.checked; }); };
     on(root, 'click', '[data-decide]', async function (e, b) {
@@ -494,6 +485,12 @@
       if (!ids.length) { toast('Select at least one entry.'); return; }
       try { await API.post('time/decide', { ids: ids, action: b.dataset.decide, note: $('#dec-note').value }); toast(ids.length + ' entr' + (ids.length > 1 ? 'ies ' : 'y ') + (b.dataset.decide === 'approve' ? 'approved' : 'rejected') + '.', 'ok'); refreshCounts(); render(); } catch (err) { fail(err); }
     });
+    $('#edit-rules', root).onclick = function () {
+      var r = state.timeRules;
+      modal('Office work schedule', '<form class="modal__body stack" id="rules-form"><p class="small muted">Clock-ins and clock-outs inside these hours (plus the grace minutes) are approved automatically. Anything earlier, later or on a day off waits for approval here.</p>' + schedFields(r, 'r') + '<label class="field"><span>Grace minutes</span><input class="input" type="number" min="0" max="120" name="grace" value="' + r.grace + '"><small class="muted">e.g. 15 means 8:45 AM – 5:15 PM still counts as on schedule.</small></label></form><div class="modal__foot"><button class="btn btn--ghost" data-close>Cancel</button><button class="btn" id="rules-save">Save</button></div>', {
+        mount: function (w, close) { $('#rules-save', w).onclick = async function () { var d = readSched(w, 'r'); d.grace = +$('input[name=grace]', w).value; try { await API.put('settings/time', d); close(); toast('Work schedule saved.', 'ok'); render(); } catch (e) { fail(e); } }; }
+      });
+    };
   } });
 
   /* ================================================================ payroll */
@@ -805,7 +802,7 @@
     var rows = Object.keys(people).map(function (k) { return people[k]; }).sort(function (a, b) { return a.name.localeCompare(b.name); });
     var grand = rows.reduce(function (a, r) { return a + r.total; }, 0);
     return '<div class="page-head"><div><h1>Worked time</h1><p>' + (all ? 'Weekly hours worked by office staff, from the time clock.' : 'Your weekly hours from the time clock.') + '</p></div><div class="row"><a class="btn btn--ghost btn--icon" href="#/worked?week=' + H.addDays(ws, -7) + '" aria-label="Previous week">' + ico('left') + '</a><b>' + esc(H.fmtDate(ws, { month: 'short', day: 'numeric' })) + ' – ' + esc(H.fmtDate(we)) + '</b><a class="btn btn--ghost btn--icon" href="#/worked?week=' + H.addDays(ws, 7) + '" aria-label="Next week">' + ico('right') + '</a>' + (can('clock') ? '<a class="btn" href="#/clock">' + ico('clock') + 'Time clock</a>' : '') + '</div></div>' +
-      '<div class="stats"><div class="stat"><div class="stat__label">' + ico('users') + 'People</div><div class="stat__value">' + rows.length + '</div></div><div class="stat"><div class="stat__label">' + ico('clock') + 'Total hours</div><div class="stat__value">' + H.hours(grand) + '</div></div><div class="stat"><div class="stat__label">' + ico('clock') + 'Over 40 h</div><div class="stat__value"' + (rows.some(function (r) { return r.total > 2400; }) ? ' style="color:var(--red)"' : '') + '>' + rows.filter(function (r) { return r.total > 2400; }).length + '</div></div><div class="stat"><div class="stat__label">' + ico('checkc') + 'Not approved yet</div><div class="stat__value">' + H.hours(rows.reduce(function (a, r) { return a + r.pending; }, 0)) + '</div></div></div>' +
+      '<div class="stats"><div class="stat"><div class="stat__label">' + ico('users') + 'People</div><div class="stat__value">' + rows.length + '</div></div><div class="stat"><div class="stat__label">' + ico('clock') + 'Total hours</div><div class="stat__value">' + H.hours(grand) + '</div></div><div class="stat"><div class="stat__label">' + ico('clock') + 'Over 40 h</div><div class="stat__value"' + (rows.some(function (r) { return r.total > 2400; }) ? ' style="color:var(--red)"' : '') + '>' + rows.filter(function (r) { return r.total > 2400; }).length + '</div></div><div class="stat"><div class="stat__label">' + ico('checkc') + 'Needs approval</div><div class="stat__value">' + H.hours(rows.reduce(function (a, r) { return a + r.pending; }, 0)) + '</div></div></div>' +
       '<section class="card">' + (rows.length ? '<div class="table-wrap"><table class="table worked"><thead><tr><th>Employee</th>' + days.map(function (d) { return '<th class="right' + (d === H.ymd() ? ' is-today' : '') + '">' + esc(H.fmtDate(d, { weekday: 'short' })) + '<div class="small muted">' + (+d.slice(8)) + '</div></th>'; }).join('') + '<th class="right">Total</th></tr></thead><tbody>' + rows.map(function (r) { return '<tr><td><b>' + esc(r.name) + '</b><div class="small muted">' + esc(r.designation) + '</div></td>' + days.map(function (d) { return '<td class="right">' + (r.days[d] ? H.hours(r.days[d]) : '<span class="muted">—</span>') + '</td>'; }).join('') + '<td class="right"><b' + (r.total > 2400 ? ' style="color:var(--red)"' : '') + '>' + H.hours(r.total) + '</b>' + (r.pending ? '<div class="small muted">' + H.hours(r.pending) + ' pending</div>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">' + ico('clock') + '<div>No clocked time this week.</div></div>') + '</section>';
   } });
 
@@ -1111,7 +1108,7 @@
   function userEditor(u, des) {
     var isAdmin = u.type === 'admin';
     modal('Manage ' + u.name, '<form class="modal__body stack" id="ue"><div class="grid-3"><label class="field"><span>Status</span><select class="input" name="status">' + ['active', 'pending', 'suspended', 'rejected'].map(function (s) { return '<option' + (u.status === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') + (u.status === 'unverified' ? '<option selected disabled>unverified</option>' : '') + '</select></label><label class="field"><span>Type</span><select class="input" name="type" id="ue-type">' + ['office', 'field', 'applicant'].concat(state.user.type === 'admin' ? ['admin'] : []).map(function (t) { return '<option value="' + t + '"' + (u.type === t ? ' selected' : '') + '>' + typeLabel({ type: t }) + '</option>'; }).join('') + '</select></label><label class="field"><span>Designation</span><select class="input" name="designation" id="ue-des"></select></label></div>' +
-      '<div class="field"><span class="label">Module access</span><label class="check" style="margin:6px 0 12px"><input type="checkbox" id="ue-custom"' + (u.customPermissions ? ' checked' : '') + (isAdmin ? ' disabled' : '') + '> Customize for this person <span class="muted small">(otherwise uses the designation\'s defaults)</span></label><div id="ue-perms"></div></div><p class="small muted">Account created ' + esc(H.fmtDate(u.createdAt)) + ' · Email ' + (u.emailVerified ? 'verified' : 'not verified') + '</p></form><div class="modal__foot"><button class="btn btn--ghost" data-close>Cancel</button><button class="btn" id="ue-save">Save changes</button></div>', {
+      '<div class="field"><span class="label">Module access</span><label class="check" style="margin:6px 0 12px"><input type="checkbox" id="ue-custom"' + (u.customPermissions ? ' checked' : '') + (isAdmin ? ' disabled' : '') + '> Customize for this person <span class="muted small">(otherwise uses the designation\'s defaults)</span></label><div id="ue-perms"></div></div><div class="field" id="ue-sched-wrap"><span class="label">Work schedule <span class="muted small">(office time inside it is approved automatically)</span></span><label class="check" style="margin:6px 0 10px"><input type="checkbox" id="ue-sched-own"' + (u.schedule ? ' checked' : '') + '> Different from the office schedule</label><div id="ue-sched"' + (u.schedule ? '' : ' hidden') + '>' + schedFields(u.schedule, 'u') + '</div></div><p class="small muted">Account created ' + esc(H.fmtDate(u.createdAt)) + ' · Email ' + (u.emailVerified ? 'verified' : 'not verified') + '</p></form><div class="modal__foot"><button class="btn btn--ghost" data-close>Cancel</button><button class="btn" id="ue-save">Save changes</button></div>', {
       wide: true, mount: function (w, close) {
         var type = $('#ue-type', w), dsel = $('#ue-des', w), custom = $('#ue-custom', w);
         function syncDes() { var t = type.value; dsel.innerHTML = t === 'admin' ? '<option>Administrator</option>' : t === 'applicant' ? '<option value="">—</option>' : des.filter(function (d) { return d.type === t; }).map(function (d) { return '<option' + (d.name === u.designation ? ' selected' : '') + '>' + esc(d.name) + '</option>'; }).join(''); }
@@ -1120,9 +1117,13 @@
           var sel = custom.checked && t !== 'admin' ? (u.customPermissions ? u.permissions : defaults) : defaults;
           $('#ue-perms', w).innerHTML = permMatrix(sel, !custom.checked || t === 'admin' || t === 'applicant');
         }
-        type.onchange = function () { syncDes(); syncPerms(); }; dsel.onchange = syncPerms; custom.onchange = syncPerms; syncDes(); syncPerms();
+        function syncSched() { $('#ue-sched-wrap', w).hidden = type.value !== 'office'; }
+        $('#ue-sched-own', w).onchange = function () { $('#ue-sched', w).hidden = !this.checked; };
+        type.onchange = function () { syncDes(); syncPerms(); syncSched(); }; dsel.onchange = syncPerms; custom.onchange = syncPerms; syncDes(); syncPerms(); syncSched();
         $('#ue-save', w).onclick = async function () {
-          var d = H.formData($('#ue', w)); delete d.perm;
+          var d = H.formData($('#ue', w)); delete d.perm; ['uday', 'ustart', 'uend'].forEach(function (k) { delete d[k]; });
+          d.schedule = type.value === 'office' && $('#ue-sched-own', w).checked ? readSched(w, 'u') : null;
+          if (d.schedule && !d.schedule.days.length) { toast('Pick at least one work day.'); return; }
           d.permissions = custom.checked && type.value !== 'admin' ? $$('input[name=perm]:checked', w).map(function (i) { return i.value; }) : null;
           try { await API.patch('users/' + u.id, d); close(); toast('Saved.', 'ok'); if (u.id === state.user.id) state.user = (await API.get('me')).user; refreshCounts(); render(); } catch (e) { fail(e); }
         };

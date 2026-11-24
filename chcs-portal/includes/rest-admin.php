@@ -105,6 +105,14 @@ add_action(
 					}
 				}
 				$params = $req->get_json_params();
+				if ( is_array( $params ) && array_key_exists( 'schedule', $params ) ) {
+					$sch = chcs_schedule_input( $params['schedule'] );
+					if ( $sch ) {
+						update_user_meta( $uid, 'chcs_schedule', $sch );
+					} else {
+						delete_user_meta( $uid, 'chcs_schedule' );
+					}
+				}
 				if ( is_array( $params ) && array_key_exists( 'permissions', $params ) ) {
 					if ( null === $params['permissions'] ) {
 						delete_user_meta( $uid, 'chcs_permissions' );

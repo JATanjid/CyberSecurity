@@ -114,11 +114,17 @@ add_action(
 					array(
 						'end'     => $end,
 						'minutes' => $mins,
-						'status'  => 'pending',
 						'note'    => $note ? trim( $t['note'] . ' · ' . $note, ' ·' ) : $t['note'],
 					)
 				);
-				chcs_audit( $me, 'time.clock_out', $mins . ' min' );
+				// Inside the work schedule: approved automatically. Outside it: waits in Approvals with the reason.
+				$flag = chcs_schedule_flag( $t );
+				$t    = chcs_rec_update(
+					'time',
+					$t['id'],
+					$flag ? array( 'status' => 'pending', 'flag' => $flag ) : array( 'status' => 'approved', 'autoApproved' => true, 'decidedAt' => chcs_now_iso() )
+				);
+				chcs_audit( $me, 'time.clock_out', $mins . ' min' . ( $flag ? ' · ' . $flag : ' · auto-approved' ) );
 				return chcs_decorate_time( $t );
 			}
 		);
@@ -326,6 +332,29 @@ add_action(
 					}
 				}
 				return $out;
+			}
+		);
+
+		chcs_route(
+			'GET',
+			'/settings/time',
+			'user',
+			function () {
+				return chcs_time_rules();
+			}
+		);
+		chcs_route(
+			'PUT',
+			'/settings/time',
+			array( 'approvals', 'settings' ),
+			function ( $req, $me ) {
+				$r = chcs_schedule_input( $req->get_json_params(), true );
+				if ( ! $r || ! $r['days'] ) {
+					return chcs_err( 400, 'Choose at least one work day and a start and end time.' );
+				}
+				update_option( 'chcs_time_rules', $r );
+				chcs_audit( $me, 'settings.time', implode( ',', $r['days'] ) . ' ' . $r['start'] . '-' . $r['end'] . ' grace ' . $r['grace'] );
+				return $r;
 			}
 		);
 	}

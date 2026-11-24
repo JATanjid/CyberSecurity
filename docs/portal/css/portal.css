@@ -458,3 +458,16 @@ td.late { color: var(--red); font-weight: 600; }
   .seg a { padding: 7px 10px; }
 }
 @media (max-width: 900px) { .cal__day { min-height: 92px; } .ev { font-size: .7rem; } }
+
+/* work schedule (approvals) */
+.dow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.dow label { cursor: pointer; }
+.dow input { position: absolute; opacity: 0; pointer-events: none; }
+.dow span { display: inline-flex; align-items: center; justify-content: center; min-width: 48px; height: 36px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--card, #fff); font-weight: 600; font-size: 14px; color: var(--muted); }
+.dow input:checked + span { background: var(--brand); border-color: var(--brand); color: #fff; }
+.dow input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
+.flag { display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; border-radius: 999px; background: #fff4e5; color: #8a4b00; font-size: 13px; font-weight: 600; }
+.flag .ico { width: 14px; height: 14px; }
+.rules .card__body { gap: 12px; }
+[hidden] { display: none !important; }
+.rules { margin-bottom: 18px; }

@@ -3,7 +3,7 @@
  * Plugin Name: CHCS Staff Portal
  * Plugin URI:  https://chcsny.com/portal/
  * Description: Staff & employee portal for Complete Home Care Services: sign-up with email verification, admin approvals, designations & permissions, time clock, timesheets, payroll Excel export, intake & case management, visit notes, chat, schedules, in-services, orientation, job applications, news & posts, and Resend email integration. Installable on phones as an app (PWA) at /portal/.
- * Version:     1.0.0
+ * Version:     1.3.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author:      CHCS Web Team
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CHCS_PORTAL_VERSION', '1.2.0' );
+define( 'CHCS_PORTAL_VERSION', '1.3.0' );
 define( 'CHCS_PORTAL_FILE', __FILE__ );
 define( 'CHCS_PORTAL_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CHCS_PORTAL_URL', plugin_dir_url( __FILE__ ) );

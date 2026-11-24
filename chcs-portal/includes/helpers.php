@@ -121,6 +121,7 @@ function chcs_user_pub( $uid, $full = false ) {
 		$o['customPermissions'] = is_array( get_user_meta( $uid, 'chcs_permissions', true ) );
 		$o['createdAt']         = mysql2date( 'c', $u->user_registered, false );
 		$o['emailVerified']     = user_can( $uid, 'manage_options' ) || (bool) get_user_meta( $uid, 'chcs_email_verified', true );
+		$o['schedule']          = chcs_user_schedule( $uid );
 	}
 	return $o;
 }
@@ -322,3 +323,93 @@ add_filter(
 		return in_array( 'chcs_staff', (array) $u->roles, true ) && ! current_user_can( 'edit_posts' ) ? false : $show;
 	}
 );
+
+/* ---------------------------------------------------------------- work schedules (office time approval) */
+
+/** Office-wide default schedule and grace minutes. Days: 0 = Sunday … 6 = Saturday. */
+function chcs_time_rules() {
+	$r = get_option( 'chcs_time_rules' );
+	$d = array(
+		'days'  => array( 1, 2, 3, 4, 5 ),
+		'start' => '09:00',
+		'end'   => '17:00',
+		'grace' => 15,
+	);
+	return is_array( $r ) ? array_merge( $d, $r ) : $d;
+}
+
+/** Validate a schedule from a request. Returns array or null. */
+function chcs_schedule_input( $s, $with_grace = false ) {
+	if ( ! is_array( $s ) ) {
+		return null;
+	}
+	$days = array_values( array_unique( array_filter( array_map( 'intval', (array) ( $s['days'] ?? array() ) ), function ( $d ) { return $d >= 0 && $d <= 6; } ) ) );
+	sort( $days );
+	$st = (string) ( $s['start'] ?? '' );
+	$en = (string) ( $s['end'] ?? '' );
+	if ( ! preg_match( '/^\d{2}:\d{2}$/', $st ) || ! preg_match( '/^\d{2}:\d{2}$/', $en ) ) {
+		return null;
+	}
+	$o = array( 'days' => $days, 'start' => $st, 'end' => $en );
+	if ( $with_grace ) {
+		$o['grace'] = max( 0, min( 120, (int) ( $s['grace'] ?? 15 ) ) );
+	}
+	return $o;
+}
+
+/** Personal schedule (array) or null when the person follows the office default. */
+function chcs_user_schedule( $uid ) {
+	$s = get_user_meta( $uid, 'chcs_schedule', true );
+	return is_array( $s ) ? $s : null;
+}
+
+/** The hours someone is expected to work on a date: a calendar shift wins, then their schedule, then the office default. */
+function chcs_schedule_for( $uid, $date ) {
+	$shifts = chcs_rec_query( 'shifts', array( 'owner' => (int) $uid, 'from' => $date, 'to' => $date ), 20 );
+	if ( $shifts ) {
+		$st = min( wp_list_pluck( $shifts, 'start' ) );
+		$en = max( wp_list_pluck( $shifts, 'end' ) );
+		return array( 'start' => $st, 'end' => $en );
+	}
+	$r   = chcs_user_schedule( $uid );
+	$r   = $r ? $r : chcs_time_rules();
+	$dow = (int) gmdate( 'w', strtotime( $date . ' 12:00:00 UTC' ) );
+	if ( ! in_array( $dow, array_map( 'intval', $r['days'] ), true ) ) {
+		return null;
+	}
+	return array( 'start' => $r['start'], 'end' => $r['end'] );
+}
+
+function chcs_fmt_minutes( $m ) {
+	$m = (int) round( $m );
+	return $m >= 60 ? floor( $m / 60 ) . ' h' . ( $m % 60 ? ' ' . ( $m % 60 ) . ' min' : '' ) : $m . ' min';
+}
+
+function chcs_fmt_hm( $hm ) {
+	list( $h, $i ) = array_map( 'intval', explode( ':', $hm ) );
+	return ( ( $h % 12 ) ? $h % 12 : 12 ) . ':' . str_pad( (string) $i, 2, '0', STR_PAD_LEFT ) . ( $h < 12 ? ' AM' : ' PM' );
+}
+
+/** Why a finished clock entry falls outside the work schedule ('' when it is inside, so it can be approved automatically). */
+function chcs_schedule_flag( $t ) {
+	$sc = chcs_schedule_for( $t['userId'], $t['date'] );
+	if ( ! $sc ) {
+		return 'Not a scheduled work day';
+	}
+	$g  = (int) chcs_time_rules()['grace'] * 60;
+	$s  = strtotime( chcs_local_to_iso( $t['date'], $sc['start'] ) );
+	$e  = strtotime( chcs_local_to_iso( $t['date'], $sc['end'] ) );
+	if ( $e <= $s ) {
+		$e += DAY_IN_SECONDS;
+	}
+	$ts  = strtotime( $t['start'] );
+	$te  = strtotime( $t['end'] );
+	$out = array();
+	if ( $ts < $s - $g ) {
+		$out[] = 'Clocked in ' . chcs_fmt_minutes( ( $s - $ts ) / 60 ) . ' early (starts ' . chcs_fmt_hm( $sc['start'] ) . ')';
+	}
+	if ( $te > $e + $g ) {
+		$out[] = 'Clocked out ' . chcs_fmt_minutes( ( $te - $e ) / 60 ) . ' late (ends ' . chcs_fmt_hm( $sc['end'] ) . ')';
+	}
+	return implode( ' · ', $out );
+}

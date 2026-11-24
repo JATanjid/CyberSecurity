@@ -63,6 +63,7 @@
       templates: { verify: true, password_reset: true, signup_admin: true, account_decision: true, application_received: true, application_decision: true, time_decision: true, shift_assigned: true, inservice_assigned: true, leave_request: true, leave_decision: true, call_assigned: true, task_assigned: true, task_reminder: true, new_post: false }
     };
     db.settings.leave = { vacation: 80, sick: 40, personal: 16, hoursPerDay: 8 };
+    db.settings.time = { days: [1, 2, 3, 4, 5], start: '09:00', end: '17:00', grace: 15 };
     db.settings.social = { facebook: 'https://www.facebook.com/CHCSNY/', instagram: 'https://www.instagram.com/chcsny/', youtube: '', linkedin: '' };
 
     // Cases
@@ -72,14 +73,20 @@
     insert('cases', { patientName: 'Samuel Okafor', dob: '1946-01-19', phone: '(516) 555-0166', address: '12 Main St, Hempstead', borough: 'Nassau County', referralSource: 'Website', referrerName: '', insurance: '', physician: '', services: ['Occupational Therapy'], status: 'new', priority: 'normal', assigned: [], createdBy: james.id });
     insert('caseNotes', { caseId: c1.id, userId: james.id, body: 'Start of care completed. RN visits 2x/week, HHA daily 4h.' });
 
-    // Time entries: last week approved, this week pending
-    function entry(u, dOff, h1, h2, source, status, caseId) {
+    // Time entries: office clock punches on recent weekdays. Inside the schedule = approved automatically; outside = waits for approval.
+    james.schedule = { days: [1, 2, 3, 4, 5], start: '08:30', end: '17:00' };
+    function entry(u, dOff, h1, h2) {
       var d = today(dOff), s = new Date(d + 'T' + h1 + ':00'), e = new Date(d + 'T' + h2 + ':00');
-      insert('time', { userId: u.id, date: d, start: s.toISOString(), end: e.toISOString(), minutes: Math.round((e - s) / 60000), source: source, status: status, caseId: caseId || null, note: '' });
+      var t = insert('time', { userId: u.id, date: d, start: s.toISOString(), end: e.toISOString(), minutes: Math.round((e - s) / 60000), source: 'clock', note: '' });
+      var f = scheduleFlag(t); if (f) { t.status = 'pending'; t.flag = f; } else { t.status = 'approved'; t.autoApproved = true; }
     }
-    [-9, -8, -7, -6, -5].forEach(function (o) { entry(maria, o, '09:00', '17:30', 'clock', 'approved'); entry(james, o, '08:30', '17:00', 'clock', 'approved'); entry(grace, o, '09:00', '13:00', 'manual', 'approved', c1.id); });
-    [-3, -2, -1].forEach(function (o) { entry(maria, o, '09:05', '17:20', 'clock', 'pending'); entry(grace, o, '09:00', '13:00', 'manual', 'pending', c1.id); });
-    entry(grace, 0, '09:00', '13:00', 'manual', 'draft', c1.id);
+    var wd = []; for (var k = -1; wd.length < 7; k--) { var dw = new Date(today(k) + 'T12:00:00').getDay(); if (dw > 0 && dw < 6) wd.push(k); }
+    wd.forEach(function (o, n) {
+      entry(maria, o, n === 0 ? '08:20' : '09:02', '17:05');
+      entry(james, o, '08:31', n === 1 ? '18:45' : '17:00');
+    });
+    var sat = wd.length && (function () { for (var k = -1; k > -8; k--) if (new Date(today(k) + 'T12:00:00').getDay() === 6) return k; })();
+    if (sat) entry(james, sat, '10:00', '13:00');
 
     // Shifts
     [0, 1, 2, 3, 4].forEach(function (o) {
@@ -159,7 +166,7 @@
   function pub(u, full) {
     if (!u) return null;
     var o = { id: u.id, name: u.name, type: u.type, designation: u.designation, status: u.status };
-    if (full) { o.email = u.email; o.phone = u.phone; o.permissions = perms(u); o.customPermissions = Array.isArray(u.permissions); o.createdAt = u.createdAt; o.emailVerified = !!u.emailVerified; }
+    if (full) { o.email = u.email; o.phone = u.phone; o.permissions = perms(u); o.customPermissions = Array.isArray(u.permissions); o.createdAt = u.createdAt; o.emailVerified = !!u.emailVerified; o.schedule = u.schedule || null; }
     return o;
   }
   function me() { return db.session ? user(db.session) : null; }
@@ -287,6 +294,7 @@
     ['name', 'phone', 'designation'].forEach(function (k) { if (b[k] != null) u[k] = str(b[k], 100); });
     if (b.type && ['admin', 'office', 'field', 'applicant'].indexOf(b.type) !== -1) { if (b.type === 'admin' && a.type !== 'admin') throw err(403, 'Only admins can create admins.'); u.type = b.type; }
     if (b.status && ['pending', 'active', 'rejected', 'suspended'].indexOf(b.status) !== -1) u.status = b.status;
+    if ('schedule' in b) u.schedule = scheduleInput(b.schedule);
     if (b.permissions === null) u.permissions = null;
     else if (Array.isArray(b.permissions)) u.permissions = b.permissions.filter(function (x) { return MODULES.some(function (m) { return m[0] === x; }); });
     if (before !== u.status && (u.status === 'active' || u.status === 'rejected')) {
@@ -339,6 +347,32 @@
     return col('audit').slice().reverse().slice(0, 300).map(function (a) { var u = user(a.userId); return Object.assign({}, a, { userName: u ? u.name : '—' }); });
   });
 
+  // ---- work schedules: a calendar shift wins, then the person's schedule, then the office default
+  function timeRules() { return Object.assign({ days: [1, 2, 3, 4, 5], start: '09:00', end: '17:00', grace: 15 }, (db.settings && db.settings.time) || {}); }
+  function scheduleInput(x, withGrace) {
+    if (!x || typeof x !== 'object' || !/^\d{2}:\d{2}$/.test(x.start || '') || !/^\d{2}:\d{2}$/.test(x.end || '')) return null;
+    var o = { days: (x.days || []).map(Number).filter(function (d, i, a) { return d >= 0 && d <= 6 && a.indexOf(d) === i; }).sort(), start: x.start, end: x.end };
+    if (withGrace) o.grace = Math.max(0, Math.min(120, parseInt(x.grace, 10) || 0));
+    return o;
+  }
+  function scheduleFor(uid, date) {
+    var sh = col('shifts').filter(function (s) { return s.userId === uid && s.date === date; });
+    if (sh.length) return { start: sh.map(function (s) { return s.start; }).sort()[0], end: sh.map(function (s) { return s.end; }).sort().pop() };
+    var u = user(uid), r = (u && u.schedule) || timeRules();
+    return r.days.indexOf(new Date(date + 'T12:00:00').getDay()) === -1 ? null : { start: r.start, end: r.end };
+  }
+  function fmtMin(m) { m = Math.round(m); return m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min'; }
+  function fmtHM(hm) { var h = +hm.slice(0, 2); return ((h % 12) || 12) + ':' + hm.slice(3) + (h < 12 ? ' AM' : ' PM'); }
+  function scheduleFlag(t) {
+    var sc = scheduleFor(t.userId, t.date); if (!sc) return 'Not a scheduled work day';
+    var g = timeRules().grace * 60000, s = new Date(t.date + 'T' + sc.start + ':00').getTime(), e = new Date(t.date + 'T' + sc.end + ':00').getTime();
+    if (e <= s) e += 86400000;
+    var ts = new Date(t.start).getTime(), te = new Date(t.end).getTime(), out = [];
+    if (ts < s - g) out.push('Clocked in ' + fmtMin((s - ts) / 60000) + ' early (starts ' + fmtHM(sc.start) + ')');
+    if (te > e + g) out.push('Clocked out ' + fmtMin((te - e) / 60000) + ' late (ends ' + fmtHM(sc.end) + ')');
+    return out.join(' · ');
+  }
+
   // ---- time
   function decorateTime(t) { var u = user(t.userId); var c = t.caseId ? find('cases', t.caseId) : null; return Object.assign({}, t, { userName: u ? u.name : '—', designation: u ? u.designation : '', patientName: c ? c.patientName : '' }); }
   route('GET', 'time/entries', function (p, b, q) {
@@ -361,7 +395,8 @@
   route('POST', 'time/clock-out', function (p, b) {
     var u = requirePerm('clock'), t = col('time').find(function (x) { return x.userId === u.id && x.status === 'open'; });
     if (!t) throw err(400, 'You are not clocked in.');
-    t.end = now(); t.minutes = Math.max(1, Math.round((new Date(t.end) - new Date(t.start)) / 60000)); t.status = 'pending';
+    t.end = now(); t.minutes = Math.max(1, Math.round((new Date(t.end) - new Date(t.start)) / 60000));
+    var flag = scheduleFlag(t); if (flag) { t.status = 'pending'; t.flag = flag; } else { t.status = 'approved'; t.autoApproved = true; t.decidedAt = now(); }
     if (b.note) t.note = (t.note ? t.note + ' · ' : '') + str(b.note, 300);
     audit(u.id, 'time.clock_out', t.minutes + ' min'); save(); return decorateTime(t);
   });
@@ -904,6 +939,12 @@
   route('DELETE', 'tasks/:id', function (p) { var u = requirePerm('tasks'), t = find('tasks', p.id); if (!t) throw err(404, 'Not found.'); if (t.createdBy !== u.id && !can(u, 'tasks_manage')) throw err(403, 'Only the person who created it (or a manager) can delete it.'); col('tasks').splice(col('tasks').indexOf(t), 1); audit(u.id, 'tasks.delete', t.title); save(); return { ok: true }; });
 
   // ---- website social links (shown on the website and in the portal)
+  route('GET', 'settings/time', function () { requireUser(); return timeRules(); });
+  route('PUT', 'settings/time', function (p, b) {
+    var u = requireUser(); if (!can(u, 'approvals') && !can(u, 'settings')) throw err(403, 'No access.');
+    var r = scheduleInput(b, true); if (!r || !r.days.length) throw err(400, 'Choose at least one work day and a start and end time.');
+    db.settings.time = r; audit(u.id, 'settings.time', r.days.join(',') + ' ' + r.start + '-' + r.end); save(); return clone(r);
+  });
   route('GET', 'settings/social', function () { return clone(db.settings.social || {}); });
   route('PUT', 'settings/social', function (p, b) {
     var u = requireUser(); if (!can(u, 'settings') && !can(u, 'news_manage')) throw err(403, 'No access.');

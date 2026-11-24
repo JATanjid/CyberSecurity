@@ -9,7 +9,7 @@ A staff and employee portal for **Complete Home Care Services**. It runs inside 
 |---|---|
 | **Everyone** | Sign up and sign in, **email verification**, forgot password, profile, dashboard, news and posts, a **notification bell** (with phone notifications when allowed), and the phone app |
 | **Office staff** | **Time clock** (office staff only) and **Worked time** (weekly hours per office employee), **vacation and sick leave** requests with yearly balances, **Call dashboard**, **Tasks & deadlines** (task calendar with repeating tasks), **office calendar**, chat with **✓ sent / ✓✓ delivered / blue ✓✓ seen** ticks, intake and cases (list view), forms |
-| **Field staff (PCA / HHA / LPN / RN)** | Chat with the office, **In-services tab** (due dates, the Training Center inside the tab with their profile name filled in, **"Ask the nurse" chat while taking a test**), **calendar showing only their in-service due dates**, **timesheet with the HHA duty sheet inside (if allowed)**, **orientation (if allowed)**, forms. Field staff clock in and out of visits in **HHAeXchange**, so the portal has no clock or visit notes for them |
+| **Field staff (PCA / HHA / LPN / RN)** | Chat with the office, **In-services tab** (due dates, the Training Center inside the tab with their profile name filled in, **"Ask the nurse" chat while taking a test**), **calendar showing only their in-service due dates**, **timesheet = the HHA duty sheet (if allowed)**, **orientation (if allowed)**, forms. Field staff clock in and out of visits in **HHAeXchange**, so the portal has no clock or visit notes for them |
 | **Nurse (Nursing Supervisor)** | **Assign in-services** (Training Center courses or portal quizzes) to employees with due dates, track who's done or overdue, and answer employees' questions in chat |
 | **Job applicants** | Must **verify their email** before they can apply. Then they fill in the application, and HR approves (hires) or rejects them |
 | **Admin panel** | Approve accounts; set **designations** and per-person **access**; approve time and **leave**; **payroll Excel export** (regular, overtime and leave hours); training setup; publish **news and posts** to the portal and/or the website; **connect Resend** for automatic emails; audit log |
@@ -36,7 +36,7 @@ Use it for administrative work with a due date: license renewals, audits, payrol
 - **On phones**, every calendar scrolls left and right.
 
 ### Worked time
-Weekly hours from the office time clock, per employee and per day, with totals. Anyone over 40 hours is shown in red, and "not approved yet" hours are listed separately. Employees see their own hours; people with *Approve time* or *Payroll export* see the whole office.
+Weekly hours from the office time clock, per employee and per day, with totals. Anyone over 40 hours is shown in red, and hours that still need approval are listed separately. Employees see their own hours; people with *Approve time* or *Payroll export* see the whole office.
 
 ### Website & social media
 In **Admin → Website & social**, enter the Facebook, Instagram, YouTube and LinkedIn links. They show as icons on the website (top bar and footer), in the portal sidebar and on the sign-in page. Leave a link blank to hide its icon.
@@ -99,7 +99,11 @@ Apple and Google developer accounts.)*
 - **Office sign-up:** create account, verify email, admin approves (Admin → Users & access → Approve), user signs in.
 - **Job applicant:** create account ("Apply for a job"), verify email, fill in the application, HR approves and picks the designation,
   and ticks **Allow orientation** and/or **Allow timesheet**. The person becomes field staff.
-- **Time:** office staff clock in and out (field staff use HHAeXchange), and field staff allowed a timesheet add hours and submit the week. Both go to **Approvals**.
+- **Time:** office staff clock in and out (field staff use HHAeXchange). Time **inside the work schedule is approved automatically**. Only time **outside** it goes to **Approvals**: clocking in early, clocking out late (beyond the grace minutes) or working on a day off. Each entry shows the reason, e.g. "Clocked out 1 h 45 min late (ends 5:00 PM)".
+  - **Office schedule:** set in **Approvals → Office work schedule → Change** (default Mon–Fri 9:00 AM – 5:00 PM, 15 minutes grace).
+  - **Personal schedule:** in **Admin → Users & access → Manage**, tick *Different from the office schedule*.
+  - A **shift on the office calendar** for that day takes priority over both.
+- **Timesheet (field staff):** the weekly HHA / PCA duty sheet, signed and submitted as a PDF. Visit hours stay in HHAeXchange.
   **Payroll export** then downloads an Excel file with a *Summary* sheet (regular / overtime over 40 hours per Mon–Sun week / total) and a *Detail* sheet.
 - **Intake:** one list of every referral and case, with status tabs (New, Verifying insurance, Assessment, Active, On hold,
   Discharged, Declined), search, case notes and the care team.
@@ -114,6 +118,9 @@ Apple and Google developer accounts.)*
   (`app/forms/chcs-form-theme.css` and `.js`). This was verified by comparing the PDF page images against the original forms on desktop and phone.
 - **In-services:** the In-Service Training Center is part of the **In-services** tab, not a form. It shows the employee's profile name,
   due dates come from the nurse's assignments, and finishing a course is recorded automatically and tells the nurse.
+
+## Updating from version 1.2
+Upload the new zip. Nothing to migrate: the office schedule starts at Mon–Fri 9–5 with 15 minutes grace; change it in Approvals. Entries already waiting stay in Approvals.
 
 ## Updating from version 1.1
 Upload the new zip the same way. The update runs once by itself: office designations gain **Tasks & deadlines**, and Office Manager and HR Coordinator gain **Assign tasks**.
